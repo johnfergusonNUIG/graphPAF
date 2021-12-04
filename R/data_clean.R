@@ -9,12 +9,6 @@
 #' @return A cleaned dataset
 #' @export
 #' @examples
-data(stroke_reduced)
-model <- glm(formula = case ~ regionnn7*ns(eage, df = 5) + esex*ns(eage, df = 5) + subeduc +phys + ns(aheiscore, df = 3) + nevfcur + alcohfreqwk + global_stress2 + ns(apob_apoa,df = 3) + ns(whr, df = 3) + htnadmbp, family = "binomial", data = stroke_reduced)
-unclean_stroke <- rbind(stroke_reduced,rep(NA,ncol(stroke_reduced)+1))
-clean_stroke <- data_clean(model, unclean_stroke)
-dim(clean_stroke)
-dim(unclean_stroke)
 data_clean <- function(data,model=NULL,vars=NULL,response="case", prev=NULL){
 if(is.null(vars)){
   model_type <- NULL
