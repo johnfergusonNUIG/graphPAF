@@ -1,7 +1,7 @@
 #' Simulated case control dataset for 459 stroke cases and 459 stroke controls
 #'
 #'
-#' Dataset containing simulated data on risk factors for 459 stroke cases and 459 stroke control, based on risk factors and associations in the INTERSTROKE study
+#' Dataset containing simulated data on risk factors for 6856 stroke cases and 6856 stroke control, based on risk factors and associations in the INTERSTROKE study
 #'
 #'
 #' @format A data frame with 459 rows and 19 variables:
