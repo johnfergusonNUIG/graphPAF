@@ -13,6 +13,7 @@
 #' @param ci_type Character.  A vector specifying the types of confidence interval desired, as available in the 'Boot' package. The default is c('norm'), which calculates a symmetric confidence interval: (Est-Bias +- 1.96*SE), with the standard error calculated via Bootstrap.  Other choices are 'basic', 'perc' and 'bca'.  Increasing the number of Bootstrap repetitions is recommended for the 'basic', 'perc' and 'bca' methods.
 #' @return An estimated PAF if ci=FALSE, or for survival data a vector of estimated PAF corresponding to event times in the data.  If ci=TRUE, a vector with elements corresponding to the raw estimate, estiamted bias, bias corrected estimate and lower and upper elements of any confidence procedures requested.  If ci=TRUE, and a coxph model is fit, a matrix will be returned, with rows corresponding to differing times at which the PAF might be calculated.
 #' @export
+#'
 #' @examples
 #' data(stroke_reduced)
 #' library(splines)

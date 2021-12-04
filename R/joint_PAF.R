@@ -158,7 +158,8 @@ joint_paf_no_CI <- function(data, model_list, parent_list, node_vec,  prev=.09, 
 #' @param ci_level_ME Numeric.  Default 0.95. A number between 0 and 1 specifying the level of the margin of error for the point estimate
 #' @return A dataframe with average joint and sequential PAF for all risk factors in node_vec (or alternatively a subset of those risk factors if specified in vars).
 #' @export
-
+#'
+#' @examples
 joint_paf <- function(data, model_list, parent_list, node_vec, prev=.09, nsim=NULL, correct_order=2, vars=NULL,ci=FALSE,boot_rep=100, ci_type=c("norm"),ci_level=0.95, ci_level_ME=0.95){
   if(!node_order(parent_list=parent_list,node_vec=node_vec)){
     stop("ancestors must be specified before descendants in node_vec")

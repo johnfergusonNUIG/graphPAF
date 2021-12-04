@@ -4,6 +4,8 @@
 #' @param nrows integer How many rows of plots will be included on the associated figure.
 #' @return A plot illustrating average sequential PAF by position and average PAF by risk factor.
 #' @export
+#'
+#' @examples
 plot_sequential <- function(SAF_summary,number_rows){
 
   riskfactors <- unique(gsub(pattern="(.*)_[0-9]*$",replacement="\\1",x=rownames(SAF_summary)[grep(pattern="^.*_[0-9]*$",x=rownames(SAF_summary),perl=TRUE)]))
