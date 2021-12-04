@@ -3,9 +3,9 @@
 \docType{data}
 \name{stroke_reduced}
 \alias{stroke_reduced}
-\title{Simulated case control dataset for 459 stroke cases and 459 stroke controls}
+\title{Simulated case control dataset for 6856 stroke cases and 6856 stroke controls}
 \format{
-A data frame with 459 rows and 19 variables:
+A data frame with 13712 rows and 19 variables:
 \describe{
 \item{region}{Geographic region, 1: Western Europe, 2: Eastern/central Europe/Middle East 3: Africa, 4: South Asia, 5: China, 6: South East Asia, 7: South America}
 \item{case}{case control status, (1 for stroke cases)}
@@ -37,6 +37,6 @@ Data simulated based on relationships described in \url{https://www.thelancet.co
 stroke_reduced
 }
 \description{
-Dataset containing simulated data on risk factors for 459 stroke cases and 459 stroke control, based on risk factors and associations in the INTERSTROKE study
+Dataset containing simulated data on risk factors for 6856 stroke cases and 6856 stroke control, based on risk factors and associations in the INTERSTROKE study
 }
 \keyword{datasets}

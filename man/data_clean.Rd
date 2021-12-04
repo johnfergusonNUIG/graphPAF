@@ -19,12 +19,5 @@ data_clean(data, model = NULL, vars = NULL, response = "case", prev = NULL)
 A cleaned dataset
 }
 \description{
-Strip out unneeded variables from original data (based on fitted model), and remove rows with NA values.  If  The function works for logistic, survival and conditional logistic regressions.  The function also creates a column of weights
-}
-\examples{
-model <- glm(formula = case ~ regionnn7*ns(eage, df = 5) + esex*ns(eage, df = 5) + subeduc +phys + ns(aheiscore, df = 3) + nevfcur + alcohfreqwk + global_stress2 + ns(apob_apoa,df = 3) + ns(whr, df = 3) + htnadmbp, family = "binomial", data = stroke_reduced)
-unclean_stroke <- rbind(stroke_reduced,rep(NA,ncol(stroke_reduced)+1))
-clean_stroke <- data_clean(model, unclean_stroke)
-dim(clean_stroke)
-dim(unclean_stroke)
+Strip out unneeded variables from original data (based on fitted model, or alternatively based on specifying a list of variables), and remove rows with NA values.  The function works for logistic, survival and conditional logistic regressions.  The function also creates a column of weights, which will be just a vector of 1s if prevalence is unspecified.
 }

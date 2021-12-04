@@ -2,7 +2,7 @@
 % Please edit documentation in R/joint_PAF.R
 \name{joint_paf}
 \alias{joint_paf}
-\title{General calculations of impact fractions}
+\title{Calculation of joint, average and sequential paf taking into account risk factor sequencing}
 \usage{
 joint_paf(
   data,
@@ -10,8 +10,8 @@ joint_paf(
   parent_list,
   node_vec,
   prev = 0.09,
-  nsim = 100,
-  correct_order = 3,
+  nsim = NULL,
+  correct_order = 2,
   vars = NULL,
   ci = FALSE,
   boot_rep = 100,
@@ -29,7 +29,7 @@ joint_paf(
 
 \item{node_vec}{A vector corresponding to the nodes in the Bayesian network.  This must be specified from root to leaves - that is ancestors in the causal graph for a particular node are positioned before their descendants.  If this condition is false the function will return an error.}
 
-\item{nsim}{Number of random permutations used to calculate average and sequential PAF.  If correct_order is set to an integer value, nsim is ignored.}
+\item{nsim}{Default NULL Number of random permutations used to calculate average and sequential PAF.  If correct_order is set to an integer value, nsim is reset to the largest integer multiple of correct_order that is less than the number of permutations implied by correct_order.}
 
 \item{correct_order}{Default 3.  This enforces stratified sampling of permutations where the first correct_order positions of the sampled permutations are evenly distributed over the integers 1 ... n, n being the number of risk factors of interest, over the sampled permutations.  The other positions are randomly sampled.  This automatically sets the number of simulations.  For interest, if n=10 and correct_order=3, nsim is set to factorial(n)/factorial(n-correct_order).  This special resampling reduces Monte Carlo variation in estimated average and sequential PAFs.}
 
@@ -47,5 +47,5 @@ joint_paf(
 A dataframe with average joint and sequential PAF for all risk factors in node_vec (or alternatively a subset of those risk factors if specified in vars).
 }
 \description{
-General calculations of impact fractions
+Calculation of joint, average and sequential paf taking into account risk factor sequencing
 }
