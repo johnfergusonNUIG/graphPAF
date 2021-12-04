@@ -1,4 +1,3 @@
-
 #' Create a summary data frame for risk factors
 #'
 #' Create a summary data frame for risk factors, prevalence and risk ratios.  This will be used in fan plots and nomograms
@@ -12,10 +11,7 @@
 #' @export
 #'
 #' @examples
-#'
 #' rfs <- rf_summary(rf_names=c('Hypertension','Inactivity','ApoB/ApoA','Diet','WHR','Smoking','Cardiac causes','Alcohol','Global Stress','Diabetes'),rf_prev=c(.474,.837,.669,.67,.67,.224,.049,.277,.144,.129),risk=c(1.093,0.501,0.428,0.378,0.294,0.513,1.156,0.186,0.301,0.148),log=TRUE)
-
-
 rf_summary <- function(rf_names, rf_prev, risk, log=TRUE){
   stopifnot(length(rf_names)==length(rf_prev) & length(rf_prev)==length(risk))
   stopifnot(is.character(rf_names))
@@ -43,10 +39,8 @@ rf_summary <- function(rf_names, rf_prev, risk, log=TRUE){
 #' @export
 #'
 #' @examples
-#'
 #' rfs <- rf_summary(rf_names=c('Hypertension','Inactivity','ApoB/ApoA','Diet','WHR','Smoking','Cardiac causes','Alcohol','Global Stress','Diabetes'),rf_prev=c(.474,.837,.669,.67,.67,.224,.049,.277,.144,.129),risk=c(1.093,0.501,0.428,0.378,0.294,0.513,1.156,0.186,0.301,0.148),log=TRUE)
 #' fan_plot(rfs)
-
 fan_plot <- function(rf_data_frame){
 
     if(!class(rf_data_frame)=='rf.data.frame'){
