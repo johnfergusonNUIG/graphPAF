@@ -1,10 +1,10 @@
-#' Simulated case control dataset for 459 stroke cases and 459 stroke controls
+#' Simulated case control dataset for 6856 stroke cases and 6856 stroke controls
 #'
 #'
 #' Dataset containing simulated data on risk factors for 6856 stroke cases and 6856 stroke control, based on risk factors and associations in the INTERSTROKE study
 #'
 #'
-#' @format A data frame with 459 rows and 19 variables:
+#' @format A data frame with 13712 rows and 19 variables:
 #' \describe{
 #'   \item{region}{Geographic region, 1: Western Europe, 2: Eastern/central Europe/Middle East 3: Africa, 4: South Asia, 5: China, 6: South East Asia, 7: South America}
 #'   \item{case}{case control status, (1 for stroke cases)}
