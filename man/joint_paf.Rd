@@ -70,7 +70,7 @@ model_list=automatic_fit(data=Hordaland_data, parent_list=parent_list, node_vec=
 # By default the function works by stratified simulation of permutations and subsequent simulation of the incremental interventions on the distribution of risk factors.  The permuations are stratified so each factor appears equally often in the first correct_order positions.  correct_order has a default of 2.
 joint_paf(data=Hordaland_data, model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=.09, nsim=10,vars = c("urban.rural","occupational.exposure"),ci=FALSE)
 
-More complicated example (slower to run)
+# More complicated example (slower to run)
 parent_exercise <- c("education")
 parent_diet <- c("education")
 parent_smoking <- c("education")
@@ -87,5 +87,5 @@ node_vec=c("exercise","diet","smoking","alcohol","stress","high_blood_pressure",
 model_list=automatic_fit(data=stroke_reduced, parent_list=parent_list, node_vec=node_vec, prev=.0035,common="region*ns(age,df=5)+sex*ns(age,df=5)", spline_nodes = c("waist_hip_ratio","lipids","diet"))
 out <- joint_paf(data=stroke_reduced, model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=.0035, nsim=25, correct_order=1, vars = c("high_blood_pressure","smoking","stress","exercise","alcohol","diabetes","early_stage_heart_disease"),ci=TRUE,boot_rep=10)
 # plot sequential and average PAFs by risk factor
-plot_sequential(out, nrow=3)
+plot_sequential(out, number_rows=3)
 }
