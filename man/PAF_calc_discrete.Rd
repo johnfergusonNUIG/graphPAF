@@ -49,8 +49,12 @@ An estimated PAF if ci=FALSE, or for survival data a vector of estimated PAF cor
 Calculation of attributable fraction using a categorized risk factor
 }
 \examples{
-data(stroke_reduced)
 library(splines)
+library(survival)
+library(parallel)
+options(boot.parallel="snow")
+options(boot.ncpus=parallel::detectCores())
+data(stroke_reduced)
 model_exercise <- glm(formula = case ~ region * ns(age, df = 5) + sex * ns(age, df = 5) + education + exercise + ns(diet, df = 3) + smoking + alcohol + stress, family = "binomial", data = stroke_reduced)
 # calculate discrete PAF using Bruzzi method
 PAF_calc_discrete(model_exercise, "exercise", refval=0, data=stroke_reduced, calculation_method="B")

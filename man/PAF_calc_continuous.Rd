@@ -51,6 +51,11 @@ A vector of estimated PAF if ci=FALSE, corresponding to the quantiles specified 
 Calculation of attributable fraction with a continuous risk factor
 }
 \examples{
+library(splines)
+library(survival)
+library(parallel)
+options(boot.parallel="snow")
+options(boot.ncpus=parallel::detectCores())
 # Example with logistic regression.  PAF_q (as in Ferguson, 2020) estimated at q=0.01, 0.1, 0.3, 0.5, 0.7. 0.9.  PAF_0.01 is roughly analogous to 'eliminating' a discrete risk factor, but its estimation may be unstable for some exposures, and the corresponding intervention may be impractical.  Comparing PAF_q for q >= 0.1 over different risk factors may lead to more sensible comparisons of disease burden.  Either method (direct, D, or Bruzzi )
 model_continuous <- glm(formula = case ~ region * ns(age, df = 5) + sex * ns(age, df = 5) + education +exercise + ns(diet, df = 3) + alcohol + stress + ns(lipids,df = 3) + ns(waist_hip_ratio, df = 3) + high_blood_pressure, family = "binomial", data = stroke_reduced)
 

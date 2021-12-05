@@ -50,6 +50,11 @@ A dataframe with average joint and sequential PAF for all risk factors in node_v
 Calculation of joint, average and sequential paf taking into account risk factor sequencing
 }
 \examples{
+library(splines)
+library(survival)
+library(parallel)
+options(boot.parallel="snow")
+options(boot.ncpus=parallel::detectCores())
 #  Simulated data on occupational and environmental exposure to chronic cough from Eide, 1995
 # First specify the causal graph, in terms of the parents of each node.  Then put into a list
 parent_urban.rural <- c()

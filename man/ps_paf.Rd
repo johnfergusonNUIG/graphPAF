@@ -47,6 +47,11 @@ An estimated impact if ci=FALSE, or for survival data a vector of estimated impa
 General calculations of impact fractions
 }
 \examples{
+library(splines)
+library(survival)
+library(parallel)
+options(boot.parallel="snow")
+options(boot.ncpus=parallel::detectCores())
 # Direct and pathway specific attributable fractions estimated on simulated case control stroke data:
 # Note that the nodes here are weighted regressions (based on a column in the dataframe named 'weights') to rebalance the case control structure to make it representative over the population, according to the prev argument.
 # Unweighted regression is fine to use if the data arises from cohort or cross sectional studies, in which case prev should be set to NULL

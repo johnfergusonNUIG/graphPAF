@@ -160,6 +160,11 @@ joint_paf_no_CI <- function(data, model_list, parent_list, node_vec,  prev=.09, 
 #' @export
 #'
 #' @examples
+#' library(splines)
+#' library(survival)
+#' library(parallel)
+#' options(boot.parallel="snow")
+#' options(boot.ncpus=parallel::detectCores())
 #' #  Simulated data on occupational and environmental exposure to chronic cough from Eide, 1995
 #' # First specify the causal graph, in terms of the parents of each node.  Then put into a list
 #' parent_urban.rural <- c()
@@ -517,6 +522,36 @@ make_formula <- function(parents,outcome_node,common='',spline_nodes=c(),df_spli
   }
   result
 }
+#' Automatic fitting models for Bayesian network.
+#'
+#' Main effects models are fit by default.  For continuosu variables, lm is used, for binary (numeric 0/1 variables), glm is used and for factor valued variables polr is used.  For factors, ensure that the factor levels are ordered by increasing levels of risk.  If interactions are required for certain models, it is advisable to populate the elements of model_list separately.
+#'
+#' @param data Data frame. A dataframe containing variables used for fitting the models.  Must contain all variables used in fitting
+#' @param parent_list A list.  The ith element is the vector of variable names that are direct causes of ith variable in node_vec
+#' @param node_vec A vector corresponding to the nodes in the Bayesian network.  This must be specified from root to leaves - that is ancestors in the causal graph for a particular node are positioned before their descendants.  If this condition is false the function will return an error.
+#' @param prev  Prevalence of disease.  Set to NULL for cohort or cross sectional studies
+#' @param common character text for part of the model formula that doesn't involve any variable in node_vec.  Useful for specifying confounders involved in all models automatically
+#' @param spline_nodes  Vector of continuous variable names that are fit as splines (when involved as parents)
+#' @param df_spline_nodes How many df for each spline node
+#' @return A list of models corresponding to node_vec and parent_vec.
+#' @export
+#'
+#' @examples
+#' More complicated example (slower to run)
+#' parent_exercise <- c("education")
+#' parent_diet <- c("education")
+#' parent_smoking <- c("education")
+#' parent_alcohol <- c("education")
+#' parent_stress <- c("education")
+#' parent_high_blood_pressure <- c("education","exercise","diet","smoking","alcohol","stress")
+#' parent_lipids <- c("education","exercise","diet","smoking","alcohol","stress")
+#' parent_waist_hip_ratio <- c("education","exercise","diet","smoking","alcohol","stress")
+#' parent_early_stage_heart_disease <- c("education","exercise","diet","smoking","alcohol","stress","lipids","waist_hip_ratio","high_blood_pressure")
+#' parent_diabetes <- c("education","exercise","diet","smoking","alcohol","stress","lipids","waist_hip_ratio","high_blood_pressure")
+#' parent_case <- c("education","exercise","diet","smoking","alcohol","stress","lipids","waist_hip_ratio","high_blood_pressure","early_stage_heart_disease","diabetes")
+#' parent_list <- list(parent_exercise,parent_diet,parent_smoking,parent_alcohol,parent_stress,parent_high_blood_pressure,parent_lipids,parent_waist_hip_ratio,parent_early_stage_heart_disease,parent_diabetes,parent_case)
+#' node_vec=c("exercise","diet","smoking","alcohol","stress","high_blood_pressure","lipids","waist_hip_ratio","early_stage_heart_disease","diabetes","case")
+#' model_list=automatic_fit(data=stroke_reduced, parent_list=parent_list, node_vec=node_vec, prev=.0035,common="region*ns(age,df=5)+sex*ns(age,df=5)", spline_nodes = c("waist_hip_ratio","lipids","diet"))
 automatic_fit <- function(data, parent_list, node_vec, prev=.09,common='',spline_nodes=c(),df_spline_nodes=3){
 
 model_list=list()
