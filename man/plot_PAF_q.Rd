@@ -16,6 +16,7 @@ plot_PAF_q(data_frame)
 Plot of impact fractions against over risk-quantile interventions for several risk factors
 }
 \examples{
-
-
+model_continuous <- glm(formula = case ~ region * ns(age, df = 5) + sex * ns(age, df = 5) + education +exercise + ns(diet, df = 3) + alcohol + stress + ns(lipids,df = 3) + ns(waist_hip_ratio, df = 3) + high_blood_pressure, family = "binomial", data = stroke_reduced)
+out <- PAF_calc_continuous(model_continuous,riskfactor_vec=c("diet","lipids","waist_hip_ratio"),q_vec=c(0.01, 0.1,0.3,0.5,0.7,0.9),ci=TRUE,calculation_method="B",data=stroke_reduced)
+plot_PAF_q(out)
 }

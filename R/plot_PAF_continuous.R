@@ -6,8 +6,9 @@
 #' @export
 #'
 #' @examples
-#'
-#'
+#' model_continuous <- glm(formula = case ~ region * ns(age, df = 5) + sex * ns(age, df = 5) + education +exercise + ns(diet, df = 3) + alcohol + stress + ns(lipids,df = 3) + ns(waist_hip_ratio, df = 3) + high_blood_pressure, family = "binomial", data = stroke_reduced)
+#' out <- PAF_calc_continuous(model_continuous,riskfactor_vec=c("diet","lipids","waist_hip_ratio"),q_vec=c(0.01, 0.1,0.3,0.5,0.7,0.9),ci=TRUE,calculation_method="B",data=stroke_reduced)
+#' plot_PAF_q(out)
 plot_PAF_q <- function(data_frame){
 
   if(!"riskfactor" %in% colnames(data_frame)){
@@ -162,6 +163,10 @@ plot_continuous_quick <- function(model,riskfactor,data,S = 10,ref_val=NA, ci_le
 #' @export
 #'
 #' @examples
+#' model_continuous <- glm(formula = case ~ region * ns(age, df = 5) + sex * ns(age, df = 5) + education +exercise + ns(diet, df = 3) + alcohol + stress + ns(lipids,df = 3) + ns(waist_hip_ratio, df = 3) + high_blood_pressure, family = "binomial", data = stroke_reduced)
+#' plot_continuous(model_continuous,riskfactor="diet",data=stroke_reduced)
+#' model_continuous_clogit <- clogit(formula = case ~ region * ns(age, df = 5) + sex * ns(age, df = 5) + education +exercise + ns(diet, df = 3)  + alcohol + stress + ns(lipids,df = 3) + ns(waist_hip_ratio, df = 3) + high_blood_pressure + strata(strata), data = stroke_reduced)
+#' plot_continuous(model_continuous_clogit,riskfactor="diet",data=stroke_reduced)
 plot_continuous <- function(model,riskfactor,data,S = 10,ref_val=NA, ci_level=0.95,min_risk_q=.1,plot_region=TRUE, plot_density=TRUE,n_x=1000,theylab="OR",  qlist=seq(from=0.001,to=0.999,by=0.001), interact=FALSE){
 
   if(!interact) return(plot_continuous_quick(model=model,riskfactor=riskfactor,data=data,ci_level=ci_level,min_risk_q=min_risk_q,n_x=n_x,plot_region=plot_region,plot_density=plot_density,theylab=theylab,qlist=qlist))

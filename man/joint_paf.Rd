@@ -49,3 +49,38 @@ A dataframe with average joint and sequential PAF for all risk factors in node_v
 \description{
 Calculation of joint, average and sequential paf taking into account risk factor sequencing
 }
+\examples{
+#  Simulated data on occupational and environmental exposure to chronic cough from Eide, 1995
+# First specify the causal graph, in terms of the parents of each node.  Then put into a list
+parent_urban.rural <- c()
+parent_smoking.category <- c("urban.rural")
+parent_occupational.exposure <- c("urban.rural")
+parent_y <- c("urban.rural","smoking.category","occupational.exposure")
+parent_list <- list(parent_urban.rural, parent_smoking.category, parent_occupational.exposure, parent_y)
+# also specify nodes of graph, in order from root to leaves
+node_vec <- c("urban.rural","smoking.category","occupational.exposure", "y")
+# specify a model list according to parent_list
+# here we use the auxillary function 'automatic fit'
+model_list=automatic_fit(data=Hordaland_data, parent_list=parent_list, node_vec=node_vec, prev=.09)
+# By default the function works by stratified simulation of permutations and subsequent simulation of the incremental interventions on the distribution of risk factors.  The permuations are stratified so each factor appears equally often in the first correct_order positions.  correct_order has a default of 2.
+joint_paf(data=Hordaland_data, model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=.09, nsim=10,vars = c("urban.rural","occupational.exposure"),ci=FALSE)
+
+More complicated example (slower to run)
+parent_exercise <- c("education")
+parent_diet <- c("education")
+parent_smoking <- c("education")
+parent_alcohol <- c("education")
+parent_stress <- c("education")
+parent_high_blood_pressure <- c("education","exercise","diet","smoking","alcohol","stress")
+parent_lipids <- c("education","exercise","diet","smoking","alcohol","stress")
+parent_waist_hip_ratio <- c("education","exercise","diet","smoking","alcohol","stress")
+parent_early_stage_heart_disease <- c("education","exercise","diet","smoking","alcohol","stress","lipids","waist_hip_ratio","high_blood_pressure")
+parent_diabetes <- c("education","exercise","diet","smoking","alcohol","stress","lipids","waist_hip_ratio","high_blood_pressure")
+parent_case <- c("education","exercise","diet","smoking","alcohol","stress","lipids","waist_hip_ratio","high_blood_pressure","early_stage_heart_disease","diabetes")
+parent_list <- list(parent_exercise,parent_diet,parent_smoking,parent_alcohol,parent_stress,parent_high_blood_pressure,parent_lipids,parent_waist_hip_ratio,parent_early_stage_heart_disease,parent_diabetes,parent_case)
+node_vec=c("exercise","diet","smoking","alcohol","stress","high_blood_pressure","lipids","waist_hip_ratio","early_stage_heart_disease","diabetes","case")
+model_list=automatic_fit(data=stroke_reduced, parent_list=parent_list, node_vec=node_vec, prev=.0035,common="region*ns(age,df=5)+sex*ns(age,df=5)", spline_nodes = c("waist_hip_ratio","lipids","diet"))
+out <- joint_paf(data=stroke_reduced, model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=.0035, nsim=25, correct_order=1, vars = c("high_blood_pressure","smoking","stress","exercise","alcohol","diabetes","early_stage_heart_disease"),ci=TRUE,boot_rep=10)
+# plot sequential and average PAFs by risk factor
+plot_sequential(out, nrow=3)
+}

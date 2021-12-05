@@ -28,6 +28,12 @@ ps_paf_sim <- function(response_model, mediator_models,riskfactor,refval,data,pr
 #' @export
 #'
 #' @examples
+#' # Direct and pathway specific attributable fractions estimated on simulated case control stroke data:
+#' # Note that the nodes here are weighted regressions (based on a column in the dataframe named 'weights') to rebalance the case control structure to make it representative over the population, according to the prev argument.
+#' # Unweighted regression is fine to use if the data arises from cohort or cross sectional studies, in which case prev should be set to NULL
+#' response_model <- glm(case ~ region * ns(age, df = 5) + sex * ns(age, df = 5) + education + exercise + ns(diet, df = 3) + smoking + alcohol + stress + ns(lipids, df = 3) + ns(waist_hip_ratio, df = 3) + high_blood_pressure, data=stroke_reduced,family='binomial', weights=weights)
+#' mediator_models <- list(glm(high_blood_pressure ~ region * ns(age, df = 5) + sex * ns(age, df = 5) + education   +exercise + ns(diet, df = 3) + smoking + alcohol + stress,data=stroke_reduced,family='binomial',weights=weights),lm(lipids ~ region * ns(age, df = 5) + sex * ns(age, df = 5) +education +  exercise + ns(diet, df = 3) + smoking + alcohol + stress, weights=weights, data=stroke_reduced),lm(waist_hip_ratio ~ region * ns(age, df = 5) + sex * ns(age, df = 5) + education + exercise + ns(diet, df = 3) + smoking + alcohol + stress, weights=weights, data=stroke_reduced))
+#' ps_paf(response_model=response_model, mediator_models=mediator_models ,riskfactor="exercise",refval=0,data=stroke_reduced,prev=0.0035, ci=TRUE,boot_rep=100,ci_type="norm")
 ps_paf <- function(response_model, mediator_models,riskfactor,refval,data,prev=NULL,ci=FALSE,boot_rep=100,ci_level=0.95,ci_type=c("norm")){
   N <- nrow(data)
   mediator_names <- c()
