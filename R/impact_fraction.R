@@ -290,7 +290,7 @@ if_direct <- function(data, ind, model,model_type, new_data, prev,t_vector,respo
     weights <- rep(1, N)
     if(!is.null(prev)){
 
-      data_prev <- mean(y)
+      data_prev <- mean(as.numeric(y==1))
       weights[y==0] <- (1-prev)/(1-data_prev)
       weights[y==1] <- prev/data_prev
 
@@ -328,7 +328,7 @@ if_direct <- function(data, ind, model,model_type, new_data, prev,t_vector,respo
     weights <- rep(1, N)
     if(!is.null(prev)){
 
-      data_prev <- mean(y)
+      data_prev <- mean(as.numeric(y==1))
       weights[y==0] <- (1-prev)/(1-data_prev)
       weights[y==1] <- prev/data_prev
 
