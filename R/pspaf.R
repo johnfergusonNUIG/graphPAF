@@ -423,7 +423,7 @@ ps_paf_inner <- function(data, ind, response_model, mediator_models,riskfactor,r
       weights <- rep(1, N)
       if(!is.null(prev)){
 
-        data_prev <- mean(y)
+        data_prev <- mean(as.numeric(y==1))
         weights[y==0] <- (1-prev)/(1-data_prev)
         weights[y==1] <- prev/data_prev
 
@@ -461,7 +461,7 @@ ps_paf_inner <- function(data, ind, response_model, mediator_models,riskfactor,r
       weights <- rep(1, N)
       if(!is.null(prev)){
 
-        data_prev <- mean(y)
+        data_prev <- mean(as.numeric(y==1))
         weights[y==0] <- (1-prev)/(1-data_prev)
         weights[y==1] <- prev/data_prev
 
@@ -533,7 +533,8 @@ ps_paf_inner <- function(data, ind, response_model, mediator_models,riskfactor,r
     # set up dataframes for prediction (separately for mediator and response)
     inner_bracket <- numeric(nrow(data))
     data_mediator <- data
-    data_mediator[,riskfactor_col] <- rep(refval,nrow(data))
+    if(is.factor(data_mediator[,riskfactor_col])) data_mediator[,riskfactor_col] <- factor(rep(refval,nrow(data)),levels=levels(data_mediator[,riskfactor_col]))
+    if(!is.factor(data_mediator[,riskfactor_col])) data_mediator[,riskfactor_col] <- rep(refval,nrow(data))
     if(names(mediator_model)[2]=='zeta'){
 
       mediator_probs <- predict(mediator_model,newdata=data_mediator,type="probs")
