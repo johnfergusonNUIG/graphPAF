@@ -134,6 +134,7 @@ if(mediator_model_type[i]== "glm"){
       new_data_mediator_j <- data
       new_data_mediator_j[,mediator_col[j]] <- do_sim(colnum=mediator_col[j],current_mat=new_data_direct,model=mediator_models[[j]])
       if(!is.factor(data[,mediator_col[j]]) && is.integer(data[,mediator_col[j]])) new_data_mediator_j[,mediator_col[j]] <- as.integer(new_data_mediator_j[,mediator_col[j]])
+      if(is.factor(data[,mediator_col[j]])) new_data_mediator_j[,mediator_col[j]] <- factor(new_data_mediator_j[,mediator_col[j]],levels=levels(data[,mediator_col[j]]))
       out_mat[1+j,i] <- impact_fraction(model=response_model, data=data, new_data=new_data_mediator_j,calculation_method="D", prev=prev,ci=FALSE)
 
     }
