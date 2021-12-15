@@ -73,7 +73,7 @@ if(is.null(vars)){
   ##  make 2 level factor variables into 0/1 variables (0 being reference level), 2 level numeric variables are converted to 0/1 (with the lower value being reference), 2 level character variables are converted to 0/1 with the value appearing in the data first being the refernece.  Reference is first alphabetical level for character variables.
 S <- ncol(data)-1
   for(i in 1:S){
-    if(is.factor(data[,i]) && length(levels(data[,i]))==2) data[,i] <- as.numeric(data[,i]==levels(data[,i])[2])
+    if(is.factor(data[,i]) && length(levels(data[,i]))==2) data[,i] <- factor(as.numeric(data[,i]==levels(data[,i])[2]),levels=c(0,1))
        if(!is.factor(data[,i]) && length(unique(data[,i]))==2 && is.numeric(data[,i])) data[,i] <- as.numeric(data[,i]==max(data[,i]))
     if(!is.factor(data[,i]) && length(unique(data[,i]))==2 && is.character(data[,i])) data[,i] <- as.numeric(data[,i]!=(data[1,i]))
     if(is.character(data[,i])) data[,i] <- factor(data[,i],levels=sort(unique(data[,i])))
