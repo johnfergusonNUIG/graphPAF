@@ -1,4 +1,4 @@
-joint_paf_no_CI <- function(data, model_list, parent_list, node_vec,  prev=.09, nsim=NULL, correct_order=3, alpha=0.05,vars=NULL){
+average_paf_no_CI <- function(data, model_list, parent_list, node_vec,  prev=.09, nsim=NULL, correct_order=3, alpha=0.05,vars=NULL, exact=TRUE){
   response_col <- (1:length(colnames(data)))[colnames(data) %in% node_vec[length(node_vec)]]
   if(!c("weights") %in% colnames(data)) data$weights = rep(1, nrow(data))
   if(!is.null(prev)){
@@ -8,6 +8,7 @@ joint_paf_no_CI <- function(data, model_list, parent_list, node_vec,  prev=.09, 
   w <- data$weights
   col_list <- numeric(length(node_vec))
   N <- length(col_list)-1
+  sim_disease_current_population <- predict(model_list[[N+1]],type="response")
 
   for(i in 1:(N+1)) col_list[i] <- (1:ncol(data))[colnames(data)==node_vec[i]]
   col_list_orig <- col_list
@@ -15,13 +16,12 @@ joint_paf_no_CI <- function(data, model_list, parent_list, node_vec,  prev=.09, 
     #browser()
     indexes <- c((1:(N+1))[node_vec %in% vars],N+1)
     col_list <- col_list[indexes]
+    N <- length(col_list)-1
 
   }
 
-  sim_disease_current_population <- predict(model_list[[N+1]],type="response")
 
-  N <- length(col_list)-1
-
+   if(exact) correct_order=NULL  # skip if exact calculation
   if(!is.null(correct_order)){
 
 
@@ -56,6 +56,22 @@ joint_paf_no_CI <- function(data, model_list, parent_list, node_vec,  prev=.09, 
     print(paste0("doing ", nsim, " permutations"))
   }
 
+  if(exact){
+
+    perm_mat <- matrix(ncol=N)
+    for(i in 1:N){
+      combos <- gtools::combinations(N,i)
+      perm_mat <- rbind(perm_mat,cbind(combos,matrix(0,nrow=nrow(combos),ncol=N-i)))
+
+    }
+    perm_mat <- perm_mat[-1,]
+      nsim <- nrow(perm_mat)
+        theorder <- apply(perm_mat,1,order_fun)
+    perm_mat <- perm_mat[order(theorder,decreasing=FALSE),]
+  }
+
+  joint_PAF_vec <- numeric(nsim)
+
   SAF_mat <- matrix(0,nrow=nsim,ncol=N)
   SAF_mat_2 <- matrix(0,nrow=nsim,ncol=N)
   order_mat <- matrix(0,nrow=nsim,ncol=N)
@@ -64,6 +80,7 @@ joint_paf_no_CI <- function(data, model_list, parent_list, node_vec,  prev=.09, 
 
   for(i in 1:nsim){
 
+if(!exact){
     if(is.null(correct_order)) the_order <- col_list[1:N][sample(1:N,N)]
     if(!is.null(correct_order)){
 
@@ -99,8 +116,80 @@ joint_paf_no_CI <- function(data, model_list, parent_list, node_vec,  prev=.09, 
       flush.console()
       print(i)
     }
+}
+    if(exact){
+      # calculations are for joint PAFs rather than sequential PAFs
+      # First check permutation to see if it's the same as previous permutation
+      no_intervention <- sim_disease_current_population
+
+      start_again=TRUE
+      if(i==1){
+        old_perm <- rep(0,N)
+        number_rf_new <- sum(perm_mat[i,]!=0)
+      }
+      if(i > 1){
+        old_perm <- perm_mat[i-1,]
+        number_rf_new <- sum(perm_mat[i,]!=0)
+        number_rf_old <- sum(old_perm!=0)
+        if((number_rf_new==number_rf_old+1) && all(old_perm[1:number_rf_old]==perm_mat[i,1:number_rf_old])) start_again=FALSE
+      }
+      if(start_again==FALSE){
+
+        current_mat <- sim_outnode(data,col_list[1:N][perm_mat[i,number_rf_new]],current_mat,parent_list=parent_list,col_list=col_list_orig,model_list=model_list)
+        current_mat[,col_list[N+1]] <- predict(model_list[[length(node_vec)]],newdata=current_mat,type="response")
+        joint_PAF_vec[i] <- (sum(w*no_intervention) - sum(w*current_mat[,col_list[N+1]]))
+      }
+      if(start_again==TRUE){
+        current_mat <- data
+        for(j in 1:number_rf_new){
+
+          current_mat <- sim_outnode(data,col_list[1:N][perm_mat[i,j]],current_mat,parent_list=parent_list,col_list=col_list_orig,model_list=model_list)
+
+        }
+        current_mat[,col_list[N+1]] <- predict(model_list[[length(node_vec)]],newdata=current_mat,type="response")
+        joint_PAF_vec[i] <- (sum(w*no_intervention) - sum(w*current_mat[,col_list[N+1]]))
+      }
+
+    }
 
   }
+
+  if(exact){
+    joint_PAF_vec <- joint_PAF_vec/sum(w*no_intervention)
+    SAF_mat_exact <- matrix(0,nrow=N,ncol=N)
+    rownames(SAF_mat_exact) <- paste('riskfactor ',1:N)
+    colnames(SAF_mat_exact) <- paste('position ',1:N)
+    for(i in 1:N){ # risk factor i
+      for(j in 1:N){ # position j
+
+        if(j < N) rows_to_look_at <- (1:nsim)[apply(perm_mat[,1:j,drop=FALSE],1,function(x){any(x==i)}) & perm_mat[,j]>0 & perm_mat[,j+1]==0]
+        if(j == N) rows_to_look_at <- (1:nsim)[perm_mat[,N]>0]
+        for(k in 1:length(rows_to_look_at)){
+          joint_PAF_match_row <- 0
+          if(j > 1){
+          match_row <- perm_mat[rows_to_look_at[k],]
+          match_row <- setdiff(match_row,i)
+          match_row <- match_row[1:(j-1)]
+          match_row <- (1:nsim)[apply(perm_mat,1,function(x){all(x[1:(j-1)]==match_row)&all(x[j:N]==0)})]
+          joint_PAF_match_row <- joint_PAF_vec[match_row]
+          }
+          SAF_mat_exact[i,j] <- ((k-1)/k)*SAF_mat_exact[i,j]+(joint_PAF_vec[rows_to_look_at[k]]-joint_PAF_match_row)/k
+          }
+      }
+    }
+      weights_exact <- numeric(N) # only used when exact calculation used
+    for(i in 1:N){
+        weights_exact[i] <- 1
+      if(i>1 && (N-i)>=1) weights_exact[i] <- factorial(i-1)*factorial(N-i)
+    }
+
+    average_PAF <- apply(SAF_mat_exact,1,function(x){weighted.mean(x, w=weights_exact)})
+    SAF_mat_exact <- t(SAF_mat_exact)
+    colnames(SAF_mat_exact) <- colnames(data)[col_list][1:N]
+    names(average_PAF) <- colnames(data)[col_list][1:N]
+    return(list(SAF_mat=SAF_mat_exact,average_PAF=average_PAF,joint_PAF=joint_PAF_vec[N]))
+  }
+
   colnames(SAF_mat) <- colnames(data)[col_list][1:N]
   colnames(reverse_order_mat) <- colnames(data)[col_list][1:N]
 
@@ -142,12 +231,13 @@ joint_paf_no_CI <- function(data, model_list, parent_list, node_vec,  prev=.09, 
 
 }
 
-#' Calculation of joint, average and sequential paf taking into account risk factor sequencing
+#' Calculation of average and sequential paf taking into account risk factor sequencing
 #'
 #' @param data Data frame. A dataframe containing variables used for fitting the models.  Must contain all variables used in fitting
 #' @param model_list List.  A list of models corresponding for the outcome variables in node_vec, with parents as described in parent_vec.  This list must be in the same order as node_vec and parent_list
 #' @param parent_list A list.  The ith element is the vector of variable names that are direct causes of ith variable in node_vec
 #' @param node_vec A vector corresponding to the nodes in the Bayesian network.  This must be specified from root to leaves - that is ancestors in the causal graph for a particular node are positioned before their descendants.  If this condition is false the function will return an error.
+#' @param exact logical.  Default TRUE. If TRUE, an efficient calculation is used to calculate average PAF, which enables the average PAF from N! permutations, over all N risk factors to be calculated with only 2^N-1 operations.  If FALSE, permutations are sampled
 #' @param nsim  Default NULL Number of random permutations used to calculate average and sequential PAF.  If correct_order is set to an integer value, nsim is reset to the largest integer multiple of correct_order that is less than the number of permutations implied by correct_order.
 #' @param correct_order Default 3.  This enforces stratified sampling of permutations where the first correct_order positions of the sampled permutations are evenly distributed over the integers 1 ... n, n being the number of risk factors of interest, over the sampled permutations.  The other positions are randomly sampled.  This automatically sets the number of simulations.  For interest, if n=10 and correct_order=3, nsim is set to factorial(n)/factorial(n-correct_order).  This special resampling reduces Monte Carlo variation in estimated average and sequential PAFs.
 #' @params vars A subset of risk factors for which we want to calculate average, sequential and joint PAF
@@ -178,7 +268,7 @@ joint_paf_no_CI <- function(data, model_list, parent_list, node_vec,  prev=.09, 
 #' # here we use the auxillary function 'automatic fit'
 #' model_list=automatic_fit(data=Hordaland_data, parent_list=parent_list, node_vec=node_vec, prev=.09)
 #' # By default the function works by stratified simulation of permutations and subsequent simulation of the incremental interventions on the distribution of risk factors.  The permuations are stratified so each factor appears equally often in the first correct_order positions.  correct_order has a default of 2.
-#' joint_paf(data=Hordaland_data, model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=.09, nsim=10,vars = c("urban.rural","occupational.exposure"),ci=FALSE)
+#' average_paf(data=Hordaland_data, model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=.09, nsim=10,vars = c("urban.rural","occupational.exposure"),ci=FALSE)
 #'
 #' # More complicated example (slower to run)
 #' parent_exercise <- c("education")
@@ -195,10 +285,12 @@ joint_paf_no_CI <- function(data, model_list, parent_list, node_vec,  prev=.09, 
 #' parent_list <- list(parent_exercise,parent_diet,parent_smoking,parent_alcohol,parent_stress,parent_high_blood_pressure,parent_lipids,parent_waist_hip_ratio,parent_early_stage_heart_disease,parent_diabetes,parent_case)
 #' node_vec=c("exercise","diet","smoking","alcohol","stress","high_blood_pressure","lipids","waist_hip_ratio","early_stage_heart_disease","diabetes","case")
 #' model_list=automatic_fit(data=stroke_reduced, parent_list=parent_list, node_vec=node_vec, prev=.0035,common="region*ns(age,df=5)+sex*ns(age,df=5)", spline_nodes = c("waist_hip_ratio","lipids","diet"))
-#' out <- joint_paf(data=stroke_reduced, model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=.0035, correct_order=2, vars = c("high_blood_pressure","smoking","stress","exercise","alcohol","diabetes","early_stage_heart_disease"),ci=TRUE,boot_rep=10)
+#' out <- average_paf(data=stroke_reduced, model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=.0035, vars = c("high_blood_pressure","smoking","stress","exercise","alcohol","diabetes","early_stage_heart_disease"),ci=TRUE,boot_rep=10)
 #' # plot sequential and average PAFs by risk factor
 #' plot_sequential(out, number_rows=3)
-joint_paf <- function(data, model_list, parent_list, node_vec, prev=.09, nsim=NULL, correct_order=2, vars=NULL,ci=FALSE,boot_rep=100, ci_type=c("norm"),ci_level=0.95, ci_level_ME=0.95){
+#' # similar calculation, but now sampling permutations (stratified, so that each risk factor will appear equally often in the first correct_order positions)
+#' # out <- average_paf(data=stroke_reduced, model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=.0035, exact=TRUE, correct_order=2, vars = c("high_blood_pressure","smoking","stress","exercise","alcohol","diabetes","early_stage_heart_disease"),ci=TRUE,boot_rep=10)
+average_paf <- function(data, model_list, parent_list, node_vec, prev=.09, exact=TRUE, nsim=NULL, correct_order=2, vars=NULL,ci=FALSE,boot_rep=100, ci_type=c("norm"),ci_level=0.95, ci_level_ME=0.95){
   if(!node_order(parent_list=parent_list,node_vec=node_vec)){
     stop("ancestors must be specified before descendants in node_vec")
   }
@@ -212,15 +304,15 @@ joint_paf <- function(data, model_list, parent_list, node_vec, prev=.09, nsim=NU
     stop("please specify either correct_order and nsim")
 
   }
-  if(!ci) return(joint_paf_no_CI(data=data, model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=prev, nsim=nsim, correct_order=correct_order, alpha=1-ci_level_ME,vars=vars))
-  res <- boot::boot(data=data,statistic=joint_paf_inner,R=boot_rep,model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=prev, nsim=nsim, correct_order=correct_order, vars=vars)
+  if(!ci) return(average_paf_no_CI(data=data, model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=prev, nsim=nsim, correct_order=correct_order, alpha=1-ci_level_ME,vars=vars,exact=exact))
+  res <- boot::boot(data=data,statistic=average_paf_inner,R=boot_rep,model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=prev, nsim=nsim, correct_order=correct_order, vars=vars, exact=exact)
   if(is.null(vars)) vars <- node_vec[1:(length(node_vec)-1)]
 
       return(extract_ci(res=res,model_type='glm',t_vector=c(paste0(rep(node_vec[node_vec %in% vars],times=rep(length(vars),length(vars))),'_',rep(1:length(vars),length(vars))),paste0("Average PAF ", node_vec[node_vec %in% vars]),'JointPAF'),ci_level=ci_level,ci_type=ci_type,continuous=TRUE))
 
 }
 
-joint_paf_inner <- function(data, ind, model_list, parent_list, node_vec, prev=.09, nsim=100, correct_order=3, vars=NULL){
+average_paf_inner <- function(data, ind, model_list, parent_list, node_vec, prev=.09, nsim=100, correct_order=3, vars=NULL, exact=TRUE){
 
   library(splines)
   ################################
@@ -346,21 +438,23 @@ joint_paf_inner <- function(data, ind, model_list, parent_list, node_vec, prev=.
   if(!all(ind==1:n_data)) for(i in 1:length(model_list)) model_list[[i]] <- refit(model=model_list[[i]],data=data)
 
 
-
-  col_list <- numeric(length(node_vec))
+   col_list <- numeric(length(node_vec))
   N <- length(col_list)-1
+  sim_disease_current_population <- predict(model_list[[N+1]],type="response")
+
   for(i in 1:(N+1)) col_list[i] <- (1:ncol(data))[colnames(data)==node_vec[i]]
   col_list_orig <- col_list
   if(!is.null(vars)){
     #browser()
     indexes <- c((1:(N+1))[node_vec %in% vars],N+1)
     col_list <- col_list[indexes]
+    N <- length(col_list)-1
 
   }
 
-  sim_disease_current_population <- predict(model_list[[length(node_vec)]],type="response")
 
-  N <- length(col_list)-1
+
+    if(exact) correct_order=NULL  # skip if exact calculation
   if(!is.null(correct_order)){
 
     nsim_new <- factorial(N)/(factorial(N-correct_order))
@@ -393,14 +487,39 @@ joint_paf_inner <- function(data, ind, model_list, parent_list, node_vec, prev=.
     rm(perm_mat_temp)
 
   }
+
+  order_fun <- function(x){
+
+    N <- length(x)
+    sum <- 0
+    for(i in 1:N){
+      sum <- sum + x[i]*(N+1)^(N-i)
+    }
+    return(sum)
+  }
+  if(exact){
+
+    perm_mat <- matrix(ncol=N)
+    for(i in 1:N){
+      combos <- gtools::combinations(N,i)
+      perm_mat <- rbind(perm_mat,cbind(combos,matrix(0,nrow=nrow(combos),ncol=N-i)))
+
+    }
+    perm_mat <- perm_mat[-1,]
+     nsim <- nrow(perm_mat)
+       theorder <- apply(perm_mat,1,order_fun)
+    perm_mat <- perm_mat[order(theorder,decreasing=FALSE),]
+    }
+
+
   SAF_mat <- matrix(0,nrow=nsim,ncol=N)
   SAF_mat_2 <- matrix(0,nrow=nsim,ncol=N)
   order_mat <- matrix(0,nrow=nsim,ncol=N)
   reverse_order_mat <- matrix(0,nrow=nsim,ncol=N)
+  joint_PAF_vec <- numeric(nsim) # only used when exact
+   for(i in 1:nsim){
 
-
-  for(i in 1:nsim){
-
+  if(!exact){
     if(is.null(correct_order)) the_order <- col_list[1:N][sample(1:N,N)]
     if(!is.null(correct_order)){
 
@@ -433,8 +552,82 @@ joint_paf_inner <- function(data, ind, model_list, parent_list, node_vec, prev=.
     SAF_mat[i,] <- SAF[reverse_order]
     order_mat[i,] <- the_order
     reverse_order_mat[i,] <- reverse_order
+  }
+   if(exact){
+     # calculations are for joint PAFs rather than sequential PAFs
+     # First check permutation to see if it's the same as previous permutation
+     no_intervention <- sim_disease_current_population
+
+     start_again=TRUE
+     if(i==1){
+       old_perm <- rep(0,N)
+       number_rf_new <- sum(perm_mat[i,]!=0)
+     }
+     if(i > 1){
+       old_perm <- perm_mat[i-1,]
+        number_rf_new <- sum(perm_mat[i,]!=0)
+        number_rf_old <- sum(old_perm!=0)
+        if((number_rf_new==number_rf_old+1) && all(old_perm[1:number_rf_old]==perm_mat[i,1:number_rf_old])) start_again=FALSE
+     }
+     if(start_again==FALSE){
+
+       current_mat <- sim_outnode(data,col_list[1:N][perm_mat[i,number_rf_new]],current_mat,parent_list=parent_list,col_list=col_list_orig,model_list=model_list)
+       current_mat[,col_list[N+1]] <- predict(model_list[[length(node_vec)]],newdata=current_mat,type="response")
+       joint_PAF_vec[i] <- (sum(w*no_intervention) - sum(w*current_mat[,col_list[N+1]]))
+     }
+     if(start_again==TRUE){
+       current_mat <- data
+       for(j in 1:number_rf_new){
+
+         current_mat <- sim_outnode(data,col_list[1:N][perm_mat[i,j]],current_mat,parent_list=parent_list,col_list=col_list_orig,model_list=model_list)
+
+       }
+       current_mat[,col_list[N+1]] <- predict(model_list[[length(node_vec)]],newdata=current_mat,type="response")
+       joint_PAF_vec[i] <- (sum(w*no_intervention) - sum(w*current_mat[,col_list[N+1]]))
+     }
+
+}
+
 
   }
+
+
+  if(exact){
+    joint_PAF_vec <- joint_PAF_vec/sum(w*no_intervention)
+    SAF_mat_exact <- matrix(0,nrow=N,ncol=N)
+    rownames(SAF_mat_exact) <- paste('riskfactor ',1:N)
+    colnames(SAF_mat_exact) <- paste('position ',1:N)
+    for(i in 1:N){ # risk factor i
+      for(j in 1:N){ # position j
+
+        if(j < N) rows_to_look_at <- (1:nsim)[apply(perm_mat[,1:j,drop=FALSE],1,function(x){any(x==i)}) & perm_mat[,j]>0 & perm_mat[,j+1]==0]
+        if(j == N) rows_to_look_at <- (1:nsim)[perm_mat[,N]>0]
+        for(k in 1:length(rows_to_look_at)){
+          joint_PAF_match_row <- 0
+          if(j > 1){
+            match_row <- perm_mat[rows_to_look_at[k],]
+            match_row <- setdiff(match_row,i)
+            match_row <- match_row[1:(j-1)]
+            match_row <- (1:nsim)[apply(perm_mat,1,function(x){all(x[1:(j-1)]==match_row)&all(x[j:N]==0)})]
+            joint_PAF_match_row <- joint_PAF_vec[match_row]
+          }
+          SAF_mat_exact[i,j] <- ((k-1)/k)*SAF_mat_exact[i,j]+(joint_PAF_vec[rows_to_look_at[k]]-joint_PAF_match_row)/k
+        }
+      }
+    }
+    weights_exact <- numeric(N) # only used when exact calculation used
+    for(i in 1:N){
+      weights_exact[i] <- 1
+      if(i>1 && (N-i)>=1) weights_exact[i] <- factorial(i-1)*factorial(N-i)
+    }
+
+    average_PAF <- apply(SAF_mat_exact,1,function(x){weighted.mean(x, w=weights_exact)})
+    SAF_mat_exact <- t(SAF_mat_exact)
+    colnames(SAF_mat_exact) <- colnames(data)[col_list][1:N]
+    names(average_PAF) <- colnames(data)[col_list][1:N]
+    return(c(SAF_mat=as.numeric(SAF_mat_exact),average_PAF=average_PAF,joint_PAF=joint_PAF_vec[N]))
+  }
+
   colnames(SAF_mat) <- colnames(data)[col_list][1:N]
   colnames(reverse_order_mat) <- colnames(data)[col_list][1:N]
 
@@ -599,7 +792,238 @@ node_order <- function(parent_list, node_vec){
   return(TRUE)
 }
 
+order_fun <- function(x){
+
+  N <- length(x)
+  sum <- 0
+  for(i in 1:N){
+    sum <- sum + x[i]*(N+1)^(N-i)
+  }
+  return(sum)
+}
+
+
+##################################  the same functions as above are replicated here - but only return joint_PAF
+
+#' Calculation of joint paf taking into account risk factor sequencing
+#'
+#' @param data Data frame. A dataframe containing variables used for fitting the models.  Must contain all variables used in fitting
+#' @param model_list List.  A list of models corresponding for the outcome variables in node_vec, with parents as described in parent_vec.  This list must be in the same order as node_vec and parent_list
+#' @param parent_list A list.  The ith element is the vector of variable names that are direct causes of ith variable in node_vec
+#' @param node_vec A vector corresponding to the nodes in the Bayesian network.  This must be specified from root to leaves - that is ancestors in the causal graph for a particular node are positioned before their descendants.  If this condition is false the function will return an error.
+#' @params vars A subset of risk factors for which we want to calculate average, sequential and joint PAF
+#' @param ci Logical. If TRUE, a bootstrap confidence interval is computed along with a point estimate (default FALSE).  If ci=FALSE, only a point estimate is produced.  A simulation procedure (sampling permutations and also simulating the effects of eliminating risk factors over the descendent nodes in a Bayesian network) is required to produce the point estimates.  The point estimate will change on repated runs of the function.  The margin of error of the point estimate is given when ci=FALSE
+#' @param boot_rep Integer.  Number of bootstrap replications (Only necessary to specify if ci=TRUE)
+#' @param ci_type Character.  Default norm.  A vector specifying the types of confidence interval desired.  "norm", "basic", "perc" and "bca" are the available methods
+#' @export
+#'
+#' @examples
+#' library(splines)
+#' library(survival)
+#' library(parallel)
+#' options(boot.parallel="snow")
+#' options(boot.ncpus=parallel::detectCores())
+#' #  Simulated data on occupational and environmental exposure to chronic cough from Eide, 1995
+#' # First specify the causal graph, in terms of the parents of each node.  Then put into a list
+#' parent_urban.rural <- c()
+#' parent_smoking.category <- c("urban.rural")
+#' parent_occupational.exposure <- c("urban.rural")
+#' parent_y <- c("urban.rural","smoking.category","occupational.exposure")
+#' parent_list <- list(parent_urban.rural, parent_smoking.category, parent_occupational.exposure, parent_y)
+#' # also specify nodes of graph, in order from root to leaves
+#' node_vec <- c("urban.rural","smoking.category","occupational.exposure", "y")
+#' # specify a model list according to parent_list
+#' # here we use the auxillary function 'automatic fit'
+#' model_list=automatic_fit(data=Hordaland_data, parent_list=parent_list, node_vec=node_vec, prev=.09)
+#' joint_paf(data=Hordaland_data, model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=.09, nsim=10,vars = c("urban.rural","occupational.exposure"),ci=FALSE)
+#'
+#' # More complicated example (slower to run)
+#' parent_exercise <- c("education")
+#' parent_diet <- c("education")
+#' parent_smoking <- c("education")
+#' parent_alcohol <- c("education")
+#' parent_stress <- c("education")
+#' parent_high_blood_pressure <- c("education","exercise","diet","smoking","alcohol","stress")
+#' parent_lipids <- c("education","exercise","diet","smoking","alcohol","stress")
+#' parent_waist_hip_ratio <- c("education","exercise","diet","smoking","alcohol","stress")
+#' parent_early_stage_heart_disease <- c("education","exercise","diet","smoking","alcohol","stress","lipids","waist_hip_ratio","high_blood_pressure")
+#' parent_diabetes <- c("education","exercise","diet","smoking","alcohol","stress","lipids","waist_hip_ratio","high_blood_pressure")
+#' parent_case <- c("education","exercise","diet","smoking","alcohol","stress","lipids","waist_hip_ratio","high_blood_pressure","early_stage_heart_disease","diabetes")
+#' parent_list <- list(parent_exercise,parent_diet,parent_smoking,parent_alcohol,parent_stress,parent_high_blood_pressure,parent_lipids,parent_waist_hip_ratio,parent_early_stage_heart_disease,parent_diabetes,parent_case)
+#' node_vec=c("exercise","diet","smoking","alcohol","stress","high_blood_pressure","lipids","waist_hip_ratio","early_stage_heart_disease","diabetes","case")
+#' model_list=automatic_fit(data=stroke_reduced, parent_list=parent_list, node_vec=node_vec, prev=.0035,common="region*ns(age,df=5)+sex*ns(age,df=5)", spline_nodes = c("waist_hip_ratio","lipids","diet"))
+#' out <- joint_paf(data=stroke_reduced, model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=.0035, vars = c("high_blood_pressure","smoking","stress","exercise","alcohol","diabetes","early_stage_heart_disease"),ci=TRUE,boot_rep=10)
 
 
 
+joint_paf <- function(data, model_list, parent_list, node_vec, prev=.09, exact=TRUE, nsim=NULL, correct_order=2, vars=NULL,ci=FALSE,boot_rep=100, ci_type=c("norm"),ci_level=0.95, ci_level_ME=0.95){
+  if(!node_order(parent_list=parent_list,node_vec=node_vec)){
+    stop("ancestors must be specified before descendants in node_vec")
+  }
+  if(!is.null(vars) & !all(vars %in% node_vec)){
+    stop("Not all requested variables are in node_vec.  Check spelling")
+  }
+  if(!is.null(correct_order) && is.null(vars)) correct_order <- min(correct_order,length(node_vec))
+  if(!is.null(correct_order) && !is.null(vars)) correct_order <- min(correct_order,length(vars))
+  if(is.null(correct_order)&&is.null(nsim)){
+
+    stop("please specify either correct_order and nsim")
+
+  }
+  if(!ci) return(joint_paf_inner(data=data,ind=1:nrow(data), model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=prev,vars=vars))
+  res <- boot::boot(data=data,statistic=joint_paf_inner,R=boot_rep,model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=prev, vars=vars)
+  return(boot::boot.ci(res,type=ci_type))
+
+}
+
+
+joint_paf_inner <- function(data, ind, model_list, parent_list, node_vec, prev=.09,vars=NULL){
+
+  library(splines)
+  ################################
+
+
+  refit <- function(model,data,with_weights=FALSE){
+    model_type <- NULL
+    if(grepl("^glm$",as.character(model$call)[1],perl=TRUE)) model_type <- "glm"
+    if(grepl("^lm$",as.character(model$call)[1],perl=TRUE)) model_type <- "lm"
+    if(grepl("^.*polr$",as.character(model$call)[1],perl=TRUE)) model_type <- "polr"
+    if(grepl("^coxph$",as.character(model$call)[1],perl=TRUE)){
+      if("userCall" %in% names(model)){
+        model_type <- "clogit"
+      }else{
+        model_type <- "coxph"
+      }
+    }
+    if(model_type=="clogit"){
+      model_text <- as.character(eval(parse(text=as.character(model$userCall)[2])))
+      model_text <- paste0(model_text[2],model_text[1],model_text[3])
+      model_text <- paste0("clogit(",model_text,",data=data)")
+      model <- eval(parse(text=model_text))
+    }
+    if(model_type=="coxph"){
+
+      model_text <- as.character(model$call)
+      model_text <- paste0("coxph(",model_text[2],",data=data)")
+      model <- eval(parse(text=model_text))
+    }
+
+    if(model_type== "glm"){
+      #browser()
+      model_text <- as.character(model$call)
+      if(with_weights==FALSE && length(model_text)==4) model_text_u <- paste0("glm(",model_text[2],",data=data, family=binomial(link=",as.character(family(model)[2]),"))")
+      if(with_weights==TRUE && length(model_text)==4) model_text_u <- paste0("glm(",model_text[2],",data=data, family=binomial(link=",as.character(family(model)[2]),"),weights=weights)")
+      if(length(model_text)==5) model_text_u <- paste0("glm(",model_text[2],",data=data, family=binomial(link=",as.character(family(model)[2]),"),weights=",model_text[5],")")
+      model <- eval(parse(text=model_text_u))
+    }
+
+    if(model_type == "lm"){
+      model_text <- as.character(model$call)
+      if(with_weights==FALSE && length(model_text)==3) model_text_u <- paste0("lm(",model_text[2],",data=data)")
+      if(with_weights==TRUE && length(model_text)==3) model_text_u <- paste0("lm(",model_text[2],",data=data,weights=weights)")
+      if(length(model_text)==4) model_text_u <- paste0("lm(",model_text[2],",data=data, weights=",model_text[4],")")
+      model <- eval(parse(text=model_text_u))
+    }
+
+    if(model_type == "polr"){
+      model_text <- as.character(model$call)
+      if(length(model_text)==3) model_text_u <- paste0("MASS::polr(",model_text[2],",data=data)")
+      if(length(model_text)==4) model_text_u <- paste0("MASS::polr(",model_text[2],",data=data, weights=",model_text[4],")")
+      model <- eval(parse(text=model_text_u))
+    }
+    model
+  }
+
+
+  sim_outnode <- function(data,col_num, current_mat, parent_list, col_list,model_list){
+
+    if(is.factor(current_mat[,col_num])) current_mat[,col_num] <- levels(data[,col_num])[1]
+    if(is.numeric(current_mat[,col_num])) current_mat[,col_num] <- 0
+
+    colname <- colnames(current_mat)[col_num]
+
+    for(i in 1:(length(parent_list)-1)){
+      if(colname %in% parent_list[[i]]){
+        if(length(table(current_mat[,col_list[[i]]] ))==1) next
+
+        if(is.factor(current_mat[,col_list[i]])) current_mat[,col_list[i]] <- factor(do_sim(col_list[i],current_mat,model_list[[i]]),levels=levels(current_mat[,col_list[i]]))
+        if(!is.factor(current_mat[,col_list[i]])) current_mat[,col_list[i]] <- do_sim(col_list[i],current_mat,model_list[[i]],SN=TRUE)
+      }
+    }
+    current_mat
+  }
+
+
+
+  do_sim <- function(colnum,current_mat, model,SN=FALSE){
+    ## polr
+    if(names(model)[2]=='zeta'){
+
+      probs <- predict(model,newdata=current_mat,type="probs")
+      mynames <- colnames(probs)
+      return(apply(probs,1,function(x){base::sample(mynames,size=1,prob=x)}))
+    }
+    # glm
+    if(length(grep("glm",model$call))>0){
+
+      probs <- predict(model,newdata=current_mat,type="response")
+      if(is.null(levels(current_mat[,colnum]))) return(apply(cbind(1-probs,probs),1,function(x){base::sample(c(0,1),size=1,prob=x)}))
+      return(apply(cbind(1-probs,probs),1,function(x){base::sample(levels(current_mat[,colnum]),size=1,prob=x)}))
+    }
+    # regression
+    if(length(grep("lm",model$call))>0){
+
+      pred <- predict(model,newdata=current_mat,type="response")
+      resids <- model$residuals
+      if(SN){
+
+        return(pred+resids)
+
+      }
+
+      #browser()
+      #return(pred + sample(summary(model)$residuals,length(resids),replace=TRUE))
+      #return(pred + rnorm(length(resids),mean=0,sd=.1*sd(resids)))
+      return(pred + sample(resids,length(resids),replace=TRUE, prob=model$weights/sum(model$weights)))
+    }
+  }
+  ##################################
+
+
+  data <- data[ind,]
+  n_data <- nrow(data)
+  response_col <- (1:length(colnames(data)))[colnames(data) %in% node_vec[length(node_vec)]]
+  if(!c("weights") %in% colnames(data)) data$weights = rep(1, nrow(data))
+  if(!is.null(prev)){
+    w = prev*as.numeric(data[,response_col]==1) + (1-prev)*as.numeric(data[,response_col]==0)
+    data$weights=w
+  }
+  w <- data$weights
+  #  if(!all(ind==1:n_data)) browser()
+  if(!all(ind==1:n_data)) for(i in 1:length(model_list)) model_list[[i]] <- refit(model=model_list[[i]],data=data)
+
+
+  col_list <- numeric(length(node_vec))
+  N <- length(col_list)-1
+  sim_disease_current_population <- predict(model_list[[N+1]],type="response")
+
+  for(i in 1:(N+1)) col_list[i] <- (1:ncol(data))[colnames(data)==node_vec[i]]
+  col_list_orig <- col_list
+  if(!is.null(vars)){
+    #browser()
+    indexes <- c((1:(N+1))[node_vec %in% vars],N+1)
+    col_list <- col_list[indexes]
+    N <- length(col_list)-1
+
+  }
+current_mat <- data
+      for(j in 1:length(col_list)){
+
+        current_mat <- sim_outnode(data,col_list[j],current_mat,parent_list=parent_list,col_list=col_list_orig,model_list=model_list)
+        current_mat[,col_list[N+1]] <- predict(model_list[[length(node_vec)]],newdata=current_mat,type="response")
+
+      }
+      return(jointPAF=(sum(w*sim_disease_current_population)-sum(w*current_mat[,col_list[N+1]]))/sum(w*sim_disease_current_population))
+
+}
 
