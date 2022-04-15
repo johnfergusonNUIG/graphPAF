@@ -177,13 +177,9 @@ if(!exact){
           }
       }
     }
-      weights_exact <- numeric(N) # only used when exact calculation used
-    for(i in 1:N){
-        weights_exact[i] <- 1
-      if(i>1 && (N-i)>=1) weights_exact[i] <- factorial(i-1)*factorial(N-i)
-    }
 
-    average_PAF <- apply(SAF_mat_exact,1,function(x){weighted.mean(x, w=weights_exact)})
+
+    average_PAF <- apply(SAF_mat_exact,1,function(x){mean(x)})
     SAF_mat_exact <- t(SAF_mat_exact)
     colnames(SAF_mat_exact) <- colnames(data)[col_list][1:N]
     names(average_PAF) <- colnames(data)[col_list][1:N]
@@ -289,7 +285,7 @@ if(!exact){
 #' # plot sequential and average PAFs by risk factor
 #' plot_sequential(out, number_rows=3)
 #' # similar calculation, but now sampling permutations (stratified, so that each risk factor will appear equally often in the first correct_order positions)
-#' # out <- average_paf(data=stroke_reduced, model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=.0035, exact=TRUE, correct_order=2, vars = c("high_blood_pressure","smoking","stress","exercise","alcohol","diabetes","early_stage_heart_disease"),ci=TRUE,boot_rep=10)
+#' # out <- average_paf(data=stroke_reduced, model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=.0035, exact=FALSE, correct_order=2, vars = c("high_blood_pressure","smoking","stress","exercise","alcohol","diabetes","early_stage_heart_disease"),ci=TRUE,boot_rep=10)
 average_paf <- function(data, model_list, parent_list, node_vec, prev=.09, exact=TRUE, nsim=NULL, correct_order=2, vars=NULL,ci=FALSE,boot_rep=100, ci_type=c("norm"),ci_level=0.95, ci_level_ME=0.95){
   if(!node_order(parent_list=parent_list,node_vec=node_vec)){
     stop("ancestors must be specified before descendants in node_vec")
@@ -615,13 +611,8 @@ average_paf_inner <- function(data, ind, model_list, parent_list, node_vec, prev
         }
       }
     }
-    weights_exact <- numeric(N) # only used when exact calculation used
-    for(i in 1:N){
-      weights_exact[i] <- 1
-      if(i>1 && (N-i)>=1) weights_exact[i] <- factorial(i-1)*factorial(N-i)
-    }
 
-    average_PAF <- apply(SAF_mat_exact,1,function(x){weighted.mean(x, w=weights_exact)})
+    average_PAF <- apply(SAF_mat_exact,1,function(x){mean(x)})
     SAF_mat_exact <- t(SAF_mat_exact)
     colnames(SAF_mat_exact) <- colnames(data)[col_list][1:N]
     names(average_PAF) <- colnames(data)[col_list][1:N]
