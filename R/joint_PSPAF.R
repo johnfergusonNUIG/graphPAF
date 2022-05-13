@@ -278,11 +278,46 @@ if(!exact){
                                 # Set the risk factor to refval i.e. 0
                                 current_mat_riskfactor_refval <- predict_df_discrete(riskfactor=riskfactor, refval=refval, data = current_mat)
 
-                                # SET SN=TRUE as dont want SN=FALSE option
-                                current_mat[,mediator_col[index]] <- do_sim(colnum = pathspecific_col_list_orig[ perm_mat[i,number_rf_new] ],
+                                # # ## Add in to keep class of column after it is simulated
+                                # keepColumnClass <- class(current_mat[,mediator_col[index]])
+                                #
+                                # temp_current_mat <- current_mat
+
+                                # ## if is.factor(current_mat[,mediator_col[index]]) then do_sim outputs it as a character vector and impact_fraction outputs an error because the two classes for data and new_data differ as factor and character so need to keep class as character
+                                # ## whereas it works if the class is numeric
+                                # if( is.factor(current_mat[,mediator_col[index]]) ){
+                                #
+                                #   current_mat[,mediator_col[index]] <- factor(
+                                #                                              do_sim(colnum = pathspecific_col_list_orig[ perm_mat[i,number_rf_new] ],
+                                #                                              current_mat = current_mat_riskfactor_refval,
+                                #                                              model = mediator_models[[index]],
+                                #                                              SN=TRUE),
+                                #                                              levels=levels(current_mat[,mediator_col[index]] )
+                                #                                             )
+                                #
+                                # }else{
+                                # # SET SN=TRUE as dont want SN=FALSE option
+                                      current_mat[,mediator_col[index]] <- do_sim(colnum = pathspecific_col_list_orig[ perm_mat[i,number_rf_new] ],
                                                                             current_mat = current_mat_riskfactor_refval,
                                                                             model = mediator_models[[index]],
                                                                             SN=TRUE)
+                                # }
+
+                                # if( class(current_mat[,mediator_col[index]]) != keepColumnClass ){
+                                #
+                                #      if( keepColumnClass == ""factor)
+                                #
+                                #        for(i in 1:S){
+                                #         if(is.factor(data[,i]) && length(levels(data[,i]))==2) data[,i] <- factor(as.numeric(data[,i]==levels(data[,i])[2]),levels=c(0,1))
+                                #            if(!is.factor(data[,i]) && length(unique(data[,i]))==2 && is.numeric(data[,i])) data[,i] <- factor(as.numeric(data[,i]==max(data[,i])), levels=c(0,1))
+                                #         if(is.character(data[,i])) data[,i] <- factor(data[,i],levels=sort(unique(data[,i])))
+                                #
+                                #       }
+                                #
+                                #       ## Add in to keep class of column after it is simulated
+                                #       # class(current_mat[,mediator_col[index]]) <- class(temp_current_mat[,mediator_col[index]])
+                                #
+                                # }
 
                                 joint_PAF_vec[i] <- impact_fraction(model=response_model, data=data, new_data=current_mat,calculation_method=calculation_method, prev=prev,ci=FALSE)
                             }
@@ -321,10 +356,26 @@ if(!exact){
 
                                 current_mat_riskfactor_refval <- predict_df_discrete(riskfactor=riskfactor, refval=refval, data = current_mat)
 
-                                current_mat[,mediator_col[index]] <- do_sim(colnum = pathspecific_col_list_orig[ perm_mat[i,number_rf_new] ],
+                                ## if is.factor(current_mat[,mediator_col[index]]) then do_sim outputs it as a character vector and impact_fraction outputs an error because the two classes for data and new_data differ as factor and character so need to keep class as character
+                                ## whereas it works if the class is numeric
+                                # if( is.factor(current_mat[,mediator_col[index]]) ){
+                                #
+                                #       current_mat[,mediator_col[index]] <- factor(
+                                #                                             do_sim(colnum = pathspecific_col_list_orig[ perm_mat[i,j] ],
+                                #                                             current_mat = current_mat_riskfactor_refval,
+                                #                                             model = mediator_models[[index]],
+                                #                                             SN=TRUE),
+                                #                                             levels=levels(current_mat[,mediator_col[index]] )
+                                #                                             )
+                                # }else{
+
+                                      # MOC fix error here pathspecific_col_list_orig[ perm_mat[i,number_rf_new] ] should be pathspecific_col_list_orig[ perm_mat[i,j] ]
+                                      current_mat[,mediator_col[index]] <- do_sim(colnum = pathspecific_col_list_orig[ perm_mat[i,j] ],
                                                                             current_mat = current_mat_riskfactor_refval,
                                                                             model = mediator_models[[index]],
                                                                             SN=TRUE)
+                                # }
+
                           }
 
                           if(mediator_model_type[index]=='lm'){
@@ -604,14 +655,26 @@ average_pspaf_inner <- function(data, ind, model_list, parent_list, node_vec, pr
 
       probs <- predict(model,newdata=current_mat,type="probs")
       mynames <- colnames(probs)
-      return(apply(probs,1,function(x){base::sample(mynames,size=1,prob=x)}))
+      # return(apply(probs,1,function(x){base::sample(mynames,size=1,prob=x)}))
+            if( is.factor(current_mat[,colnum ]) ){
+                   return( factor( apply(probs,1,function(x){base::sample(mynames,size=1,prob=x)}),
+                                   levels=levels(current_mat[,colnum ] ) ) )
+            }else{
+                   return(apply(probs,1,function(x){base::sample(mynames,size=1,prob=x)}))
+                 }
     }
     # glm
     if(length(grep("glm",model$call))>0){
 
       probs <- predict(model,newdata=current_mat,type="response")
       if(is.null(levels(current_mat[,colnum]))) return(apply(cbind(1-probs,probs),1,function(x){base::sample(c(0,1),size=1,prob=x)}))
-      return(apply(cbind(1-probs,probs),1,function(x){base::sample(levels(current_mat[,colnum]),size=1,prob=x)}))
+      # return(apply(cbind(1-probs,probs),1,function(x){base::sample(levels(current_mat[,colnum]),size=1,prob=x)}))
+            if( is.factor(current_mat[,colnum ]) ){
+                     return( factor( apply(cbind(1-probs,probs),1,function(x){base::sample(levels(current_mat[,colnum]),size=1,prob=x)}),
+                                     levels=levels(current_mat[,colnum ] ) ) )
+              }else{
+                     return( apply(cbind(1-probs,probs),1,function(x){base::sample(levels(current_mat[,colnum]),size=1,prob=x)}) )
+                   }
     }
     # regression
     if(length(grep("lm",model$call))>0){
@@ -1414,7 +1477,7 @@ for(i in 1:(N+1)) pathspecific_col_list[i] <- (1:ncol(data))[colnames(data)==pat
 
                                 current_mat_riskfactor_refval <- predict_df_discrete(riskfactor=riskfactor, refval=refval, data = current_mat)
 
-                                current_mat[,mediator_col[index]] <- do_sim(colnum = pathspecific_col_list_orig[ perm_mat[i,number_rf_new] ],
+                                current_mat[,mediator_col[index]] <- do_sim(colnum = pathspecific_col_list_orig[ perm_mat[i,j] ],
                                                                             current_mat = current_mat_riskfactor_refval,
                                                                             model = mediator_models[[index]],
                                                                             SN=TRUE)
@@ -1524,22 +1587,32 @@ sim_outnode <- function(data,col_num, current_mat, parent_list, col_list,model_l
   current_mat
 }
 
-
-
 do_sim <- function(colnum,current_mat, model,SN=FALSE){
   ## polr
   if(names(model)[2]=='zeta'){
 
     probs <- predict(model,newdata=current_mat,type="probs")
     mynames <- colnames(probs)
-    return(apply(probs,1,function(x){base::sample(mynames,size=1,prob=x)}))
+    # return(apply(probs,1,function(x){base::sample(mynames,size=1,prob=x)}))
+      if( is.factor(current_mat[,colnum ]) ){
+                   return( factor( apply(probs,1,function(x){base::sample(mynames,size=1,prob=x)}),
+                                                        levels=levels(current_mat[,colnum ] ) ) )
+        }else{
+                   return(apply(probs,1,function(x){base::sample(mynames,size=1,prob=x)}))
+             }
   }
   # glm
   if(length(grep("glm",model$call))>0){
 
     probs <- predict(model,newdata=current_mat,type="response")
     if(is.null(levels(current_mat[,colnum]))) return(apply(cbind(1-probs,probs),1,function(x){base::sample(c(0,1),size=1,prob=x)}))
-    return(apply(cbind(1-probs,probs),1,function(x){base::sample(levels(current_mat[,colnum]),size=1,prob=x)}))
+    # return(apply(cbind(1-probs,probs),1,function(x){base::sample(levels(current_mat[,colnum]),size=1,prob=x)}))
+    if( is.factor(current_mat[,colnum ]) ){
+             return( factor( apply(cbind(1-probs,probs),1,function(x){base::sample(levels(current_mat[,colnum]),size=1,prob=x)}),
+                                                                                      levels=levels(current_mat[,colnum ] ) ) )
+      }else{
+             return( apply(cbind(1-probs,probs),1,function(x){base::sample(levels(current_mat[,colnum]),size=1,prob=x)}) )
+           }
   }
   # regression
   if(length(grep("lm",model$call))>0){
@@ -1845,14 +1918,27 @@ joint_pspaf_inner <- function(data, ind, model_list, parent_list, node_vec, prev
 
       probs <- predict(model,newdata=current_mat,type="probs")
       mynames <- colnames(probs)
-      return(apply(probs,1,function(x){base::sample(mynames,size=1,prob=x)}))
+      # return(apply(probs,1,function(x){base::sample(mynames,size=1,prob=x)}))
+      if( is.factor(current_mat[,colnum ]) ){
+                return( factor( apply(probs,1,function(x){base::sample(mynames,size=1,prob=x)}),
+                                   levels=levels(current_mat[,colnum ] ) ) )
+        }else{
+                return(apply(probs,1,function(x){base::sample(mynames,size=1,prob=x)}))
+             }
+
     }
     # glm
     if(length(grep("glm",model$call))>0){
 
       probs <- predict(model,newdata=current_mat,type="response")
       if(is.null(levels(current_mat[,colnum]))) return(apply(cbind(1-probs,probs),1,function(x){base::sample(c(0,1),size=1,prob=x)}))
-      return(apply(cbind(1-probs,probs),1,function(x){base::sample(levels(current_mat[,colnum]),size=1,prob=x)}))
+      # return(apply(cbind(1-probs,probs),1,function(x){base::sample(levels(current_mat[,colnum]),size=1,prob=x)}))
+      if( is.factor(current_mat[,colnum ]) ){
+                 return( factor( apply(cbind(1-probs,probs),1,function(x){base::sample(levels(current_mat[,colnum]),size=1,prob=x)}),
+                                     levels=levels(current_mat[,colnum ] ) ) )
+        }else{
+                return( apply(cbind(1-probs,probs),1,function(x){base::sample(levels(current_mat[,colnum]),size=1,prob=x)}) )
+             }
     }
     # regression
     if(length(grep("lm",model$call))>0){
