@@ -2,7 +2,7 @@
 % Please edit documentation in R/pspaf.R
 \name{ps_paf}
 \alias{ps_paf}
-\title{General calculations of impact fractions}
+\title{Estimate Pathway specific population attributable fractions}
 \usage{
 ps_paf(
   response_model,
@@ -18,17 +18,17 @@ ps_paf(
 )
 }
 \arguments{
-\item{response_model}{A R model object for a binary outcome that involves a risk factor, confounders and mediators of the risk factor outcome relationship}
+\item{response_model}{A R model object for a binary outcome that involves a risk factor, confounders and mediators of the risk factor outcome relationship.  Note that a weighted model should be used for case control data.}
 
-\item{mediator_models}{A list of R object models for the mediator relationship (depending on the risk factor and any confounders)}
+\item{mediator_models}{A list of R object models for the mediator relationship (depending on the risk factor and any confounders)  Note a weighted model should be should for case control datasets}
 
 \item{riskfactor}{character.  Represents the name of the risk factor}
 
-\item{refval}{For factor valued risk factors, the refernece level of the risk factor.  If the risk factor is numeric, the reference level is assumed to be 0.}
+\item{refval}{For factor valued risk factors, the referenece level of the risk factor.  If the risk factor is numeric, the reference level is assumed to be 0.}
 
 \item{data}{dataframe. A dataframe (with no missing values) containing the data used to fit the mediator and response models.  Run data_clean on dataset before using}
 
-\item{prev}{numeric.  A value between 0 and 1 specifying the prevalence of disease.}
+\item{prev}{numeric.  A value between 0 and 1 specifying the prevalence of disease.  Used to calculate weights in PS-PAF formula.  If prev is NULL weights are assumed to be 1.}
 
 \item{ci}{logical.  If TRUE a confidence interval is calculated using Bootstrap}
 
@@ -37,14 +37,12 @@ ps_paf(
 \item{ci_level}{Numeric.  Default 0.95. A number between 0 and 1 specifying the confidence level (only necessary to specify when ci=TRUE)}
 
 \item{ci_type}{Character.  Defalt norm.  A vector specifying the types of confidence interval desired.  "norm", "basic", "perc" and "bca" are the available methods}
-
-\item{calculation_method}{A character either 'B' (Bruzzi) or 'D' (Direct method).  For case control data, the method described in Bruzzi 1985 is recommended.  Bruzzi's method estimates PAF from relative risks and prevalence of exposure to the risk factor.  The Direct method estimates PAF by summing estimated probabilities of disease in the absense of exposure on the individual level}
 }
 \value{
-An estimated impact if ci=FALSE, or for survival data a vector of estimated impact corresponding to event times in the data.  If ci=TRUE, a vector with elements corresponding to the raw estimated impact fraction, estiamted bias, bias corrected estimate and lower and upper elements of any confidence procedures requested.  If ci=TRUE, and a coxph model is fit, a matrix will be returned, with rows corresponding to differing times at which the impact fraction might be calculated.
+Estimated PS-PAF (and confidence intervals if ci=TRUE) for each mediator referred to in mediator_models, together with esitmated direct PS-PAF.
 }
 \description{
-General calculations of impact fractions
+Estimate Pathway specific population attributable fractions
 }
 \examples{
 library(splines)
@@ -53,7 +51,7 @@ library(parallel)
 options(boot.parallel="snow")
 options(boot.ncpus=parallel::detectCores())
 # Direct and pathway specific attributable fractions estimated on simulated case control stroke data:
-# Note that the nodes here are weighted regressions (based on a column in the dataframe named 'weights') to rebalance the case control structure to make it representative over the population, according to the prev argument.
+# Note that the models here are weighted regressions (based on a column in the dataframe named 'weights') to rebalance the case control structure to make it representative over the population, according to the prev argument.
 # Unweighted regression is fine to use if the data arises from cohort or cross sectional studies, in which case prev should be set to NULL
 response_model <- glm(case ~ region * ns(age, df = 5) + sex * ns(age, df = 5) + education + exercise + ns(diet, df = 3) + smoking + alcohol + stress + ns(lipids, df = 3) + ns(waist_hip_ratio, df = 3) + high_blood_pressure, data=stroke_reduced,family='binomial', weights=weights)
 mediator_models <- list(glm(high_blood_pressure ~ region * ns(age, df = 5) + sex * ns(age, df = 5) + education   +exercise + ns(diet, df = 3) + smoking + alcohol + stress,data=stroke_reduced,family='binomial',weights=weights),lm(lipids ~ region * ns(age, df = 5) + sex * ns(age, df = 5) +education +  exercise + ns(diet, df = 3) + smoking + alcohol + stress, weights=weights, data=stroke_reduced),lm(waist_hip_ratio ~ region * ns(age, df = 5) + sex * ns(age, df = 5) + education + exercise + ns(diet, df = 3) + smoking + alcohol + stress, weights=weights, data=stroke_reduced))
