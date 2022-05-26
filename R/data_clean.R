@@ -74,7 +74,7 @@ if(is.null(vars)){
 S <- ncol(data)-1
   for(i in 1:S){
     if(is.factor(data[,i]) && length(levels(data[,i]))==2) data[,i] <- factor(as.numeric(data[,i]==levels(data[,i])[2]),levels=c(0,1))
-       if(!is.factor(data[,i]) && length(unique(data[,i]))==2 && is.numeric(data[,i])) data[,i] <- factor(as.numeric(data[,i]==max(data[,i])), levels=c(0,1))
+       if(!colnames(data)[i]=="weights" && !is.factor(data[,i]) && length(unique(data[,i]))==2 && is.numeric(data[,i])) data[,i] <- factor(as.numeric(data[,i]==max(data[,i])), levels=c(0,1))
     if(is.character(data[,i])) data[,i] <- factor(data[,i],levels=sort(unique(data[,i])))
 
   }
