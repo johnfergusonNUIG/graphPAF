@@ -28,7 +28,11 @@ ps_paf(
 
 \item{data}{dataframe. A dataframe (with no missing values) containing the data used to fit the mediator and response models.  Run data_clean on dataset before using}
 
+<<<<<<< HEAD
 \item{prev}{numeric.  A value between 0 and 1 specifying the prevalence of disease.  Used to calculate weights in PS-PAF formula.  If prev is NULL weights are assumed to be 1}
+=======
+\item{prev}{numeric.  A value between 0 and 1 specifying the prevalence of disease.  Used to calculate weights in PS-PAF formula.  If prev is NULL weights are assumed to be 1.}
+>>>>>>> 1ac7f4981598a08742166aed78cf5606d052e64e
 
 \item{ci}{logical.  If TRUE a confidence interval is calculated using Bootstrap}
 
