@@ -18,7 +18,7 @@ ps_paf_sim <- function(response_model, mediator_models,riskfactor,refval,data,pr
 #' @param riskfactor character.  Represents the name of the risk factor
 #' @param refval For factor valued risk factors, the referenece level of the risk factor.  If the risk factor is numeric, the reference level is assumed to be 0.
 #' @param data dataframe. A dataframe (with no missing values) containing the data used to fit the mediator and response models.  Run data_clean on dataset before using
-#' @param prev numeric.  A value between 0 and 1 specifying the prevalence of disease.  Used to calculate weights in PS-PAF formula.  If prev is NULL weights are assumed to be 1.
+#' @param prev numeric.  A value between 0 and 1 specifying the prevalence of disease.  Used to calculate weights in PS-PAF formula.  If prev is NULL weights are assumed to be 1
 #' @param boot_rep Integer.  Number of bootstrap replications (Only necessary to specify if ci=TRUE)
 #' @param ci logical.  If TRUE a confidence interval is calculated using Bootstrap
 #' @param ci_level Numeric.  Default 0.95. A number between 0 and 1 specifying the confidence level (only necessary to specify when ci=TRUE)
