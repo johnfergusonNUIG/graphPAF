@@ -827,7 +827,7 @@ order_fun <- function(x){
 #' # specify a model list according to parent_list
 #' # here we use the auxillary function 'automatic fit'
 #' model_list=automatic_fit(data=Hordaland_data, parent_list=parent_list, node_vec=node_vec, prev=.09)
-#' joint_paf(data=Hordaland_data, model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=.09, nsim=10,vars = c("urban.rural","occupational.exposure"),ci=FALSE)
+#' joint_paf(data=Hordaland_data, model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=.09, vars = c("urban.rural","occupational.exposure"),ci=FALSE)
 #'
 #' # More complicated example (slower to run)
 #' parent_exercise <- c("education")
