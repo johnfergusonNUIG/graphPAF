@@ -858,7 +858,7 @@ joint_paf <- function(data, model_list, parent_list, node_vec, prev=.09, vars=NU
   }
 if(!ci) return(joint_paf_inner(data=data,ind=1:nrow(data), model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=prev,vars=vars))
   res <- boot::boot(data=data,statistic=joint_paf_inner,R=boot_rep,model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=prev, vars=vars)
-  return(boot::boot.ci(res,type=ci_type))
+  return(extract_ci(res=res,model_type='glm',ci_level=ci_level,ci_type=ci_type,continuous=TRUE,t_vector=c("joint PAF")))
 
 }
 
