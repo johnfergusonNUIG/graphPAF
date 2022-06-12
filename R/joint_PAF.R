@@ -802,7 +802,7 @@ order_fun <- function(x){
 #' @param model_list List.  A list of models corresponding for the outcome variables in node_vec, with parents as described in parent_vec.  This list must be in the same order as node_vec and parent_list
 #' @param parent_list A list.  The ith element is the vector of variable names that are direct causes of ith variable in node_vec
 #' @param node_vec A vector corresponding to the nodes in the Bayesian network.  This must be specified from root to leaves - that is ancestors in the causal graph for a particular node are positioned before their descendants.  If this condition is false the function will return an error.
-#' @params vars A subset of risk factors for which we want to calculate average, sequential and joint PAF
+#' @params vars A subset of risk factors for which we want to calculate joint PAF
 #' @param ci Logical. If TRUE, a bootstrap confidence interval is computed along with a point estimate (default FALSE).  If ci=FALSE, only a point estimate is produced.  A simulation procedure (sampling permutations and also simulating the effects of eliminating risk factors over the descendent nodes in a Bayesian network) is required to produce the point estimates.  The point estimate will change on repated runs of the function.  The margin of error of the point estimate is given when ci=FALSE
 #' @param boot_rep Integer.  Number of bootstrap replications (Only necessary to specify if ci=TRUE)
 #' @param ci_type Character.  Default norm.  A vector specifying the types of confidence interval desired.  "norm", "basic", "perc" and "bca" are the available metho
