@@ -996,8 +996,8 @@ joint_paf_inner <- function(data, ind, model_list, parent_list, node_vec, prev=.
   N <- length(col_list)-1
   sim_disease_current_population <- predict(model_list[[N+1]],type="response")
 
-  out_vec <- numeric(nsim)
-  for(i in 1:nsim){
+  out_vector <- numeric(nsim)
+  for(k in 1:nsim){
 
   for(i in 1:(N+1)) col_list[i] <- (1:ncol(data))[colnames(data)==node_vec[i]]
   col_list_orig <- col_list
@@ -1015,9 +1015,9 @@ current_mat <- data
         current_mat[,col_list[N+1]] <- predict(model_list[[length(node_vec)]],newdata=current_mat,type="response")
 
       }
-  out_vec[i] <- (sum(w*sim_disease_current_population)-sum(w*current_mat[,col_list[N+1]]))/sum(w*sim_disease_current_population)
+  out_vector[k] <- as.numeric((sum(w*sim_disease_current_population)-sum(w*current_mat[,col_list[N+1]]))/sum(w*sim_disease_current_population))
 }
-      return(jointPAF=mean(out_vec))
+      return(jointPAF=mean(out_vector))
 
 }
 
