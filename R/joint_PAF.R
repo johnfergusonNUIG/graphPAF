@@ -992,19 +992,18 @@ joint_paf_inner <- function(data, ind, model_list, parent_list, node_vec, prev=.
   if(!all(ind==1:n_data)) for(i in 1:length(model_list)) model_list[[i]] <- refit(model=model_list[[i]],data=data)
 
 
-  col_list <- numeric(length(node_vec))
-  N <- length(col_list)-1
-  sim_disease_current_population <- predict(model_list[[N+1]],type="response")
+   sim_disease_current_population <- predict(model_list[[length(node_vec)]],type="response")
 
   out_vector <- numeric(nsim)
   for(k in 1:nsim){
-
+    col_list <- numeric(length(node_vec))
+    N <- length(col_list)-1
   for(i in 1:(N+1)) col_list[i] <- (1:ncol(data))[colnames(data)==node_vec[i]]
   col_list_orig <- col_list
   if(!is.null(vars)){
     #browser()
     indexes <- c((1:(N+1))[node_vec %in% vars],N+1)
-    col_list <- col_list[indexes]
+    col_list <- col_list_orig[indexes]
     N <- length(col_list)-1
 
   }
