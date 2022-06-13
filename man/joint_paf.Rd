@@ -14,7 +14,8 @@ joint_paf(
   ci = FALSE,
   boot_rep = 100,
   ci_type = c("norm"),
-  ci_level = 0.95
+  ci_level = 0.95,
+  nsim = 1
 )
 }
 \arguments{
@@ -37,6 +38,8 @@ joint_paf(
 \item{ci_type}{Character.  Default norm.  A vector specifying the types of confidence interval desired.  "norm", "basic", "perc" and "bca" are the available metho}
 
 \item{ci_level}{Numeric.  Confidence level.  Default 0.95}
+
+\item{nsim}{Numeric.  Number of independent simulations of the dataset.  Default of 1.}
 }
 \description{
 Calculation of joint paf taking into account risk factor sequencing

@@ -808,6 +808,8 @@ order_fun <- function(x){
 #' @param boot_rep Integer.  Number of bootstrap replications (Only necessary to specify if ci=TRUE)
 #' @param ci_type Character.  Default norm.  A vector specifying the types of confidence interval desired.  "norm", "basic", "perc" and "bca" are the available metho
 #' @param ci_level Numeric.  Confidence level.  Default 0.95
+#' @param nsim Numeric.  Number of independent simulations of the dataset.  Default of 1.
+
 #' @export
 #'
 #' @examples
@@ -850,7 +852,7 @@ order_fun <- function(x){
 #' jointpaf$t0
 #' jointpaf
 
-joint_paf <- function(data, model_list, parent_list, node_vec, prev=NULL, vars=NULL,ci=FALSE,boot_rep=100, ci_type=c("norm"),ci_level=0.95){
+joint_paf <- function(data, model_list, parent_list, node_vec, prev=NULL, vars=NULL,ci=FALSE,boot_rep=100, ci_type=c("norm"),ci_level=0.95,nsim=1){
   if(!node_order(parent_list=parent_list,node_vec=node_vec)){
     stop("ancestors must be specified before descendants in node_vec")
   }
@@ -858,13 +860,13 @@ joint_paf <- function(data, model_list, parent_list, node_vec, prev=NULL, vars=N
     stop("Not all requested variables are in node_vec.  Check spelling")
   }
 if(!ci) return(joint_paf_inner(data=data,ind=1:nrow(data), model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=prev,vars=vars))
-  res <- boot::boot(data=data,statistic=joint_paf_inner,R=boot_rep,model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=prev, vars=vars)
+  res <- boot::boot(data=data,statistic=joint_paf_inner,R=boot_rep,model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=prev, vars=vars,nsim=nsim)
   return(extract_ci(res=res,model_type='glm',ci_level=ci_level,ci_type=ci_type,continuous=TRUE,t_vector=c("joint PAF")))
 
 }
 
 
-joint_paf_inner <- function(data, ind, model_list, parent_list, node_vec, prev=.09,vars=NULL){
+joint_paf_inner <- function(data, ind, model_list, parent_list, node_vec, prev=.09,vars=NULL,nsim=1){
 
   library(splines)
   ################################
@@ -994,6 +996,9 @@ joint_paf_inner <- function(data, ind, model_list, parent_list, node_vec, prev=.
   N <- length(col_list)-1
   sim_disease_current_population <- predict(model_list[[N+1]],type="response")
 
+  out_vec <- numeric(nsim)
+  for(i in 1:nsim){
+
   for(i in 1:(N+1)) col_list[i] <- (1:ncol(data))[colnames(data)==node_vec[i]]
   col_list_orig <- col_list
   if(!is.null(vars)){
@@ -1010,7 +1015,9 @@ current_mat <- data
         current_mat[,col_list[N+1]] <- predict(model_list[[length(node_vec)]],newdata=current_mat,type="response")
 
       }
-      return(jointPAF=(sum(w*sim_disease_current_population)-sum(w*current_mat[,col_list[N+1]]))/sum(w*sim_disease_current_population))
+  out_vec[i] <- (sum(w*sim_disease_current_population)-sum(w*current_mat[,col_list[N+1]]))/sum(w*sim_disease_current_population)
+}
+      return(jointPAF=mean(out_vec))
 
 }
 
