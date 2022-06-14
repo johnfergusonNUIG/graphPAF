@@ -848,10 +848,6 @@ order_fun <- function(x){
 #' node_vec=c("exercise","diet","smoking","alcohol","stress","high_blood_pressure","lipids","waist_hip_ratio","early_stage_heart_disease","diabetes","case")
 #' model_list=automatic_fit(data=stroke_reduced, parent_list=parent_list, node_vec=node_vec, prev=.0035,common="region*ns(age,df=5)+sex*ns(age,df=5)", spline_nodes = c("waist_hip_ratio","lipids","diet"))
 #' jointpaf <- joint_paf(data=stroke_reduced, model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=.0035, vars = c("high_blood_pressure","smoking","stress","exercise","alcohol","diabetes","early_stage_heart_disease"),ci=TRUE,boot_rep=10)
-#' # A boot.ci object is returned
-#' jointpaf$t0
-#' jointpaf
-
 joint_paf <- function(data, model_list, parent_list, node_vec, prev=NULL, vars=NULL,ci=FALSE,boot_rep=100, ci_type=c("norm"),ci_level=0.95,nsim=1){
   if(!node_order(parent_list=parent_list,node_vec=node_vec)){
     stop("ancestors must be specified before descendants in node_vec")
@@ -1019,4 +1015,213 @@ current_mat <- data
       return(jointPAF=mean(out_vector))
 
 }
+
+#' Calculation of Sequential paf taking into account risk factor sequencing
+#'
+#' @param data Data frame. A dataframe containing variables used for fitting the models.  Must contain all variables used in fitting
+#' @param model_list List.  A list of models corresponding for the outcome variables in node_vec, with parents as described in parent_vec.  This list must be in the same order as node_vec and parent_list
+#' @param parent_list A list.  The ith element is the vector of variable names that are direct causes of ith variable in node_vec
+#' @param node_vec A vector corresponding to the nodes in the Bayesian network.  This must be specified from root to leaves - that is ancestors in the causal graph for a particular node are positioned before their descendants.  If this condition is false the function will return an error.
+#' @param prev prevalence of the disease (default is NULL)
+#' @param vars A character vector of riskfactors.  Sequential PAF is calculated for the risk factor specified in the last position of the vector, conditional on the other risk factors
+#' @param ci Logical. If TRUE, a bootstrap confidence interval is computed along with a point estimate (default FALSE).  If ci=FALSE, only a point estimate is produced.  A simulation procedure (sampling permutations and also simulating the effects of eliminating risk factors over the descendent nodes in a Bayesian network) is required to produce the point estimates.  The point estimate will change on repated runs of the function.  The margin of error of the point estimate is given when ci=FALSE
+#' @param boot_rep Integer.  Number of bootstrap replications (Only necessary to specify if ci=TRUE)
+#' @param ci_type Character.  Default norm.  A vector specifying the types of confidence interval desired.  "norm", "basic", "perc" and "bca" are the available metho
+#' @param ci_level Numeric.  Confidence level.  Default 0.95
+#' @param nsim Numeric.  Number of independent simulations of the dataset.  Default of 1.
+
+#' @export
+#'
+#' @examples
+#' parent_exercise <- c("education")
+#' parent_diet <- c("education")
+#' parent_smoking <- c("education")
+#' parent_alcohol <- c("education")
+#' parent_stress <- c("education")
+#' parent_high_blood_pressure <- c("education","exercise","diet","smoking","alcohol","stress")
+#' parent_lipids <- c("education","exercise","diet","smoking","alcohol","stress")
+#' parent_waist_hip_ratio <- c("education","exercise","diet","smoking","alcohol","stress")
+#' parent_early_stage_heart_disease <- c("education","exercise","diet","smoking","alcohol","stress","lipids","waist_hip_ratio","high_blood_pressure")
+#' parent_diabetes <- c("education","exercise","diet","smoking","alcohol","stress","lipids","waist_hip_ratio","high_blood_pressure")
+#' parent_case <- c("education","exercise","diet","smoking","alcohol","stress","lipids","waist_hip_ratio","high_blood_pressure","early_stage_heart_disease","diabetes")
+#' parent_list <- list(parent_exercise,parent_diet,parent_smoking,parent_alcohol,parent_stress,parent_high_blood_pressure,parent_lipids,parent_waist_hip_ratio,parent_early_stage_heart_disease,parent_diabetes,parent_case)
+#' node_vec=c("exercise","diet","smoking","alcohol","stress","high_blood_pressure","lipids","waist_hip_ratio","early_stage_heart_disease","diabetes","case")
+#' model_list=automatic_fit(data=stroke_reduced, parent_list=parent_list, node_vec=node_vec, prev=.0035,common="region*ns(age,df=5)+sex*ns(age,df=5)", spline_nodes = c("waist_hip_ratio","lipids","diet"))
+#' seqpaf <- seq_paf(data=stroke_reduced, model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=.0035, vars = c("high_blood_pressure","smoking","stress"),ci=TRUE,boot_rep=10)
+seq_paf <- function(data, model_list, parent_list, node_vec, prev=NULL, vars=NULL,ci=FALSE,boot_rep=100, ci_type=c("norm"),ci_level=0.95,nsim=1){
+  if(!node_order(parent_list=parent_list,node_vec=node_vec)){
+    stop("ancestors must be specified before descendants in node_vec")
+  }
+  if(!is.null(vars) & !all(vars %in% node_vec)){
+    stop("Not all requested variables are in node_vec.  Check spelling")
+  }
+  if(!is.null(vars) & length(vars)<2){
+    stop("Enter at least 2 risk factors.  SAF is calculated for the last risk factor conditional on the others in list")
+  }
+  if(!ci) return(seq_paf_inner(data=data,ind=1:nrow(data), model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=prev,vars=vars,nsim=nsim))
+  res <- boot::boot(data=data,statistic=seq_paf_inner,R=boot_rep,model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=prev, vars=vars,nsim=nsim)
+  return(extract_ci(res=res,model_type='glm',ci_level=ci_level,ci_type=ci_type,continuous=TRUE,t_vector=c("Sequential PAF")))
+
+}
+
+
+seq_paf_inner <- function(data, ind, model_list, parent_list, node_vec, prev=.09,vars=NULL,nsim=1){
+
+  library(splines)
+  ################################
+
+
+  refit <- function(model,data,with_weights=FALSE){
+    model_type <- NULL
+    if(grepl("^glm$",as.character(model$call)[1],perl=TRUE)) model_type <- "glm"
+    if(grepl("^lm$",as.character(model$call)[1],perl=TRUE)) model_type <- "lm"
+    if(grepl("^.*polr$",as.character(model$call)[1],perl=TRUE)) model_type <- "polr"
+    if(grepl("^coxph$",as.character(model$call)[1],perl=TRUE)){
+      if("userCall" %in% names(model)){
+        model_type <- "clogit"
+      }else{
+        model_type <- "coxph"
+      }
+    }
+    if(model_type=="clogit"){
+      model_text <- as.character(eval(parse(text=as.character(model$userCall)[2])))
+      model_text <- paste0(model_text[2],model_text[1],model_text[3])
+      model_text <- paste0("clogit(",model_text,",data=data)")
+      model <- eval(parse(text=model_text))
+    }
+    if(model_type=="coxph"){
+
+      model_text <- as.character(model$call)
+      model_text <- paste0("coxph(",model_text[2],",data=data)")
+      model <- eval(parse(text=model_text))
+    }
+
+    if(model_type== "glm"){
+      #browser()
+      model_text <- as.character(model$call)
+      if(with_weights==FALSE && length(model_text)==4) model_text_u <- paste0("glm(",model_text[2],",data=data, family=binomial(link=",as.character(family(model)[2]),"))")
+      if(with_weights==TRUE && length(model_text)==4) model_text_u <- paste0("glm(",model_text[2],",data=data, family=binomial(link=",as.character(family(model)[2]),"),weights=weights)")
+      if(length(model_text)==5) model_text_u <- paste0("glm(",model_text[2],",data=data, family=binomial(link=",as.character(family(model)[2]),"),weights=",model_text[5],")")
+      model <- eval(parse(text=model_text_u))
+    }
+
+    if(model_type == "lm"){
+      model_text <- as.character(model$call)
+      if(with_weights==FALSE && length(model_text)==3) model_text_u <- paste0("lm(",model_text[2],",data=data)")
+      if(with_weights==TRUE && length(model_text)==3) model_text_u <- paste0("lm(",model_text[2],",data=data,weights=weights)")
+      if(length(model_text)==4) model_text_u <- paste0("lm(",model_text[2],",data=data, weights=",model_text[4],")")
+      model <- eval(parse(text=model_text_u))
+    }
+
+    if(model_type == "polr"){
+      model_text <- as.character(model$call)
+      if(length(model_text)==3) model_text_u <- paste0("MASS::polr(",model_text[2],",data=data)")
+      if(length(model_text)==4) model_text_u <- paste0("MASS::polr(",model_text[2],",data=data, weights=",model_text[4],")")
+      model <- eval(parse(text=model_text_u))
+    }
+    model
+  }
+
+
+  sim_outnode <- function(data,col_num, current_mat, parent_list, col_list,model_list){
+
+    if(is.factor(current_mat[,col_num])) current_mat[,col_num] <- levels(data[,col_num])[1]
+    if(is.numeric(current_mat[,col_num])) current_mat[,col_num] <- 0
+
+    colname <- colnames(current_mat)[col_num]
+
+    for(i in 1:(length(parent_list)-1)){
+      if(colname %in% parent_list[[i]]){
+        if(length(table(current_mat[,col_list[[i]]] ))==1) next
+
+        if(is.factor(current_mat[,col_list[i]])) current_mat[,col_list[i]] <- factor(do_sim(col_list[i],current_mat,model_list[[i]]),levels=levels(current_mat[,col_list[i]]))
+        if(!is.factor(current_mat[,col_list[i]])) current_mat[,col_list[i]] <- do_sim(col_list[i],current_mat,model_list[[i]],SN=TRUE)
+      }
+    }
+    current_mat
+  }
+
+
+
+  do_sim <- function(colnum,current_mat, model,SN=FALSE){
+    ## polr
+    if(names(model)[2]=='zeta'){
+
+      probs <- predict(model,newdata=current_mat,type="probs")
+      mynames <- colnames(probs)
+      return(apply(probs,1,function(x){base::sample(mynames,size=1,prob=x)}))
+    }
+    # glm
+    if(length(grep("glm",model$call))>0){
+
+      probs <- predict(model,newdata=current_mat,type="response")
+      if(is.null(levels(current_mat[,colnum]))) return(apply(cbind(1-probs,probs),1,function(x){base::sample(c(0,1),size=1,prob=x)}))
+      return(apply(cbind(1-probs,probs),1,function(x){base::sample(levels(current_mat[,colnum]),size=1,prob=x)}))
+    }
+    # regression
+    if(length(grep("lm",model$call))>0){
+
+      pred <- predict(model,newdata=current_mat,type="response")
+      resids <- model$residuals
+      if(SN){
+
+        return(pred+resids)
+
+      }
+
+      #browser()
+      #return(pred + sample(summary(model)$residuals,length(resids),replace=TRUE))
+      #return(pred + rnorm(length(resids),mean=0,sd=.1*sd(resids)))
+      return(pred + sample(resids,length(resids),replace=TRUE, prob=model$weights/sum(model$weights)))
+    }
+  }
+  ##################################
+
+
+  data <- data[ind,]
+  n_data <- nrow(data)
+  response_col <- (1:length(colnames(data)))[colnames(data) %in% node_vec[length(node_vec)]]
+  if(!c("weights") %in% colnames(data)) data$weights = rep(1, nrow(data))
+  if(!is.null(prev)){
+    w = prev*as.numeric(data[,response_col]==1) + (1-prev)*as.numeric(data[,response_col]==0)
+    data$weights=w
+  }
+  w <- data$weights
+  #  if(!all(ind==1:n_data)) browser()
+  if(!all(ind==1:n_data)) for(i in 1:length(model_list)) model_list[[i]] <- refit(model=model_list[[i]],data=data)
+
+
+  sim_disease_current_population <- predict(model_list[[length(node_vec)]],type="response")
+
+  out_vector <- numeric(nsim)
+   for(k in 1:nsim){
+    col_list <- numeric(length(node_vec))
+    N <- length(col_list)-1
+    for(i in 1:(N+1)) col_list[i] <- (1:ncol(data))[colnames(data)==node_vec[i]]
+    col_list_orig <- col_list
+    if(!is.null(vars)){
+      #browser()
+      indexes <- c((1:(N+1))[node_vec %in% vars],N+1)
+      col_list <- col_list_orig[indexes]
+      N <- length(col_list)-1
+
+    }
+    current_mat <- data
+    for(j in 1:(length(col_list)-1)){
+
+      current_mat <- sim_outnode(data,col_list[j],current_mat,parent_list=parent_list,col_list=col_list_orig,model_list=model_list)
+      current_mat[,col_list[N+1]] <- predict(model_list[[length(node_vec)]],newdata=current_mat,type="response")
+
+    }
+    PAF_S <- as.numeric((sum(w*sim_disease_current_population)-sum(w*current_mat[,col_list[N+1]]))/sum(w*sim_disease_current_population))
+    j <- length(col_list)
+    current_mat <- sim_outnode(data,col_list[j],current_mat,parent_list=parent_list,col_list=col_list_orig,model_list=model_list)
+    current_mat[,col_list[N+1]] <- predict(model_list[[length(node_vec)]],newdata=current_mat,type="response")
+    PAF_S_J <- as.numeric((sum(w*sim_disease_current_population)-sum(w*current_mat[,col_list[N+1]]))/sum(w*sim_disease_current_population))
+    out_vector[k] <- PAF_S_J-PAF_S
+  }
+  return(jointPAF=mean(out_vector))
+
+}
+
 
