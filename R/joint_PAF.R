@@ -1004,7 +1004,7 @@ joint_paf_inner <- function(data, ind, model_list, parent_list, node_vec, prev=.
 
   }
 current_mat <- data
-      for(j in 1:length(col_list)){
+      for(j in 1:N){
 
         current_mat <- sim_outnode(data,col_list[j],current_mat,parent_list=parent_list,col_list=col_list_orig,model_list=model_list)
         current_mat[,col_list[N+1]] <- predict(model_list[[length(node_vec)]],newdata=current_mat,type="response")
@@ -1207,15 +1207,14 @@ seq_paf_inner <- function(data, ind, model_list, parent_list, node_vec, prev=.09
 
     }
     current_mat <- data
-    for(j in 1:(length(col_list)-1)){
+    for(j in 1:(N-1)){
 
       current_mat <- sim_outnode(data,col_list[j],current_mat,parent_list=parent_list,col_list=col_list_orig,model_list=model_list)
       current_mat[,col_list[N+1]] <- predict(model_list[[length(node_vec)]],newdata=current_mat,type="response")
 
     }
     PAF_S <- as.numeric((sum(w*sim_disease_current_population)-sum(w*current_mat[,col_list[N+1]]))/sum(w*sim_disease_current_population))
-    j <- length(col_list)
-    current_mat <- sim_outnode(data,col_list[j],current_mat,parent_list=parent_list,col_list=col_list_orig,model_list=model_list)
+      current_mat <- sim_outnode(data,col_list[N],current_mat,parent_list=parent_list,col_list=col_list_orig,model_list=model_list)
     current_mat[,col_list[N+1]] <- predict(model_list[[length(node_vec)]],newdata=current_mat,type="response")
     PAF_S_J <- as.numeric((sum(w*sim_disease_current_population)-sum(w*current_mat[,col_list[N+1]]))/sum(w*sim_disease_current_population))
     out_vector[k] <- PAF_S_J-PAF_S
