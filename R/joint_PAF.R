@@ -1201,7 +1201,9 @@ seq_paf_inner <- function(data, ind, model_list, parent_list, node_vec, prev=.09
     col_list_orig <- col_list
     if(!is.null(vars)){
       #browser()
-      indexes <- c((1:(N+1))[node_vec %in% vars],N+1)
+      indexes <- numeric(length(vars))
+      for(i in 1:length(vars))  indexes[i] <- (1:(N+1))[node_vec %in% vars[i]]
+      indexes <- c(indexes,N+1)
       col_list <- col_list_orig[indexes]
       N <- length(col_list)-1
 
