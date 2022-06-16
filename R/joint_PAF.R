@@ -88,6 +88,7 @@ if(!exact){
       the_order[1:correct_order] <- perm_mat[i,1:correct_order]
       other_indexes <- setdiff(c(1:N),perm_mat[i,1:correct_order])
       if(correct_order < N) the_order[(correct_order+1):N] <- sample(other_indexes,N-correct_order)
+      if(N-correct_order==1) the_order[(correct_order+1):N] <- other_indexes
       the_order <- col_list[1:N][the_order]
     }
     reverse_order <- numeric(N)
@@ -523,6 +524,7 @@ average_paf_inner <- function(data, ind, model_list, parent_list, node_vec, prev
       the_order[1:correct_order] <- perm_mat[i,1:correct_order]
       other_indexes <- setdiff(c(1:N),perm_mat[i,1:correct_order])
       if(correct_order < N) the_order[(correct_order+1):N] <- sample(other_indexes,N-correct_order)
+      if(N-correct_order==1) the_order[(correct_order+1):N] <- other_indexes
       the_order <- col_list[1:N][the_order]
     }
 
