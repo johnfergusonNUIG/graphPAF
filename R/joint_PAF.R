@@ -1,4 +1,4 @@
-average_paf_no_CI <- function(data, model_list, parent_list, node_vec,  prev=.09, nsim=NULL, correct_order=3, alpha=0.05,vars=NULL, exact=TRUE){
+average_paf_no_CI <- function(data, model_list, parent_list, node_vec,  prev=.09, nperm=NULL, correct_order=3, alpha=0.05,vars=NULL, exact=TRUE){
   response_col <- (1:length(colnames(data)))[colnames(data) %in% node_vec[length(node_vec)]]
   if(!c("weights") %in% colnames(data)) data$weights = rep(1, nrow(data))
   if(!is.null(prev)){
@@ -25,23 +25,23 @@ average_paf_no_CI <- function(data, model_list, parent_list, node_vec,  prev=.09
   if(!is.null(correct_order)){
 
 
-    nsim_new <- factorial(N)/(factorial(N-correct_order))
+    nperm_new <- factorial(N)/(factorial(N-correct_order))
 
     repeat_n <- 1
 
-    if(is.null(nsim)){
-      nsim <- nsim_new
+    if(is.null(nperm)){
+      nperm <- nperm_new
     }
-    if(nsim < nsim_new) nsim <- nsim_new
+    if(nperm < nperm_new) nperm <- nperm_new
 
-    if(nsim_new < nsim){
+    if(nperm_new < nperm){
 
-      repeat_n <- floor(nsim/nsim_new)
-      nsim <- nsim_new*repeat_n
+      repeat_n <- floor(nperm/nperm_new)
+      nperm <- nperm_new*repeat_n
 
     }
 
-    perm_mat <- matrix(0,nrow=nsim_new,ncol=N)
+    perm_mat <- matrix(0,nrow=nperm_new,ncol=N)
     perm_mat[,1:correct_order] <- gtools::permutations(N,correct_order)
     perm_mat_temp <- perm_mat
     if(repeat_n >1){
@@ -53,7 +53,7 @@ average_paf_no_CI <- function(data, model_list, parent_list, node_vec,  prev=.09
     }
     perm_mat <- perm_mat_temp
     rm(perm_mat_temp)
-    print(paste0("doing ", nsim, " permutations"))
+    print(paste0("doing ", nperm, " permutations"))
   }
 
   if(exact){
@@ -65,20 +65,20 @@ average_paf_no_CI <- function(data, model_list, parent_list, node_vec,  prev=.09
 
     }
     perm_mat <- perm_mat[-1,]
-      nsim <- nrow(perm_mat)
+      nperm <- nrow(perm_mat)
         theorder <- apply(perm_mat,1,order_fun)
     perm_mat <- perm_mat[order(theorder,decreasing=FALSE),]
   }
 
-  joint_PAF_vec <- numeric(nsim)
+  joint_PAF_vec <- numeric(nperm)
 
-  SAF_mat <- matrix(0,nrow=nsim,ncol=N)
-  SAF_mat_2 <- matrix(0,nrow=nsim,ncol=N)
-  order_mat <- matrix(0,nrow=nsim,ncol=N)
-  reverse_order_mat <- matrix(0,nrow=nsim,ncol=N)
+  SAF_mat <- matrix(0,nrow=nperm,ncol=N)
+  SAF_mat_2 <- matrix(0,nrow=nperm,ncol=N)
+  order_mat <- matrix(0,nrow=nperm,ncol=N)
+  reverse_order_mat <- matrix(0,nrow=nperm,ncol=N)
 
 
-  for(i in 1:nsim){
+  for(i in 1:nperm){
 
 if(!exact){
     if(is.null(correct_order)) the_order <- col_list[1:N][sample(1:N,N)]
@@ -162,15 +162,15 @@ if(!exact){
     for(i in 1:N){ # risk factor i
       for(j in 1:N){ # position j
 
-        if(j < N) rows_to_look_at <- (1:nsim)[apply(perm_mat[,1:j,drop=FALSE],1,function(x){any(x==i)}) & perm_mat[,j]>0 & perm_mat[,j+1]==0]
-        if(j == N) rows_to_look_at <- (1:nsim)[perm_mat[,N]>0]
+        if(j < N) rows_to_look_at <- (1:nperm)[apply(perm_mat[,1:j,drop=FALSE],1,function(x){any(x==i)}) & perm_mat[,j]>0 & perm_mat[,j+1]==0]
+        if(j == N) rows_to_look_at <- (1:nperm)[perm_mat[,N]>0]
         for(k in 1:length(rows_to_look_at)){
           joint_PAF_match_row <- 0
           if(j > 1){
           match_row <- perm_mat[rows_to_look_at[k],]
           match_row <- setdiff(match_row,i)
           match_row <- match_row[1:(j-1)]
-          match_row <- (1:nsim)[apply(perm_mat,1,function(x){all(x[1:(j-1)]==match_row)&all(x[j:N]==0)})]
+          match_row <- (1:nperm)[apply(perm_mat,1,function(x){all(x[1:(j-1)]==match_row)&all(x[j:N]==0)})]
           joint_PAF_match_row <- joint_PAF_vec[match_row]
           }
           SAF_mat_exact[i,j] <- ((k-1)/k)*SAF_mat_exact[i,j]+(joint_PAF_vec[rows_to_look_at[k]]-joint_PAF_match_row)/k
@@ -217,8 +217,8 @@ if(!exact){
 
   SAF_summary$LB <- c(LB2)
   SAF_summary$UB <- c(UB2)
-  newdf <- data.frame(Var1=rep("Average",N),Var2=names(average_paf),value=as.numeric(average_paf), ME=qt(1-alpha/2, df=nsim-1)*apply(SAF_mat,2,sd)/sqrt(nsim), LB=as.numeric(average_paf)-qt(1-alpha/2, df=nsim-1)*apply(SAF_mat,2,sd)/sqrt(nsim),UB=as.numeric(average_paf)+qt(1-alpha/2, df=nsim-1)*apply(SAF_mat,2,sd)/sqrt(nsim))
-  newdf2 <- data.frame(Var1=c("Joint"),Var2=c(""),value=as.numeric(joint_paf),ME=qt(1-alpha/2, df=nsim-1)*sd(apply(SAF_mat,1,sum))/sqrt(nsim), LB=as.numeric(joint_paf)-qt(1-alpha/2, df=nsim-1)*sd(apply(SAF_mat,1,sum))/sqrt(nsim),UB=as.numeric(joint_paf)+qt(1-alpha/2, df=nsim-1)*sd(apply(SAF_mat,1,sum))/sqrt(nsim))
+  newdf <- data.frame(Var1=rep("Average",N),Var2=names(average_paf),value=as.numeric(average_paf), ME=qt(1-alpha/2, df=nperm-1)*apply(SAF_mat,2,sd)/sqrt(nperm), LB=as.numeric(average_paf)-qt(1-alpha/2, df=nperm-1)*apply(SAF_mat,2,sd)/sqrt(nperm),UB=as.numeric(average_paf)+qt(1-alpha/2, df=nperm-1)*apply(SAF_mat,2,sd)/sqrt(nperm))
+  newdf2 <- data.frame(Var1=c("Joint"),Var2=c(""),value=as.numeric(joint_paf),ME=qt(1-alpha/2, df=nperm-1)*sd(apply(SAF_mat,1,sum))/sqrt(nperm), LB=as.numeric(joint_paf)-qt(1-alpha/2, df=nperm-1)*sd(apply(SAF_mat,1,sum))/sqrt(nperm),UB=as.numeric(joint_paf)+qt(1-alpha/2, df=nperm-1)*sd(apply(SAF_mat,1,sum))/sqrt(nperm))
 
   SAF_summary <- rbind(SAF_summary, newdf,newdf2)
   rownames(SAF_summary) = NULL
@@ -234,8 +234,8 @@ if(!exact){
 #' @param parent_list A list.  The ith element is the vector of variable names that are direct causes of ith variable in node_vec
 #' @param node_vec A vector corresponding to the nodes in the Bayesian network.  This must be specified from root to leaves - that is ancestors in the causal graph for a particular node are positioned before their descendants.  If this condition is false the function will return an error.
 #' @param exact logical.  Default TRUE. If TRUE, an efficient calculation is used to calculate average PAF, which enables the average PAF from N! permutations, over all N risk factors to be calculated with only 2^N-1 operations.  If FALSE, permutations are sampled
-#' @param nsim  Default NULL Number of random permutations used to calculate average and sequential PAF.  If correct_order is set to an integer value, nsim is reset to the largest integer multiple of correct_order that is less than the number of permutations implied by correct_order.
-#' @param correct_order Default 3.  This enforces stratified sampling of permutations where the first correct_order positions of the sampled permutations are evenly distributed over the integers 1 ... n, n being the number of risk factors of interest, over the sampled permutations.  The other positions are randomly sampled.  This automatically sets the number of simulations.  For interest, if n=10 and correct_order=3, nsim is set to factorial(n)/factorial(n-correct_order).  This special resampling reduces Monte Carlo variation in estimated average and sequential PAFs.
+#' @param nperm  Default NULL Number of random permutations used to calculate average and sequential PAF.  If correct_order is set to an integer value, nperm is reset to the largest integer multiple of correct_order that is less than the number of permutations implied by correct_order.
+#' @param correct_order Default 3.  This enforces stratified sampling of permutations where the first correct_order positions of the sampled permutations are evenly distributed over the integers 1 ... n, n being the number of risk factors of interest, over the sampled permutations.  The other positions are randomly sampled.  This automatically sets the number of simulations.  For interest, if n=10 and correct_order=3, nperm is set to factorial(n)/factorial(n-correct_order).  This special resampling reduces Monte Carlo variation in estimated average and sequential PAFs.
 #' @params vars A subset of risk factors for which we want to calculate average, sequential and joint PAF
 #' @param ci Logical. If TRUE, a bootstrap confidence interval is computed along with a point estimate (default FALSE).  If ci=FALSE, only a point estimate is produced.  A simulation procedure (sampling permutations and also simulating the effects of eliminating risk factors over the descendent nodes in a Bayesian network) is required to produce the point estimates.  The point estimate will change on repated runs of the function.  The margin of error of the point estimate is given when ci=FALSE
 #' @param boot_rep Integer.  Number of bootstrap replications (Only necessary to specify if ci=TRUE)
@@ -264,7 +264,7 @@ if(!exact){
 #' # here we use the auxillary function 'automatic fit'
 #' model_list=automatic_fit(data=Hordaland_data, parent_list=parent_list, node_vec=node_vec, prev=.09)
 #' # By default the function works by stratified simulation of permutations and subsequent simulation of the incremental interventions on the distribution of risk factors.  The permuations are stratified so each factor appears equally often in the first correct_order positions.  correct_order has a default of 2.
-#' average_paf(data=Hordaland_data, model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=.09, nsim=10,vars = c("urban.rural","occupational.exposure"),ci=FALSE)
+#' average_paf(data=Hordaland_data, model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=.09, nperm=10,vars = c("urban.rural","occupational.exposure"),ci=FALSE)
 #'
 #' # More complicated example (slower to run)
 #' parent_exercise <- c("education")
@@ -286,7 +286,7 @@ if(!exact){
 #' plot_sequential(out, number_rows=3)
 #' # similar calculation, but now sampling permutations (stratified, so that each risk factor will appear equally often in the first correct_order positions)
 #' # out <- average_paf(data=stroke_reduced, model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=.0035, exact=FALSE, correct_order=2, vars = c("high_blood_pressure","smoking","stress","exercise","alcohol","diabetes","early_stage_heart_disease"),ci=TRUE,boot_rep=10)
-average_paf <- function(data, model_list, parent_list, node_vec, prev=.09, exact=TRUE, nsim=NULL, correct_order=2, vars=NULL,ci=FALSE,boot_rep=100, ci_type=c("norm"),ci_level=0.95, ci_level_ME=0.95){
+average_paf <- function(data, model_list, parent_list, node_vec, prev=.09, exact=TRUE, nperm=NULL, correct_order=2, vars=NULL,ci=FALSE,boot_rep=100, ci_type=c("norm"),ci_level=0.95, ci_level_ME=0.95){
   if(!node_order(parent_list=parent_list,node_vec=node_vec)){
     stop("ancestors must be specified before descendants in node_vec")
   }
@@ -295,20 +295,20 @@ average_paf <- function(data, model_list, parent_list, node_vec, prev=.09, exact
   }
   if(!is.null(correct_order) && is.null(vars)) correct_order <- min(correct_order,length(node_vec))
   if(!is.null(correct_order) && !is.null(vars)) correct_order <- min(correct_order,length(vars))
-  if(is.null(correct_order)&&is.null(nsim)){
+  if(is.null(correct_order)&&is.null(nperm)){
 
-    stop("please specify either correct_order and nsim")
+    stop("please specify either correct_order and nperm")
 
   }
-  if(!ci) return(average_paf_no_CI(data=data, model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=prev, nsim=nsim, correct_order=correct_order, alpha=1-ci_level_ME,vars=vars,exact=exact))
-  res <- boot::boot(data=data,statistic=average_paf_inner,R=boot_rep,model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=prev, nsim=nsim, correct_order=correct_order, vars=vars, exact=exact)
+  if(!ci) return(average_paf_no_CI(data=data, model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=prev, nperm=nperm, correct_order=correct_order, alpha=1-ci_level_ME,vars=vars,exact=exact))
+  res <- boot::boot(data=data,statistic=average_paf_inner,R=boot_rep,model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=prev, nperm=nperm, correct_order=correct_order, vars=vars, exact=exact)
   if(is.null(vars)) vars <- node_vec[1:(length(node_vec)-1)]
 
       return(extract_ci(res=res,model_type='glm',t_vector=c(paste0(rep(node_vec[node_vec %in% vars],times=rep(length(vars),length(vars))),'_',rep(1:length(vars),length(vars))),paste0("Average PAF ", node_vec[node_vec %in% vars]),'JointPAF'),ci_level=ci_level,ci_type=ci_type,continuous=TRUE))
 
 }
 
-average_paf_inner <- function(data, ind, model_list, parent_list, node_vec, prev=.09, nsim=100, correct_order=3, vars=NULL, exact=TRUE){
+average_paf_inner <- function(data, ind, model_list, parent_list, node_vec, prev=.09, nperm=100, correct_order=3, vars=NULL, exact=TRUE){
 
   library(splines)
   ################################
@@ -453,23 +453,23 @@ average_paf_inner <- function(data, ind, model_list, parent_list, node_vec, prev
     if(exact) correct_order=NULL  # skip if exact calculation
   if(!is.null(correct_order)){
 
-    nsim_new <- factorial(N)/(factorial(N-correct_order))
+    nperm_new <- factorial(N)/(factorial(N-correct_order))
 
     repeat_n <- 1
 
-    if(is.null(nsim)){
-      nsim <- nsim_new
+    if(is.null(nperm)){
+      nperm <- nperm_new
     }
-    if(nsim < nsim_new) nsim <- nsim_new
+    if(nperm < nperm_new) nperm <- nperm_new
 
-    if(nsim_new < nsim){
+    if(nperm_new < nperm){
 
-      repeat_n <- floor(nsim/nsim_new)
-      nsim <- nsim_new*repeat_n
+      repeat_n <- floor(nperm/nperm_new)
+      nperm <- nperm_new*repeat_n
 
     }
 
-    perm_mat <- matrix(0,nrow=nsim_new,ncol=N)
+    perm_mat <- matrix(0,nrow=nperm_new,ncol=N)
     perm_mat[,1:correct_order] <- gtools::permutations(N,correct_order)
     perm_mat_temp <- perm_mat
     if(repeat_n >1){
@@ -502,18 +502,18 @@ average_paf_inner <- function(data, ind, model_list, parent_list, node_vec, prev
 
     }
     perm_mat <- perm_mat[-1,]
-     nsim <- nrow(perm_mat)
+     nperm <- nrow(perm_mat)
        theorder <- apply(perm_mat,1,order_fun)
     perm_mat <- perm_mat[order(theorder,decreasing=FALSE),]
     }
 
 
-  SAF_mat <- matrix(0,nrow=nsim,ncol=N)
-  SAF_mat_2 <- matrix(0,nrow=nsim,ncol=N)
-  order_mat <- matrix(0,nrow=nsim,ncol=N)
-  reverse_order_mat <- matrix(0,nrow=nsim,ncol=N)
-  joint_PAF_vec <- numeric(nsim) # only used when exact
-   for(i in 1:nsim){
+  SAF_mat <- matrix(0,nrow=nperm,ncol=N)
+  SAF_mat_2 <- matrix(0,nrow=nperm,ncol=N)
+  order_mat <- matrix(0,nrow=nperm,ncol=N)
+  reverse_order_mat <- matrix(0,nrow=nperm,ncol=N)
+  joint_PAF_vec <- numeric(nperm) # only used when exact
+   for(i in 1:nperm){
 
   if(!exact){
     if(is.null(correct_order)) the_order <- col_list[1:N][sample(1:N,N)]
@@ -596,15 +596,15 @@ average_paf_inner <- function(data, ind, model_list, parent_list, node_vec, prev
     for(i in 1:N){ # risk factor i
       for(j in 1:N){ # position j
 
-        if(j < N) rows_to_look_at <- (1:nsim)[apply(perm_mat[,1:j,drop=FALSE],1,function(x){any(x==i)}) & perm_mat[,j]>0 & perm_mat[,j+1]==0]
-        if(j == N) rows_to_look_at <- (1:nsim)[perm_mat[,N]>0]
+        if(j < N) rows_to_look_at <- (1:nperm)[apply(perm_mat[,1:j,drop=FALSE],1,function(x){any(x==i)}) & perm_mat[,j]>0 & perm_mat[,j+1]==0]
+        if(j == N) rows_to_look_at <- (1:nperm)[perm_mat[,N]>0]
         for(k in 1:length(rows_to_look_at)){
           joint_PAF_match_row <- 0
           if(j > 1){
             match_row <- perm_mat[rows_to_look_at[k],]
             match_row <- setdiff(match_row,i)
             match_row <- match_row[1:(j-1)]
-            match_row <- (1:nsim)[apply(perm_mat,1,function(x){all(x[1:(j-1)]==match_row)&all(x[j:N]==0)})]
+            match_row <- (1:nperm)[apply(perm_mat,1,function(x){all(x[1:(j-1)]==match_row)&all(x[j:N]==0)})]
             joint_PAF_match_row <- joint_PAF_vec[match_row]
           }
           SAF_mat_exact[i,j] <- ((k-1)/k)*SAF_mat_exact[i,j]+(joint_PAF_vec[rows_to_look_at[k]]-joint_PAF_match_row)/k
