@@ -22,7 +22,7 @@ plot_sequential <- function(SAF_summary,number_rows){
      data_average$UB <- SAF_summary[grep(pattern=paste0("Average PAF ", riskfactors[i]),x=rownames(SAF_summary)),5]
      data_average$type <- "Average"
      data_i <- rbind(data_i, data_average)
-     p_i <- ggplot2::ggplot(data=data_i, ggplot2::aes(x=position, y=value,  colour="red")) + ggplot2::theme_classic()+ ggplot2::geom_point(,size=4)+ggplot2::geom_ribbon(ggplot2::aes(ymin = LB, ymax = UB, fill=type),alpha=0.2,width= 0.5)+ ggplot2::scale_x_continuous("position",breaks=1:nrow(data_i))+ggplot2::scale_y_continuous("Sequential PAF")+ ggplot2::theme(legend.position = "none")+ ggplot2::annotate(geom="text", x=6, y=0.4, label=riskfactors[i],color="black",size=5)
+     p_i <- ggplot2::ggplot(data=data_i, ggplot2::aes(x=position, y=value,  colour="red")) + ggplot2::theme_classic()+ ggplot2::geom_point(,size=4)+ggplot2::geom_ribbon(ggplot2::aes(ymin = LB, ymax = UB, fill=type),alpha=0.2,width= 0.5)+ ggplot2::scale_x_continuous("position",breaks=1:nrow(data_i))+ggplot2::scale_y_continuous("Sequential PAF")+ ggplot2::theme(legend.position = "none")+ ggplot2::annotate(geom="text", x = quantile(data_i$position,.5), y = quantile(data_i$UB,1), label=riskfactors[i],color="black",size=5)
      eval(parse(text=paste0("p",i,"<- p_i")))
   }
   thetext <- paste0("gridExtra::grid.arrange(p1")
