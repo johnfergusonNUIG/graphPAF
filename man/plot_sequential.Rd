@@ -4,10 +4,12 @@
 \alias{plot_sequential}
 \title{Produce plots of sequential and average PAF}
 \usage{
-plot_sequential(SAF_summary, number_rows)
+plot_sequential(SAF_summary, number_rows, max_PAF = 0.4)
 }
 \arguments{
 \item{SAF_summary}{An R object produced by running the joint_paf function.}
+
+\item{max_PAF}{range of y axis on PAF plots (default = 0.4)}
 
 \item{nrows}{integer How many rows of plots will be included on the associated figure.}
 }
