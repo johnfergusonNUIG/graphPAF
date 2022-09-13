@@ -45,7 +45,7 @@ PAF_calc_continuous(
 \item{nboot}{Integer.  Number of bootstrap replications (Only necessary to specify if ci=TRUE)}
 }
 \value{
-A vector of estimated PAF if ci=FALSE, corresponding to the quantiles specified in q_vec.  If ci=TRUE, a data frame with columns corresponding to the raw estimate, estiamted bias, bias corrected estimate and lower and upper elements of any confidence procedures requested, and rows corresopnding to the quantiles in q_vec.
+A PAF_q object.  When ci=FALSE, this will essentially be a vector of estimated PAF corresponding to the quantiles specified in q_vec.  If ci=TRUE, a data frame with columns corresponding to the raw estimate, estiamted bias, bias corrected estimate and lower and upper elements of any confidence procedures requested, and rows corresopnding to the quantiles in q_vec.
 }
 \description{
 Calculation of attributable fraction with a continuous risk factor
@@ -63,5 +63,9 @@ out <- PAF_calc_continuous(model_continuous,riskfactor_vec=c("diet","lipids","wa
 
  # The same example but using conditional logsitic regression.  B
 model_continuous_clogit <- clogit(formula = case ~ region * ns(age, df = 5) + sex * ns(age, df = 5) + education +exercise + ns(diet, df = 3)  + alcohol + stress + ns(lipids,df = 3) + ns(waist_hip_ratio, df = 3) + high_blood_pressure + strata(strata), data = stroke_reduced)
-PAF_calc_continuous(model_continuous_clogit,riskfactor_vec=c("diet","lipids","waist_hip_ratio"),q_vec=c(0.01, 0.1,0.3,0.5,0.7,0.9),ci=TRUE,calculation_method="B",data=stroke_reduced, prev=0.01)
+out <- PAF_calc_continuous(model_continuous_clogit,riskfactor_vec=c("diet","lipids","waist_hip_ratio"),q_vec=c(0.01, 0.1,0.3,0.5,0.7,0.9),ci=TRUE,calculation_method="B",data=stroke_reduced, prev=0.01)
+plot(out)
+}
+\references{
+Ferguson, J., Maturo, F., Yusuf, S. and O’Donnell, M., 2020. Population attributable fractions for continuously distributed exposures. Epidemiologic Methods, 9(1).
 }

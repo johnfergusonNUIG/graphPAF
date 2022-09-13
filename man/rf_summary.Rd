@@ -7,13 +7,13 @@
 rf_summary(rf_names, rf_prev, risk, log = TRUE)
 }
 \arguments{
-\item{rf_names}{character}
+\item{rf_names}{Acharacter vector of risk factor names}
 
-\item{rf_prev}{double}
+\item{rf_prev}{A numeric vector specifying prevalence of risk factor in disease controls (estimates of population prevalence can also be used if the disease is rare)}
 
-\item{risk}{double}
+\item{risk}{A numeric vector of relative risks or Odds ratios for disease corresponding to each risk factor (if log=FALSE).  Log-relative risks or log-odds ratios can  be alternatively specified (if log=TRUE)}
 
-\item{log}{logical}
+\item{log=FALSE}{Set to TRUE if relative risks/odds ratios are specified on log-scale}
 }
 \value{
 A rf.data.frame object
@@ -23,4 +23,7 @@ Create a summary data frame for risk factors, prevalence and risk ratios.  This 
 }
 \examples{
 rfs <- rf_summary(rf_names=c('Hypertension','Inactivity','ApoB/ApoA','Diet','WHR','Smoking','Cardiac causes','Alcohol','Global Stress','Diabetes'),rf_prev=c(.474,.837,.669,.67,.67,.224,.049,.277,.144,.129),risk=c(1.093,0.501,0.428,0.378,0.294,0.513,1.156,0.186,0.301,0.148),log=TRUE)
+}
+\references{
+Ferguson, J., O’Leary, N., Maturo, F., Yusuf, S. and O’Donnell, M., 2019. Graphical comparisons of relative disease burden across multiple risk factors. BMC medical research methodology, 19(1), pp.1-9.
 }

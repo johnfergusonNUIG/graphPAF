@@ -26,15 +26,15 @@ average_paf(
 
 \item{model_list}{List.  A list of models corresponding for the outcome variables in node_vec, with parents as described in parent_vec.  This list must be in the same order as node_vec and parent_list}
 
-\item{parent_list}{A list.  The ith element is the vector of variable names that are direct causes of ith variable in node_vec}
+\item{parent_list}{A list.  The ith element is the vector of variable names that are direct causes of ith variable in node_vec (Note that the variable names should be columns in data)}
 
-\item{node_vec}{A vector corresponding to the nodes in the Bayesian network.  This must be specified from root to leaves - that is ancestors in the causal graph for a particular node are positioned before their descendants.  If this condition is false the function will return an error.}
+\item{node_vec}{A character vector corresponding to the nodes in the Bayesian network (The variable names should be column names in data).  This must be specified from root to leaves - that is ancestors in the causal graph for a particular node are positioned before their descendants.  If this condition is false the function will return an error.}
 
 \item{exact}{logical.  Default TRUE. If TRUE, an efficient calculation is used to calculate average PAF, which enables the average PAF from N! permutations, over all N risk factors to be calculated with only 2^N-1 operations.  If FALSE, permutations are sampled}
 
-\item{nperm}{Default NULL Number of random permutations used to calculate average and sequential PAF.  If correct_order is set to an integer value, nperm is reset to the largest integer multiple of correct_order that is less than the number of permutations implied by correct_order.}
+\item{nperm}{Default NULL Number of random permutations used to calculate average and sequential PAF.  If correct_order is set to an integer value, nperm is reset to an integer multiple of factorial(N)/factorial(N-correct_order) depending on the size of nperm.  If nperm is NULL or less than factorial(N)/factorial(N-correct_order), factorial(N)/factorial(N-correct_order) permutations will be sampled.  If nperm is larger than factorial(N)/factorial(N-correct_order), nperm will be reset to the smallest integer multiple of factorial(N)/factorial(N-correct_order) less than the input value of nperm}
 
-\item{correct_order}{Default 3.  This enforces stratified sampling of permutations where the first correct_order positions of the sampled permutations are evenly distributed over the integers 1 ... n, n being the number of risk factors of interest, over the sampled permutations.  The other positions are randomly sampled.  This automatically sets the number of simulations.  For interest, if n=10 and correct_order=3, nperm is set to factorial(n)/factorial(n-correct_order).  This special resampling reduces Monte Carlo variation in estimated average and sequential PAFs.}
+\item{correct_order}{Default 3.  This enforces stratified sampling of permutations where the first correct_order positions of the sampled permutations are evenly distributed over the integers 1 ... N, N being the number of risk factors of interest, over the sampled permutations.  The other positions are randomly sampled.  This automatically sets the number of simulations when nperm=NULL.  For interest, if N=10 and correct_order=3, nperm is set to factorial(10)/factorial(10-3) = 720.  This special resampling reduces Monte Carlo variation in estimated average and sequential PAFs.}
 
 \item{ci}{Logical. If TRUE, a bootstrap confidence interval is computed along with a point estimate (default FALSE).  If ci=FALSE, only a point estimate is produced.  A simulation procedure (sampling permutations and also simulating the effects of eliminating risk factors over the descendent nodes in a Bayesian network) is required to produce the point estimates.  The point estimate will change on repated runs of the function.  The margin of error of the point estimate is given when ci=FALSE}
 
@@ -44,10 +44,10 @@ average_paf(
 
 \item{ci_level}{Numeric.  Default 0.95. A number between 0 and 1 specifying the level of the confidence interval (when ci=TRUE)}
 
-\item{ci_level_ME}{Numeric.  Default 0.95. A number between 0 and 1 specifying the level of the margin of error for the point estimate}
+\item{ci_level_ME}{Numeric.  Default 0.95. A number between 0 and 1 specifying the level of the margin of error for the point estimate (only revelant when ci=FALSE and exact=FALSE)}
 }
 \value{
-A dataframe with average joint and sequential PAF for all risk factors in node_vec (or alternatively a subset of those risk factors if specified in vars).
+A SAF_summary object with average joint and sequential PAF for all risk factors in node_vec (or alternatively a subset of those risk factors if specified in vars).
 }
 \description{
 Calculation of average and sequential paf taking into account risk factor sequencing
@@ -93,4 +93,9 @@ out <- average_paf(data=stroke_reduced, model_list=model_list, parent_list=paren
 plot_sequential(out, number_rows=3)
 # similar calculation, but now sampling permutations (stratified, so that each risk factor will appear equally often in the first correct_order positions)
 # out <- average_paf(data=stroke_reduced, model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=.0035, exact=FALSE, correct_order=2, vars = c("high_blood_pressure","smoking","stress","exercise","alcohol","diabetes","early_stage_heart_disease"),ci=TRUE,boot_rep=10)
+}
+\references{
+Ferguson, J., O’Connell, M. and O’Donnell, M., 2020. Revisiting sequential attributable fractions. Archives of Public Health, 78(1), pp.1-9.
+
+Ferguson, J., Alvarez-Iglesias, A., Newell, J., Hinde, J. and O’Donnell, M., 2018. Estimating average attributable fractions with confidence intervals for cohort and case–control studies. Statistical methods in medical research, 27(4), pp.1141-1152
 }

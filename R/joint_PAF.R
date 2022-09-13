@@ -184,7 +184,8 @@ if(!exact){
     SAF_mat_exact <- t(SAF_mat_exact)
     colnames(SAF_mat_exact) <- colnames(data)[col_list][1:N]
     names(average_PAF) <- colnames(data)[col_list][1:N]
-    return(list(SAF_mat=SAF_mat_exact,average_PAF=average_PAF,joint_PAF=joint_PAF_vec[N]))
+    print(list(SAF_mat=SAF_mat_exact,average_PAF=average_PAF,joint_PAF=joint_PAF_vec[N]))
+    return(structure(data.frame(position=c(rep(paste("elimination position",1:N),N),rep("Average",N),"Joint"),"risk factor"=c(rep(colnames(SAF_mat_exact),times=rep(N,N)),colnames(SAF_mat_exact),""),estimate=c(as.vector(SAF_mat_exact),average_PAF,joint_PAF_vec[N]),check.names=FALSE),class="SAF_summary"))
   }
 
   colnames(SAF_mat) <- colnames(data)[col_list][1:N]
@@ -224,6 +225,8 @@ if(!exact){
   SAF_summary <- rbind(SAF_summary, newdf,newdf2)
   rownames(SAF_summary) = NULL
   colnames(SAF_summary) <- c("position", "risk factor", "estimate", "Margin error", "lower bound", "Upper bound")
+  print(SAF_summary)
+  SAF_summary <- structure(data.frame(SAF_summary,check.names=FALSE),class="SAF_summary")
   return(SAF_summary)
 
 }
@@ -232,20 +235,22 @@ if(!exact){
 #'
 #' @param data Data frame. A dataframe containing variables used for fitting the models.  Must contain all variables used in fitting
 #' @param model_list List.  A list of models corresponding for the outcome variables in node_vec, with parents as described in parent_vec.  This list must be in the same order as node_vec and parent_list
-#' @param parent_list A list.  The ith element is the vector of variable names that are direct causes of ith variable in node_vec
-#' @param node_vec A vector corresponding to the nodes in the Bayesian network.  This must be specified from root to leaves - that is ancestors in the causal graph for a particular node are positioned before their descendants.  If this condition is false the function will return an error.
+#' @param parent_list A list.  The ith element is the vector of variable names that are direct causes of ith variable in node_vec (Note that the variable names should be columns in data)
+#' @param node_vec A character vector corresponding to the nodes in the Bayesian network (The variable names should be column names in data).  This must be specified from root to leaves - that is ancestors in the causal graph for a particular node are positioned before their descendants.  If this condition is false the function will return an error.
 #' @param exact logical.  Default TRUE. If TRUE, an efficient calculation is used to calculate average PAF, which enables the average PAF from N! permutations, over all N risk factors to be calculated with only 2^N-1 operations.  If FALSE, permutations are sampled
-#' @param nperm  Default NULL Number of random permutations used to calculate average and sequential PAF.  If correct_order is set to an integer value, nperm is reset to the largest integer multiple of correct_order that is less than the number of permutations implied by correct_order.
-#' @param correct_order Default 3.  This enforces stratified sampling of permutations where the first correct_order positions of the sampled permutations are evenly distributed over the integers 1 ... n, n being the number of risk factors of interest, over the sampled permutations.  The other positions are randomly sampled.  This automatically sets the number of simulations.  For interest, if n=10 and correct_order=3, nperm is set to factorial(n)/factorial(n-correct_order).  This special resampling reduces Monte Carlo variation in estimated average and sequential PAFs.
+#' @param nperm  Default NULL Number of random permutations used to calculate average and sequential PAF.  If correct_order is set to an integer value, nperm is reset to an integer multiple of factorial(N)/factorial(N-correct_order) depending on the size of nperm.  If nperm is NULL or less than factorial(N)/factorial(N-correct_order), factorial(N)/factorial(N-correct_order) permutations will be sampled.  If nperm is larger than factorial(N)/factorial(N-correct_order), nperm will be reset to the smallest integer multiple of factorial(N)/factorial(N-correct_order) less than the input value of nperm
+#' @param correct_order Default 3.  This enforces stratified sampling of permutations where the first correct_order positions of the sampled permutations are evenly distributed over the integers 1 ... N, N being the number of risk factors of interest, over the sampled permutations.  The other positions are randomly sampled.  This automatically sets the number of simulations when nperm=NULL.  For interest, if N=10 and correct_order=3, nperm is set to factorial(10)/factorial(10-3) = 720.  This special resampling reduces Monte Carlo variation in estimated average and sequential PAFs.
 #' @params vars A subset of risk factors for which we want to calculate average, sequential and joint PAF
 #' @param ci Logical. If TRUE, a bootstrap confidence interval is computed along with a point estimate (default FALSE).  If ci=FALSE, only a point estimate is produced.  A simulation procedure (sampling permutations and also simulating the effects of eliminating risk factors over the descendent nodes in a Bayesian network) is required to produce the point estimates.  The point estimate will change on repated runs of the function.  The margin of error of the point estimate is given when ci=FALSE
 #' @param boot_rep Integer.  Number of bootstrap replications (Only necessary to specify if ci=TRUE)
 #' @param ci_type Character.  Default norm.  A vector specifying the types of confidence interval desired.  "norm", "basic", "perc" and "bca" are the available methods
 #' @param ci_level Numeric.  Default 0.95. A number between 0 and 1 specifying the level of the confidence interval (when ci=TRUE)
-#' @param ci_level_ME Numeric.  Default 0.95. A number between 0 and 1 specifying the level of the margin of error for the point estimate
-#' @return A dataframe with average joint and sequential PAF for all risk factors in node_vec (or alternatively a subset of those risk factors if specified in vars).
+#' @param ci_level_ME Numeric.  Default 0.95. A number between 0 and 1 specifying the level of the margin of error for the point estimate (only revelant when ci=FALSE and exact=FALSE)
+#' @return A SAF_summary object with average joint and sequential PAF for all risk factors in node_vec (or alternatively a subset of those risk factors if specified in vars).
 #' @export
 #'
+#' @references Ferguson, J., O’Connell, M. and O’Donnell, M., 2020. Revisiting sequential attributable fractions. Archives of Public Health, 78(1), pp.1-9.
+#' @references Ferguson, J., Alvarez-Iglesias, A., Newell, J., Hinde, J. and O’Donnell, M., 2018. Estimating average attributable fractions with confidence intervals for cohort and case–control studies. Statistical methods in medical research, 27(4), pp.1141-1152
 #' @examples
 #' library(splines)
 #' library(survival)
@@ -301,11 +306,66 @@ average_paf <- function(data, model_list, parent_list, node_vec, prev=.09, exact
     stop("please specify either correct_order and nperm")
 
   }
+  ## how many risk factors are under scrutiny?
+  col_list <- numeric(length(node_vec))
+  N <- length(col_list)-1
+  for(i in 1:(N+1)) col_list[i] <- (1:ncol(data))[colnames(data)==node_vec[i]]
+  col_list_orig <- col_list
+  if(!is.null(vars)){
+    #browser()
+    indexes <- c((1:(N+1))[node_vec %in% vars],N+1)
+    col_list <- col_list[indexes]
+    N <- length(col_list)-1
+
+  }
+
   if(!ci) return(average_paf_no_CI(data=data, model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=prev, nperm=nperm, correct_order=correct_order, alpha=1-ci_level_ME,vars=vars,exact=exact))
   res <- boot::boot(data=data,statistic=average_paf_inner,R=boot_rep,model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=prev, nperm=nperm, correct_order=correct_order, vars=vars, exact=exact)
   if(is.null(vars)) vars <- node_vec[1:(length(node_vec)-1)]
+  res <- extract_ci(res=res,model_type='glm',t_vector=c(paste0(rep(node_vec[node_vec %in% vars],times=rep(length(vars),length(vars))),'_',rep(1:length(vars),length(vars))),paste0("Average PAF ", node_vec[node_vec %in% vars]),'JointPAF'),ci_level=ci_level,ci_type=ci_type,continuous=TRUE)
+  res <- cbind(position=c(rep(paste("elimination position",1:N),N),rep("Average",N),"Joint"),'risk factor'=rownames(res),res)
+  rownames(res) <- NULL
+  res$`risk factor` <- gsub(pattern="(.*)_[0-9]",replacement="\\1",x=res$`risk factor`,perl=TRUE)
+  res$`risk factor` <- gsub(pattern="Average PAF (.*)",replacement="\\1",x=res$`risk factor`,perl=TRUE)
+  res$`risk factor` <- gsub(pattern="Joint",replacement="",x=res$`risk factor`,perl=TRUE)
+  print(res)
+  res <- structure(res,class="SAF_summary")
+  return(res)
 
-      return(extract_ci(res=res,model_type='glm',t_vector=c(paste0(rep(node_vec[node_vec %in% vars],times=rep(length(vars),length(vars))),'_',rep(1:length(vars),length(vars))),paste0("Average PAF ", node_vec[node_vec %in% vars]),'JointPAF'),ci_level=ci_level,ci_type=ci_type,continuous=TRUE))
+}
+
+#' Print out SAF_summary object
+#'
+#' @param x A SAF_summary object.  This is a dataframe that is created by running the function average_PAF.
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#' library(splines)
+#' library(survival)
+#' library(parallel)
+#' options(boot.parallel="snow")
+#' options(boot.ncpus=parallel::detectCores())
+#' #  Simulated data on occupational and environmental exposure to chronic cough from Eide, 1995
+#' # First specify the causal graph, in terms of the parents of each node.  Then put into a list
+#' parent_urban.rural <- c()
+#' parent_smoking.category <- c("urban.rural")
+#' parent_occupational.exposure <- c("urban.rural")
+#' parent_y <- c("urban.rural","smoking.category","occupational.exposure")
+#'parent_list <- list(parent_urban.rural, parent_smoking.category, parent_occupational.exposure, parent_y)
+# # also specify nodes of graph, in order from root to leaves
+#' node_vec <- c("urban.rural","smoking.category","occupational.exposure", "y")
+# # specify a model list according to parent_list
+# # here we use the auxillary function 'automatic fit'
+#' model_list=automatic_fit(data=Hordaland_data, parent_list=parent_list, node_vec=node_vec, prev=.09)
+#' # By default the function works by stratified simulation of permutations and subsequent simulation of the incremental interventions on the distribution of risk factors.  The permuations are stratified so each factor appears equally often in the first correct_order positions.  correct_order has a default of 2.
+#' out <- average_paf(data=Hordaland_data, model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=.09, nperm=10,vars = c("urban.rural","occupational.exposure"),ci=FALSE)
+#' print(out)
+print.SAF_summary <- function(x){
+
+  data_frame <- structure(as.list(x),class="data.frame", row.names=attr(x,"row.names"))
+  data_frame
 
 }
 
@@ -808,11 +868,12 @@ order_fun <- function(x){
 #' @param vars A subset of risk factors for which we want to calculate joint PAF
 #' @param ci Logical. If TRUE, a bootstrap confidence interval is computed along with a point estimate (default FALSE).  If ci=FALSE, only a point estimate is produced.  A simulation procedure (sampling permutations and also simulating the effects of eliminating risk factors over the descendent nodes in a Bayesian network) is required to produce the point estimates.  The point estimate will change on repated runs of the function.  The margin of error of the point estimate is given when ci=FALSE
 #' @param boot_rep Integer.  Number of bootstrap replications (Only necessary to specify if ci=TRUE)
-#' @param ci_type Character.  Default norm.  A vector specifying the types of confidence interval desired.  "norm", "basic", "perc" and "bca" are the available metho
+#' @param ci_type Character.  Default norm.  A vector specifying the types of confidence interval desired.  "norm", "basic", "perc" and "bca" are the available method
 #' @param ci_level Numeric.  Confidence level.  Default 0.95
 #' @param nsim Numeric.  Number of independent simulations of the dataset.  Default of 1.
-
 #' @export
+#'
+#' @references Ferguson, J., O’Connell, M. and O’Donnell, M., 2020. Revisiting sequential attributable fractions. Archives of Public Health, 78(1), pp.1-9.
 #'
 #' @examples
 #' library(splines)
@@ -1034,6 +1095,8 @@ current_mat <- data
 
 #' @export
 #'
+#' @references Ferguson, J., O’Connell, M. and O’Donnell, M., 2020. Revisiting sequential attributable fractions. Archives of Public Health, 78(1), pp.1-9.
+#'
 #' @examples
 #' parent_exercise <- c("education")
 #' parent_diet <- c("education")
@@ -1049,6 +1112,7 @@ current_mat <- data
 #' parent_list <- list(parent_exercise,parent_diet,parent_smoking,parent_alcohol,parent_stress,parent_high_blood_pressure,parent_lipids,parent_waist_hip_ratio,parent_early_stage_heart_disease,parent_diabetes,parent_case)
 #' node_vec=c("exercise","diet","smoking","alcohol","stress","high_blood_pressure","lipids","waist_hip_ratio","early_stage_heart_disease","diabetes","case")
 #' model_list=automatic_fit(data=stroke_reduced, parent_list=parent_list, node_vec=node_vec, prev=.0035,common="region*ns(age,df=5)+sex*ns(age,df=5)", spline_nodes = c("waist_hip_ratio","lipids","diet"))
+#' # calculate sequential PAF for stress, conditional on smoking and blood pressure being eliminated from the population
 #' seqpaf <- seq_paf(data=stroke_reduced, model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=.0035, vars = c("high_blood_pressure","smoking","stress"),ci=TRUE,boot_rep=10)
 seq_paf <- function(data, model_list, parent_list, node_vec, prev=NULL, vars=NULL,ci=FALSE,boot_rep=100, ci_type=c("norm"),ci_level=0.95,nsim=1){
   if(!node_order(parent_list=parent_list,node_vec=node_vec)){

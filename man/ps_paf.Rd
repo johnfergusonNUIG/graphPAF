@@ -20,15 +20,15 @@ ps_paf(
 \arguments{
 \item{response_model}{A R model object for a binary outcome that involves a risk factor, confounders and mediators of the risk factor outcome relationship.  Note that a weighted model should be used for case control data.}
 
-\item{mediator_models}{A list of R object models for the mediator relationship (depending on the risk factor and any confounders)  Note a weighted model should be should for case control datasets}
+\item{mediator_models}{A list of R object models for the mediator relationship (depending on the risk factor and any confounders)  Note a weighted model should be used for case control data}
 
 \item{riskfactor}{character.  Represents the name of the risk factor}
 
-\item{refval}{For factor valued risk factors, the referenece level of the risk factor.  If the risk factor is numeric, the reference level is assumed to be 0.}
+\item{refval}{For factor valued risk factors, the reference level of the risk factor.  If the risk factor is numeric, the reference level is assumed to be 0.}
 
-\item{data}{dataframe. A dataframe (with no missing values) containing the data used to fit the mediator and response models.  Run data_clean on dataset before using}
+\item{data}{dataframe. A dataframe (with no missing values) containing the data used to fit the mediator and response models.  You can run data_clean to the input dataset if the data has missing values as a pre-processing step}
 
-\item{prev}{numeric.  A value between 0 and 1 specifying the prevalence of disease.  Used to calculate weights in PS-PAF formula.  If prev is NULL weights are assumed to be 1}
+\item{prev}{numeric.  A value between 0 and 1 specifying the prevalence of disease.  Used to calculate weights in PS-PAF formula.  If prev is NULL weights are assumed to be 1.}
 
 \item{ci}{logical.  If TRUE a confidence interval is calculated using Bootstrap}
 
@@ -39,7 +39,7 @@ ps_paf(
 \item{ci_type}{Character.  Defalt norm.  A vector specifying the types of confidence interval desired.  "norm", "basic", "perc" and "bca" are the available methods}
 }
 \value{
-Estimated PS-PAF (and confidence intervals if ci=TRUE) for each mediator referred to in mediator_models, together with esitmated direct PS-PAF.
+Estimated PS-PAF (and confidence intervals if ci=TRUE) for each mediator referred to in mediator_models, together with estimated direct PS-PAF.
 }
 \description{
 Estimate Pathway specific population attributable fractions
@@ -56,4 +56,7 @@ options(boot.ncpus=parallel::detectCores())
 response_model <- glm(case ~ region * ns(age, df = 5) + sex * ns(age, df = 5) + education + exercise + ns(diet, df = 3) + smoking + alcohol + stress + ns(lipids, df = 3) + ns(waist_hip_ratio, df = 3) + high_blood_pressure, data=stroke_reduced,family='binomial', weights=weights)
 mediator_models <- list(glm(high_blood_pressure ~ region * ns(age, df = 5) + sex * ns(age, df = 5) + education   +exercise + ns(diet, df = 3) + smoking + alcohol + stress,data=stroke_reduced,family='binomial',weights=weights),lm(lipids ~ region * ns(age, df = 5) + sex * ns(age, df = 5) +education +  exercise + ns(diet, df = 3) + smoking + alcohol + stress, weights=weights, data=stroke_reduced),lm(waist_hip_ratio ~ region * ns(age, df = 5) + sex * ns(age, df = 5) + education + exercise + ns(diet, df = 3) + smoking + alcohol + stress, weights=weights, data=stroke_reduced))
 ps_paf(response_model=response_model, mediator_models=mediator_models ,riskfactor="exercise",refval=0,data=stroke_reduced,prev=0.0035, ci=TRUE,boot_rep=100,ci_type="norm")
+}
+\references{
+Pathway specific Population attributable fractions.  O’Connell, M.M. and Ferguson, J.P., 2022. IEA. International Journal of Epidemiology, 1, p.13.  Accessible at: https://academic.oup.com/ije/advance-article/doi/10.1093/ije/dyac079/6583255?login=true
 }

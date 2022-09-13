@@ -503,7 +503,6 @@ if(!exact){
 #' @param ci_level Numeric.  Default 0.95. A number between 0 and 1 specifying the level of the confidence interval (when ci=TRUE)
 #' @param ci_level_ME Numeric.  Default 0.95. A number between 0 and 1 specifying the level of the margin of error for the point estimate
 #' @return A dataframe with average joint and sequential PAF for all risk factors in node_vec (or alternatively a subset of those risk factors if specified in vars).
-#' @export
 #'
 #' @examples
 #' set.seed(15122021)

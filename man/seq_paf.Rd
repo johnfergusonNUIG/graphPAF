@@ -59,5 +59,9 @@ parent_case <- c("education","exercise","diet","smoking","alcohol","stress","lip
 parent_list <- list(parent_exercise,parent_diet,parent_smoking,parent_alcohol,parent_stress,parent_high_blood_pressure,parent_lipids,parent_waist_hip_ratio,parent_early_stage_heart_disease,parent_diabetes,parent_case)
 node_vec=c("exercise","diet","smoking","alcohol","stress","high_blood_pressure","lipids","waist_hip_ratio","early_stage_heart_disease","diabetes","case")
 model_list=automatic_fit(data=stroke_reduced, parent_list=parent_list, node_vec=node_vec, prev=.0035,common="region*ns(age,df=5)+sex*ns(age,df=5)", spline_nodes = c("waist_hip_ratio","lipids","diet"))
+# calculate sequential PAF for stress, conditional on smoking and blood pressure being eliminated from the population
 seqpaf <- seq_paf(data=stroke_reduced, model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=.0035, vars = c("high_blood_pressure","smoking","stress"),ci=TRUE,boot_rep=10)
+}
+\references{
+Ferguson, J., O’Connell, M. and O’Donnell, M., 2020. Revisiting sequential attributable fractions. Archives of Public Health, 78(1), pp.1-9.
 }

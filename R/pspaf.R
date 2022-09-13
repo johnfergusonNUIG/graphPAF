@@ -14,18 +14,19 @@ ps_paf_sim <- function(response_model, mediator_models,riskfactor,refval,data,pr
 #' Estimate Pathway specific population attributable fractions
 #'
 #' @param response_model A R model object for a binary outcome that involves a risk factor, confounders and mediators of the risk factor outcome relationship.  Note that a weighted model should be used for case control data.
-#' @param mediator_models A list of R object models for the mediator relationship (depending on the risk factor and any confounders)  Note a weighted model should be should for case control datasets
+#' @param mediator_models A list of R object models for the mediator relationship (depending on the risk factor and any confounders)  Note a weighted model should be used for case control data
 #' @param riskfactor character.  Represents the name of the risk factor
-#' @param refval For factor valued risk factors, the referenece level of the risk factor.  If the risk factor is numeric, the reference level is assumed to be 0.
-#' @param data dataframe. A dataframe (with no missing values) containing the data used to fit the mediator and response models.  Run data_clean on dataset before using
-#' @param prev numeric.  A value between 0 and 1 specifying the prevalence of disease.  Used to calculate weights in PS-PAF formula.  If prev is NULL weights are assumed to be 1
+#' @param refval For factor valued risk factors, the reference level of the risk factor.  If the risk factor is numeric, the reference level is assumed to be 0.
+#' @param data dataframe. A dataframe (with no missing values) containing the data used to fit the mediator and response models.  You can run data_clean to the input dataset if the data has missing values as a pre-processing step
+#' @param prev numeric.  A value between 0 and 1 specifying the prevalence of disease.  Used to calculate weights in PS-PAF formula.  If prev is NULL weights are assumed to be 1.
 #' @param boot_rep Integer.  Number of bootstrap replications (Only necessary to specify if ci=TRUE)
 #' @param ci logical.  If TRUE a confidence interval is calculated using Bootstrap
 #' @param ci_level Numeric.  Default 0.95. A number between 0 and 1 specifying the confidence level (only necessary to specify when ci=TRUE)
 #' @param ci_type Character.  Defalt norm.  A vector specifying the types of confidence interval desired.  "norm", "basic", "perc" and "bca" are the available methods
-#' @return Estimated PS-PAF (and confidence intervals if ci=TRUE) for each mediator referred to in mediator_models, together with esitmated direct PS-PAF.
+#' @return Estimated PS-PAF (and confidence intervals if ci=TRUE) for each mediator referred to in mediator_models, together with estimated direct PS-PAF.
 #' @export
 #'
+#' @references Pathway specific Population attributable fractions.  O’Connell, M.M. and Ferguson, J.P., 2022. IEA. International Journal of Epidemiology, 1, p.13.  Accessible at: https://academic.oup.com/ije/advance-article/doi/10.1093/ije/dyac079/6583255?login=true
 #' @examples
 #' library(splines)
 #' library(survival)

@@ -368,7 +368,7 @@ extract_ci <- function(res,model_type,t_vector,ci_level,ci_type,continuous=FALSE
 if(continuous){
 
   d <- data.frame(matrix(ncol=3 + 2*length(ci_type),nrow=length(res$t0)))
-  colnames(d) <- c("raw_estimate", "estimated_bias","bias_corrected_estimate",rep("",2*length(ci_type)))
+  colnames(d) <- c("raw_estimate", "bias","bias_corrected",rep("",2*length(ci_type)))
   for(i in 1:length(ci_type)) colnames(d)[(2+2*i):(3+2*i)] <- c(paste0(ci_type[i],"_lower"),paste0(ci_type[i],"_upper"))
 
 

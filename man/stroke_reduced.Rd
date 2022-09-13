@@ -27,7 +27,6 @@ A data frame with 13712 rows and 19 variables:
 \item{event}{simulated event indicator (0 if censored, 1 if event happened): for illustrating survival models}
 \item{strata}{Strata number based on sex and region.   For illustrating conditional regression}
 
-...
 }
 }
 \source{

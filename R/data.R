@@ -26,24 +26,21 @@
 #'   \item{event}{simulated event indicator (0 if censored, 1 if event happened): for illustrating survival models}
 #'   \item{strata}{Strata number based on sex and region.   For illustrating conditional regression}
 #'
-#'   ...
+#'
 #' }
 #' @source Data simulated based on relationships described in \url{https://www.thelancet.com/journals/lancet/article/PIIS0140-6736(16)30506-2/fulltext}
 "stroke_reduced"
 
 
 
-#' Simulated case control dataset for 5000 cases (individuals with chronic cough) and 5000 controls.
-#'
-#'
-#' Data simulated based on Eide, Geir Egil, and Olaf Gefeller. "Sequential and average attributable fractions as aids in the selection of preventive strategies." Journal of clinical epidemiology 48, no. 5 (1995): 645-655.
-#'
-#'
+#' Simulated case control dataset for 5000 cases (individuals with chronic cough) and 5000 controls
 #' @format A data frame with 10000 rows and 4 variables:
 #' \describe{
 #'   \item{y}{Chronic Cough, 1: Yes, 0: No}
 #'   \item{urban.rural}{1: resident in urban setting, 0: resident in rural setting}
 #'   \item{smoking.category}{Smoking level: 1 No smoker, 2: ex smoker, 3: 1-9 cigarettes per day, 4: 10-19 cigarettes per day, 4:>= 20 cigarettes per day}
 #'   \item{occupational.exposure}{Exposed to dust/gas at work.  1: Yes, 0: no}
-#' @source Data simulated based on relationships described in "Sequential and average attributable fractions as aids in the selection of preventive strategies." Journal of clinical epidemiology 48, no. 5 (1995): 645-655 and Bakke, P., G. E. Eide, R. Hanoa, and A. Gulsvik. "Occupational dust or gas exposure and prevalences of respiratory symptoms and asthma in a general population." European Respiratory Journal 4, no. 3 (1991): 273-278.
+#'
+#'   }
+#' @source Data simulated based on "Sequential and average attributable fractions as aids in the selection of preventive strategies." Journal of clinical epidemiology 48, no. 5 (1995): 645-655.
 "Hordaland_data"

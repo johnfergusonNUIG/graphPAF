@@ -1,6 +1,6 @@
 #' Plot of impact fractions against over risk-quantile interventions for several risk factors
 #'
-#' @param data_frame A data frame object, the final 3 columns of which are assumed to be (in order), PAF and lower and upper confidence bounds.
+#' @param data_frame A PAF_q object.  This is a dataframe that is created by running the function PAF_calc_continuous. The final 3 columns of the data frame are assumed to be (in order), PAF and lower and upper confidence bounds.
 #'
 #' @return
 #' @export
@@ -13,8 +13,10 @@
 #' options(boot.ncpus=parallel::detectCores())
 #' model_continuous <- glm(formula = case ~ region * ns(age, df = 5) + sex * ns(age, df = 5) + education +exercise + ns(diet, df = 3) + alcohol + stress + ns(lipids,df = 3) + ns(waist_hip_ratio, df = 3) + high_blood_pressure, family = "binomial", data = stroke_reduced)
 #' out <- PAF_calc_continuous(model_continuous,riskfactor_vec=c("diet","lipids","waist_hip_ratio"),q_vec=c(0.01, 0.1,0.3,0.5,0.7,0.9),ci=TRUE,calculation_method="B",data=stroke_reduced)
-#' plot_PAF_q(out)
-plot_PAF_q <- function(data_frame){
+#' plot(out)
+plot.PAF_q <- function(data_frame,x=NULL,y=NULL){
+
+  data_frame <- structure(as.list(data_frame),class="data.frame", row.names=attr(data_frame,"row.names"))
 
   if(!"riskfactor" %in% colnames(data_frame)){
 
@@ -29,11 +31,20 @@ plot_PAF_q <- function(data_frame){
   }
   pd <- ggplot2::position_dodge(0.01)
   J <- ncol(data_frame)
+  if(J > 3){
   colnames(data_frame)[(J-2):J] <- c("PAF","lower_CI", "upper_CI")
-ggplot2::ggplot(data_frame, ggplot2::aes(x=-q_val, y=PAF, colour=riskfactor)) + ggplot2::theme_grey(base_size = 20) +
+p <- ggplot2::ggplot(data_frame, ggplot2::aes(x=-q_val, y=PAF, colour=riskfactor)) + ggplot2::theme_grey(base_size = 20) +
   ggplot2::geom_errorbar(ggplot2::aes(ymin=lower_CI, ymax=upper_CI),width=0.1, position=pd,size=1) + ggplot2::geom_line(ggplot2::aes(group=riskfactor,width=1),position=pd,size=1) +
   ggplot2::labs(col = "Risk Factor")+ggplot2::ylab(expression(paste(hat(PAF[q]))))+ggplot2::xlab("q") + ggplot2::scale_x_continuous(breaks=c(-1,-.8,-0.6,-0.4,-0.2,0),labels=c(1,0.8,0.6,0.4,0.2,0))
 
+  }
+  if(J==3){
+    colnames(data_frame)[J] <- "PAF"
+   p <-  ggplot2::ggplot(data_frame, ggplot2::aes(x=-q_val, y=PAF, colour=riskfactor)) + ggplot2::theme_grey(base_size = 20) + ggplot2::geom_line(ggplot2::aes(group=riskfactor,width=1),position=pd,size=1) +
+      ggplot2::labs(col = "Risk Factor")+ggplot2::ylab(expression(paste(hat(PAF[q]))))+ggplot2::xlab("q") + ggplot2::scale_x_continuous(breaks=c(-1,-.8,-0.6,-0.4,-0.2,0),labels=c(1,0.8,0.6,0.4,0.2,0))
+
+  }
+  p
 }
 
 
@@ -166,6 +177,7 @@ plot_continuous_quick <- function(model,riskfactor,data,S = 10,ref_val=NA, ci_le
 #' @param S  Default 10.  The integer number of random samples used to calculate average differences in linear predictors. Only relevant to set when interact=TRUE
 #' @return A ggplot2 plotting object
 #' @export
+#' @references Ferguson, J., Maturo, F., Yusuf, S. and O’Donnell, M., 2020. Population attributable fractions for continuously distributed exposures. Epidemiologic Methods, 9(1)
 #'
 #' @examples
 #' model_continuous <- glm(formula = case ~ region * ns(age, df = 5) + sex * ns(age, df = 5) + education +exercise + ns(diet, df = 3) + alcohol + stress + ns(lipids,df = 3) + ns(waist_hip_ratio, df = 3) + high_blood_pressure, family = "binomial", data = stroke_reduced)
@@ -294,3 +306,4 @@ plot_continuous <- function(model,riskfactor,data,S = 10,ref_val=NA, ci_level=0.
   gg
 
 }
+

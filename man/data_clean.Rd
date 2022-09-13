@@ -11,7 +11,9 @@ data_clean(data, model = NULL, vars = NULL, response = "case", prev = NULL)
 
 \item{model}{A glm (with logistic or log link, with binomial family), clogit or coxph model.}
 
-\item{vars}{Default NULL.  Variables required in output data set}
+\item{vars}{Default NULL.  Variables required in output data set.  If set to NULL and model is specified, the variables kept are the response and covariates assumed in model}
+
+\item{response}{Default "case".  response variable in dataset.  Used when recalculating weights (if the argument prev is set)  If set to NULL, the response is inferred from the model}
 
 \item{prev}{Default NULL.  Prevalence of disease (or yearly incidence of disease in healthy controls).  Only relevant to set in case control studies and if path specific PAF or sequential joint PAF calculations are required.  The purpose of this is to create a vector of weights that reweights the cases and controls to reflect the general population}
 }
@@ -20,4 +22,17 @@ A cleaned dataset
 }
 \description{
 Strip out unneeded variables from original data (based on fitted model, or alternatively based on specifying a list of variables), and remove rows with NA values.  The function works for logistic, survival and conditional logistic regressions.  The function also creates a column of weights, which will be just a vector of 1s if prevalence is unspecified.
+}
+\examples{
+# example of using dataclean to strip out NAs, redundant columns and recalculate weights
+stroke_reduced_2 <- stroke_reduced
+stroke_reduced_2$case[sample(1:length(stroke_reduced_2$case),50)] <- NA
+stroke_reduced_2$random <- rnorm(length(stroke_reduced_2$case))
+stroke_reduced_3 <- data_clean(stroke_reduced_2,vars=colnames(stroke_reduced),prev=0.01)
+dim(stroke_reduced_2)
+dim(stroke_reduced_3)
+mymod <- clogit(case ~ high_blood_pressure + strata(strata),data=stroke_reduced_2)
+stroke_reduced_3 <- data_clean(stroke_reduced_2,model=mymod,prev=0.01)
+dim(stroke_reduced_2)
+dim(stroke_reduced_3)
 }
