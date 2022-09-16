@@ -45,22 +45,65 @@ seq_paf(
 Calculation of Sequential paf taking into account risk factor sequencing
 }
 \examples{
+library(splines)
+library(survival)
+library(parallel)
+options(boot.parallel="snow")
+options(boot.ncpus=2)
+# The above could be set to the number of available cores on the machine
+
+# Simulated data on occupational and environmental exposure to
+# chronic cough from Eide, 1995
+# First specify the causal graph, in terms of the parents of each node.
+# Then put into a list.
+parent_urban.rural <- c()
+parent_smoking.category <- c("urban.rural")
+parent_occupational.exposure <- c("urban.rural")
+parent_y <- c("urban.rural","smoking.category","occupational.exposure")
+parent_list <- list(parent_urban.rural, parent_smoking.category,
+ parent_occupational.exposure, parent_y)
+# also specify nodes of graph, in order from root to leaves
+node_vec <- c("urban.rural","smoking.category","occupational.exposure", "y")
+# specify a model list according to parent_list
+# here we use the auxillary function 'automatic fit'
+model_list=automatic_fit(data=Hordaland_data, parent_list=parent_list,
+node_vec=node_vec, prev=.09)
+joint_paf(data=Hordaland_data, model_list=model_list, parent_list=parent_list,
+ node_vec=node_vec, prev=.09, vars = c("urban.rural",
+ "occupational.exposure"),ci=FALSE)
+\dontrun{
+# More complicated example (slower to run)
 parent_exercise <- c("education")
 parent_diet <- c("education")
 parent_smoking <- c("education")
 parent_alcohol <- c("education")
 parent_stress <- c("education")
-parent_high_blood_pressure <- c("education","exercise","diet","smoking","alcohol","stress")
+parent_high_blood_pressure <- c("education","exercise","diet","smoking","alcohol",
+"stress")
 parent_lipids <- c("education","exercise","diet","smoking","alcohol","stress")
-parent_waist_hip_ratio <- c("education","exercise","diet","smoking","alcohol","stress")
-parent_early_stage_heart_disease <- c("education","exercise","diet","smoking","alcohol","stress","lipids","waist_hip_ratio","high_blood_pressure")
-parent_diabetes <- c("education","exercise","diet","smoking","alcohol","stress","lipids","waist_hip_ratio","high_blood_pressure")
-parent_case <- c("education","exercise","diet","smoking","alcohol","stress","lipids","waist_hip_ratio","high_blood_pressure","early_stage_heart_disease","diabetes")
-parent_list <- list(parent_exercise,parent_diet,parent_smoking,parent_alcohol,parent_stress,parent_high_blood_pressure,parent_lipids,parent_waist_hip_ratio,parent_early_stage_heart_disease,parent_diabetes,parent_case)
-node_vec=c("exercise","diet","smoking","alcohol","stress","high_blood_pressure","lipids","waist_hip_ratio","early_stage_heart_disease","diabetes","case")
-model_list=automatic_fit(data=stroke_reduced, parent_list=parent_list, node_vec=node_vec, prev=.0035,common="region*ns(age,df=5)+sex*ns(age,df=5)", spline_nodes = c("waist_hip_ratio","lipids","diet"))
-# calculate sequential PAF for stress, conditional on smoking and blood pressure being eliminated from the population
-seqpaf <- seq_paf(data=stroke_reduced, model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=.0035, vars = c("high_blood_pressure","smoking","stress"),ci=TRUE,boot_rep=10)
+parent_waist_hip_ratio <- c("education","exercise","diet","smoking",
+"alcohol","stress")
+parent_early_stage_heart_disease <- c("education","exercise","diet",
+"smoking","alcohol","stress","lipids","waist_hip_ratio","high_blood_pressure")
+parent_diabetes <- c("education","exercise","diet","smoking","alcohol",
+"stress","lipids","waist_hip_ratio","high_blood_pressure")
+parent_case <- c("education","exercise","diet","smoking","alcohol",
+"stress","lipids","waist_hip_ratio","high_blood_pressure",
+"early_stage_heart_disease","diabetes")
+parent_list <- list(parent_exercise,parent_diet,parent_smoking,parent_alcohol,
+parent_stress,parent_high_blood_pressure,parent_lipids,parent_waist_hip_ratio,
+parent_early_stage_heart_disease,parent_diabetes,parent_case)
+node_vec=c("exercise","diet","smoking","alcohol","stress","high_blood_pressure",
+"lipids","waist_hip_ratio","early_stage_heart_disease","diabetes","case")
+model_list=automatic_fit(data=stroke_reduced, parent_list=parent_list,
+node_vec=node_vec, prev=.0035,common="region*ns(age,df=5)+sex*ns(age,df=5)",
+ spline_nodes = c("waist_hip_ratio","lipids","diet"))
+# calculate sequential PAF for stress, conditional on smoking
+# and blood pressure being eliminated from the population
+seqpaf <- seq_paf(data=stroke_reduced, model_list=model_list, parent_list=
+parent_list, node_vec=node_vec, prev=.0035, vars = c("high_blood_pressure",
+"smoking","stress"),ci=TRUE,boot_rep=10)
+}
 }
 \references{
 Ferguson, J., O’Connell, M. and O’Donnell, M., 2020. Revisiting sequential attributable fractions. Archives of Public Health, 78(1), pp.1-9.

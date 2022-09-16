@@ -237,10 +237,11 @@ if(!exact){
 #' @param model_list List.  A list of models corresponding for the outcome variables in node_vec, with parents as described in parent_vec.  This list must be in the same order as node_vec and parent_list
 #' @param parent_list A list.  The ith element is the vector of variable names that are direct causes of ith variable in node_vec (Note that the variable names should be columns in data)
 #' @param node_vec A character vector corresponding to the nodes in the Bayesian network (The variable names should be column names in data).  This must be specified from root to leaves - that is ancestors in the causal graph for a particular node are positioned before their descendants.  If this condition is false the function will return an error.
+#' @param prev numeric.  Prevalence of disease.  Only relevant to set for case control datasets.
 #' @param exact logical.  Default TRUE. If TRUE, an efficient calculation is used to calculate average PAF, which enables the average PAF from N! permutations, over all N risk factors to be calculated with only 2^N-1 operations.  If FALSE, permutations are sampled
 #' @param nperm  Default NULL Number of random permutations used to calculate average and sequential PAF.  If correct_order is set to an integer value, nperm is reset to an integer multiple of factorial(N)/factorial(N-correct_order) depending on the size of nperm.  If nperm is NULL or less than factorial(N)/factorial(N-correct_order), factorial(N)/factorial(N-correct_order) permutations will be sampled.  If nperm is larger than factorial(N)/factorial(N-correct_order), nperm will be reset to the smallest integer multiple of factorial(N)/factorial(N-correct_order) less than the input value of nperm
 #' @param correct_order Default 3.  This enforces stratified sampling of permutations where the first correct_order positions of the sampled permutations are evenly distributed over the integers 1 ... N, N being the number of risk factors of interest, over the sampled permutations.  The other positions are randomly sampled.  This automatically sets the number of simulations when nperm=NULL.  For interest, if N=10 and correct_order=3, nperm is set to factorial(10)/factorial(10-3) = 720.  This special resampling reduces Monte Carlo variation in estimated average and sequential PAFs.
-#' @params vars A subset of risk factors for which we want to calculate average, sequential and joint PAF
+#' @param vars A subset of risk factors for which we want to calculate average, sequential and joint PAF
 #' @param ci Logical. If TRUE, a bootstrap confidence interval is computed along with a point estimate (default FALSE).  If ci=FALSE, only a point estimate is produced.  A simulation procedure (sampling permutations and also simulating the effects of eliminating risk factors over the descendent nodes in a Bayesian network) is required to produce the point estimates.  The point estimate will change on repated runs of the function.  The margin of error of the point estimate is given when ci=FALSE
 #' @param boot_rep Integer.  Number of bootstrap replications (Only necessary to specify if ci=TRUE)
 #' @param ci_type Character.  Default norm.  A vector specifying the types of confidence interval desired.  "norm", "basic", "perc" and "bca" are the available methods
@@ -256,42 +257,74 @@ if(!exact){
 #' library(survival)
 #' library(parallel)
 #' options(boot.parallel="snow")
-#' options(boot.ncpus=parallel::detectCores())
+#' options(boot.ncpus=2)
+#' # The above could be set to the number of available cores on the machine
 #' #  Simulated data on occupational and environmental exposure to chronic cough from Eide, 1995
 #' # First specify the causal graph, in terms of the parents of each node.  Then put into a list
 #' parent_urban.rural <- c()
 #' parent_smoking.category <- c("urban.rural")
 #' parent_occupational.exposure <- c("urban.rural")
 #' parent_y <- c("urban.rural","smoking.category","occupational.exposure")
-#' parent_list <- list(parent_urban.rural, parent_smoking.category, parent_occupational.exposure, parent_y)
+#' parent_list <- list(parent_urban.rural, parent_smoking.category,
+#'  parent_occupational.exposure, parent_y)
 #' # also specify nodes of graph, in order from root to leaves
 #' node_vec <- c("urban.rural","smoking.category","occupational.exposure", "y")
 #' # specify a model list according to parent_list
 #' # here we use the auxillary function 'automatic fit'
-#' model_list=automatic_fit(data=Hordaland_data, parent_list=parent_list, node_vec=node_vec, prev=.09)
-#' # By default the function works by stratified simulation of permutations and subsequent simulation of the incremental interventions on the distribution of risk factors.  The permuations are stratified so each factor appears equally often in the first correct_order positions.  correct_order has a default of 2.
-#' average_paf(data=Hordaland_data, model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=.09, nperm=10,vars = c("urban.rural","occupational.exposure"),ci=FALSE)
+#' model_list=automatic_fit(data=Hordaland_data, parent_list=parent_list,
+#'  node_vec=node_vec, prev=.09)
+#' # By default the function works by stratified simulation of permutations and
+#' # subsequent simulation of the incremental interventions on the distribution of risk
+#' # factors.  The permutations are stratified so each factor appears equally often in
+#' # the first correct_order positions.  correct_order has a default of 2.
+#' average_paf(data=Hordaland_data, model_list=model_list, parent_list=parent_list,
+#'  node_vec=node_vec, prev=.09, nperm=10,vars = c("urban.rural",
+#'  "occupational.exposure"),ci=FALSE)
 #'
+#' \dontrun{
 #' # More complicated example (slower to run)
 #' parent_exercise <- c("education")
 #' parent_diet <- c("education")
 #' parent_smoking <- c("education")
 #' parent_alcohol <- c("education")
 #' parent_stress <- c("education")
-#' parent_high_blood_pressure <- c("education","exercise","diet","smoking","alcohol","stress")
-#' parent_lipids <- c("education","exercise","diet","smoking","alcohol","stress")
-#' parent_waist_hip_ratio <- c("education","exercise","diet","smoking","alcohol","stress")
-#' parent_early_stage_heart_disease <- c("education","exercise","diet","smoking","alcohol","stress","lipids","waist_hip_ratio","high_blood_pressure")
-#' parent_diabetes <- c("education","exercise","diet","smoking","alcohol","stress","lipids","waist_hip_ratio","high_blood_pressure")
-#' parent_case <- c("education","exercise","diet","smoking","alcohol","stress","lipids","waist_hip_ratio","high_blood_pressure","early_stage_heart_disease","diabetes")
-#' parent_list <- list(parent_exercise,parent_diet,parent_smoking,parent_alcohol,parent_stress,parent_high_blood_pressure,parent_lipids,parent_waist_hip_ratio,parent_early_stage_heart_disease,parent_diabetes,parent_case)
-#' node_vec=c("exercise","diet","smoking","alcohol","stress","high_blood_pressure","lipids","waist_hip_ratio","early_stage_heart_disease","diabetes","case")
-#' model_list=automatic_fit(data=stroke_reduced, parent_list=parent_list, node_vec=node_vec, prev=.0035,common="region*ns(age,df=5)+sex*ns(age,df=5)", spline_nodes = c("waist_hip_ratio","lipids","diet"))
-#' out <- average_paf(data=stroke_reduced, model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=.0035, vars = c("high_blood_pressure","smoking","stress","exercise","alcohol","diabetes","early_stage_heart_disease"),ci=TRUE,boot_rep=10)
+#' parent_high_blood_pressure <- c("education","exercise","diet","smoking",
+#' "alcohol","stress")
+#' parent_lipids <- c("education","exercise","diet","smoking","alcohol",
+#' "stress")
+#' parent_waist_hip_ratio <- c("education","exercise","diet","smoking",
+#' "alcohol","stress")
+#' parent_early_stage_heart_disease <- c("education","exercise","diet",
+#' "smoking","alcohol","stress","lipids","waist_hip_ratio","high_blood_pressure")
+#' parent_diabetes <- c("education","exercise","diet","smoking","alcohol",
+#' "stress","lipids","waist_hip_ratio","high_blood_pressure")
+#' parent_case <- c("education","exercise","diet","smoking","alcohol","stress",
+#' "lipids","waist_hip_ratio","high_blood_pressure",
+#' "early_stage_heart_disease","diabetes")
+#' parent_list <- list(parent_exercise,parent_diet,parent_smoking,
+#' parent_alcohol,parent_stress,parent_high_blood_pressure,
+#' parent_lipids,parent_waist_hip_ratio,parent_early_stage_heart_disease,
+#' parent_diabetes,parent_case)
+#' node_vec=c("exercise","diet","smoking","alcohol","stress",
+#' "high_blood_pressure","lipids","waist_hip_ratio","early_stage_heart_disease",
+#' "diabetes","case")
+#' model_list=automatic_fit(data=stroke_reduced, parent_list=parent_list,
+#'  node_vec=node_vec, prev=.0035,common="region*ns(age,df=5)+sex*ns(age,df=5)",
+#'   spline_nodes = c("waist_hip_ratio","lipids","diet"))
+#' out <- average_paf(data=stroke_reduced, model_list=model_list,
+#' parent_list=parent_list, node_vec=node_vec, prev=.0035,
+#' vars = c("high_blood_pressure","smoking","stress","exercise","alcohol",
+#' "diabetes","early_stage_heart_disease"),ci=TRUE,boot_rep=10)
 #' # plot sequential and average PAFs by risk factor
-#' plot_sequential(out, number_rows=3)
-#' # similar calculation, but now sampling permutations (stratified, so that each risk factor will appear equally often in the first correct_order positions)
-#' # out <- average_paf(data=stroke_reduced, model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=.0035, exact=FALSE, correct_order=2, vars = c("high_blood_pressure","smoking","stress","exercise","alcohol","diabetes","early_stage_heart_disease"),ci=TRUE,boot_rep=10)
+#' plot(out, number_rows=3)
+#' # similar calculation, but now sampling permutations (stratified, so
+#' # that each risk factor will appear equally often in the first correct_order positions)
+#' # out <- average_paf(data=stroke_reduced, model_list=model_list,
+#' parent_list=parent_list, node_vec=node_vec, prev=.0035, exact=FALSE,
+#'  correct_order=2, vars = c("high_blood_pressure","smoking","stress",
+#'  "exercise","alcohol","diabetes","early_stage_heart_disease"),ci=TRUE,
+#'  boot_rep=10)
+#' }
 average_paf <- function(data, model_list, parent_list, node_vec, prev=.09, exact=TRUE, nperm=NULL, correct_order=2, vars=NULL,ci=FALSE,boot_rep=100, ci_type=c("norm"),ci_level=0.95, ci_level_ME=0.95){
   if(!node_order(parent_list=parent_list,node_vec=node_vec)){
     stop("ancestors must be specified before descendants in node_vec")
@@ -320,7 +353,11 @@ average_paf <- function(data, model_list, parent_list, node_vec, prev=.09, exact
   }
 
   if(!ci) return(average_paf_no_CI(data=data, model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=prev, nperm=nperm, correct_order=correct_order, alpha=1-ci_level_ME,vars=vars,exact=exact))
-  res <- boot::boot(data=data,statistic=average_paf_inner,R=boot_rep,model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=prev, nperm=nperm, correct_order=correct_order, vars=vars, exact=exact)
+  nc <- options()$boot.ncpus
+  cl <- parallel::makeCluster(nc)
+  parallel::clusterExport(cl, c("ns"))
+  res <- boot::boot(data=data,statistic=average_paf_inner,R=boot_rep,model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=prev, nperm=nperm, correct_order=correct_order, vars=vars, exact=exact,cl=cl)
+  parallel::stopCluster(cl)
   if(is.null(vars)) vars <- node_vec[1:(length(node_vec)-1)]
   res <- extract_ci(res=res,model_type='glm',t_vector=c(paste0(rep(node_vec[node_vec %in% vars],times=rep(length(vars),length(vars))),'_',rep(1:length(vars),length(vars))),paste0("Average PAF ", node_vec[node_vec %in% vars]),'JointPAF'),ci_level=ci_level,ci_type=ci_type,continuous=TRUE)
   res <- cbind(position=c(rep(paste("elimination position",1:N),N),rep("Average",N),"Joint"),'risk factor'=rownames(res),res)
@@ -337,8 +374,9 @@ average_paf <- function(data, model_list, parent_list, node_vec, prev=.09, exact
 #' Print out SAF_summary object
 #'
 #' @param x A SAF_summary object.  This is a dataframe that is created by running the function average_PAF.
+#' @param ... Other arguments to be passed to print
 #'
-#' @return
+#' @return NULL
 #' @export
 #'
 #' @examples
@@ -346,23 +384,27 @@ average_paf <- function(data, model_list, parent_list, node_vec, prev=.09, exact
 #' library(survival)
 #' library(parallel)
 #' options(boot.parallel="snow")
-#' options(boot.ncpus=parallel::detectCores())
+#' options(boot.ncpus=2)
+#' # The above could be set to the number of available cores on the machine
 #' #  Simulated data on occupational and environmental exposure to chronic cough from Eide, 1995
 #' # First specify the causal graph, in terms of the parents of each node.  Then put into a list
 #' parent_urban.rural <- c()
 #' parent_smoking.category <- c("urban.rural")
 #' parent_occupational.exposure <- c("urban.rural")
 #' parent_y <- c("urban.rural","smoking.category","occupational.exposure")
-#'parent_list <- list(parent_urban.rural, parent_smoking.category, parent_occupational.exposure, parent_y)
+#'parent_list <- list(parent_urban.rural, parent_smoking.category,
+#'parent_occupational.exposure, parent_y)
 # # also specify nodes of graph, in order from root to leaves
 #' node_vec <- c("urban.rural","smoking.category","occupational.exposure", "y")
 # # specify a model list according to parent_list
 # # here we use the auxillary function 'automatic fit'
-#' model_list=automatic_fit(data=Hordaland_data, parent_list=parent_list, node_vec=node_vec, prev=.09)
-#' # By default the function works by stratified simulation of permutations and subsequent simulation of the incremental interventions on the distribution of risk factors.  The permuations are stratified so each factor appears equally often in the first correct_order positions.  correct_order has a default of 2.
-#' out <- average_paf(data=Hordaland_data, model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=.09, nperm=10,vars = c("urban.rural","occupational.exposure"),ci=FALSE)
+#' model_list=automatic_fit(data=Hordaland_data, parent_list=parent_list,
+#'  node_vec=node_vec, prev=.09)
+#' out <- average_paf(data=Hordaland_data, model_list=model_list,
+#' parent_list=parent_list, node_vec=node_vec, prev=.09, nperm=10,
+#' vars = c("urban.rural","occupational.exposure"),ci=FALSE)
 #' print(out)
-print.SAF_summary <- function(x){
+print.SAF_summary <- function(x,...){
 
   data_frame <- structure(as.list(x),class="data.frame", row.names=attr(x,"row.names"))
   data_frame
@@ -371,9 +413,7 @@ print.SAF_summary <- function(x){
 
 average_paf_inner <- function(data, ind, model_list, parent_list, node_vec, prev=.09, nperm=100, correct_order=3, vars=NULL, exact=TRUE){
 
-  library(splines)
   ################################
-
 
   refit <- function(model,data,with_weights=FALSE){
     model_type <- NULL
@@ -390,13 +430,33 @@ average_paf_inner <- function(data, ind, model_list, parent_list, node_vec, prev
     if(model_type=="clogit"){
       model_text <- as.character(eval(parse(text=as.character(model$userCall)[2])))
       model_text <- paste0(model_text[2],model_text[1],model_text[3])
-      model_text <- paste0("clogit(",model_text,",data=data)")
+      model_text <- paste0("survival::clogit(",model_text,",data=data)")
+      if(length(grep(pattern='^(.*)splines::ns\\((.*)$',x=model_text))==0){
+        thesplit <- ""
+        while(length(grep(pattern='^.*ns\\(.*$',x=model_text))>0){
+          model_text <- gsub(pattern='^(.*)ns\\((.*)$',replacement='\\1splines::ns\\(\\2',x=model_text)
+          stuff <- strsplit(model_text,split="splines::ns(",fixed=TRUE)
+          model_text <- stuff[[1]][1]
+          thesplit <- paste0("splines::ns(",stuff[[1]][2],thesplit)
+        }
+        model_text <- paste0(model_text,thesplit)
+      }
       model <- eval(parse(text=model_text))
     }
     if(model_type=="coxph"){
 
       model_text <- as.character(model$call)
-      model_text <- paste0("coxph(",model_text[2],",data=data)")
+      model_text <- paste0("survival::coxph(",model_text[2],",data=data)")
+      if(length(grep(pattern='^(.*)splines::ns\\((.*)$',x=model_text))==0){
+        thesplit <- ""
+        while(length(grep(pattern='^.*ns\\(.*$',x=model_text))>0){
+          model_text <- gsub(pattern='^(.*)ns\\((.*)$',replacement='\\1splines::ns\\(\\2',x=model_text)
+          stuff <- strsplit(model_text,split="splines::ns(",fixed=TRUE)
+          model_text <- stuff[[1]][1]
+          thesplit <- paste0("splines::ns(",stuff[[1]][2],thesplit)
+        }
+        model_text <- paste0(model_text,thesplit)
+      }
       model <- eval(parse(text=model_text))
     }
 
@@ -406,7 +466,18 @@ average_paf_inner <- function(data, ind, model_list, parent_list, node_vec, prev
       if(with_weights==FALSE && length(model_text)==4) model_text_u <- paste0("glm(",model_text[2],",data=data, family=binomial(link=",as.character(family(model)[2]),"))")
       if(with_weights==TRUE && length(model_text)==4) model_text_u <- paste0("glm(",model_text[2],",data=data, family=binomial(link=",as.character(family(model)[2]),"),weights=weights)")
       if(length(model_text)==5) model_text_u <- paste0("glm(",model_text[2],",data=data, family=binomial(link=",as.character(family(model)[2]),"),weights=",model_text[5],")")
-      model <- eval(parse(text=model_text_u))
+      model_text <- model_text_u
+      if(length(grep(pattern='^(.*)splines::ns\\((.*)$',x=model_text))==0){
+        thesplit <- ""
+        while(length(grep(pattern='^.*ns\\(.*$',x=model_text))>0){
+          model_text <- gsub(pattern='^(.*)ns\\((.*)$',replacement='\\1splines::ns\\(\\2',x=model_text)
+          stuff <- strsplit(model_text,split="splines::ns(",fixed=TRUE)
+          model_text <- stuff[[1]][1]
+          thesplit <- paste0("splines::ns(",stuff[[1]][2],thesplit)
+        }
+        model_text <- paste0(model_text,thesplit)
+      }
+      model <- eval(parse(text=model_text))
     }
 
     if(model_type == "lm"){
@@ -414,17 +485,40 @@ average_paf_inner <- function(data, ind, model_list, parent_list, node_vec, prev
       if(with_weights==FALSE && length(model_text)==3) model_text_u <- paste0("lm(",model_text[2],",data=data)")
       if(with_weights==TRUE && length(model_text)==3) model_text_u <- paste0("lm(",model_text[2],",data=data,weights=weights)")
       if(length(model_text)==4) model_text_u <- paste0("lm(",model_text[2],",data=data, weights=",model_text[4],")")
-      model <- eval(parse(text=model_text_u))
+      model_text <- model_text_u
+      if(length(grep(pattern='^(.*)splines::ns\\((.*)$',x=model_text))==0){
+        thesplit <- ""
+        while(length(grep(pattern='^.*ns\\(.*$',x=model_text))>0){
+          model_text <- gsub(pattern='^(.*)ns\\((.*)$',replacement='\\1splines::ns\\(\\2',x=model_text)
+          stuff <- strsplit(model_text,split="splines::ns(",fixed=TRUE)
+          model_text <- stuff[[1]][1]
+          thesplit <- paste0("splines::ns(",stuff[[1]][2],thesplit)
+        }
+        model_text <- paste0(model_text,thesplit)
+      }
+      model <- eval(parse(text=model_text))
     }
 
     if(model_type == "polr"){
       model_text <- as.character(model$call)
       if(length(model_text)==3) model_text_u <- paste0("MASS::polr(",model_text[2],",data=data)")
       if(length(model_text)==4) model_text_u <- paste0("MASS::polr(",model_text[2],",data=data, weights=",model_text[4],")")
-      model <- eval(parse(text=model_text_u))
+      model_text <- model_text_u
+      if(length(grep(pattern='^(.*)splines::ns\\((.*)$',x=model_text))==0){
+        thesplit <- ""
+        while(length(grep(pattern='^.*ns\\(.*$',x=model_text))>0){
+          model_text <- gsub(pattern='^(.*)ns\\((.*)$',replacement='\\1splines::ns\\(\\2',x=model_text)
+          stuff <- strsplit(model_text,split="splines::ns(",fixed=TRUE)
+          model_text <- stuff[[1]][1]
+          thesplit <- paste0("splines::ns(",stuff[[1]][2],thesplit)
+        }
+        model_text <- paste0(model_text,thesplit)
+      }
+      model <- eval(parse(text=model_text))
     }
     model
   }
+
 
 
   sim_outnode <- function(data,col_num, current_mat, parent_list, col_list,model_list){
@@ -754,14 +848,14 @@ do_sim <- function(colnum,current_mat, model,SN=FALSE){
 }
 
 make_formula <- function(parents,outcome_node,common='',spline_nodes=c(),df_spline_nodes=3){
-  if(length(parents)==0) return(paste(outcome_node,"~ 1"))
+   if(length(parents)==0) return(paste(outcome_node,"~ 1"))
   if(common!="") result <- paste(outcome_node,"~",common,"+ ",parents[1])
   if(common=="") result <- paste(outcome_node,"~",parents[1])
   if(length(parents)>=2){
 
     for(i in 2:length(parents)){
 
-      if(parents[i] %in% spline_nodes) result <- paste(result,"+ ns(",parents[i],",df=",df_spline_nodes,')',sep='')
+      if(parents[i] %in% spline_nodes) result <- paste(result,"+ns(",parents[i],",df=",df_spline_nodes,')',sep='')
       if(!parents[i] %in% spline_nodes) result <- paste(result,"+ ",parents[i],sep='')
 
     }
@@ -783,21 +877,37 @@ make_formula <- function(parents,outcome_node,common='',spline_nodes=c(),df_spli
 #' @export
 #'
 #' @examples
-#' More complicated example (slower to run)
+#' # More complicated example (slower to run)
+#' library(splines)
 #' parent_exercise <- c("education")
 #' parent_diet <- c("education")
 #' parent_smoking <- c("education")
 #' parent_alcohol <- c("education")
 #' parent_stress <- c("education")
-#' parent_high_blood_pressure <- c("education","exercise","diet","smoking","alcohol","stress")
-#' parent_lipids <- c("education","exercise","diet","smoking","alcohol","stress")
-#' parent_waist_hip_ratio <- c("education","exercise","diet","smoking","alcohol","stress")
-#' parent_early_stage_heart_disease <- c("education","exercise","diet","smoking","alcohol","stress","lipids","waist_hip_ratio","high_blood_pressure")
-#' parent_diabetes <- c("education","exercise","diet","smoking","alcohol","stress","lipids","waist_hip_ratio","high_blood_pressure")
-#' parent_case <- c("education","exercise","diet","smoking","alcohol","stress","lipids","waist_hip_ratio","high_blood_pressure","early_stage_heart_disease","diabetes")
-#' parent_list <- list(parent_exercise,parent_diet,parent_smoking,parent_alcohol,parent_stress,parent_high_blood_pressure,parent_lipids,parent_waist_hip_ratio,parent_early_stage_heart_disease,parent_diabetes,parent_case)
-#' node_vec=c("exercise","diet","smoking","alcohol","stress","high_blood_pressure","lipids","waist_hip_ratio","early_stage_heart_disease","diabetes","case")
-#' model_list=automatic_fit(data=stroke_reduced, parent_list=parent_list, node_vec=node_vec, prev=.0035,common="region*ns(age,df=5)+sex*ns(age,df=5)", spline_nodes = c("waist_hip_ratio","lipids","diet"))
+#' parent_high_blood_pressure <- c("education","exercise","diet",
+#' "smoking","alcohol","stress")
+#' parent_lipids <- c("education","exercise","diet","smoking",
+#' "alcohol","stress")
+#' parent_waist_hip_ratio <- c("education","exercise","diet","smoking",
+#' "alcohol","stress")
+#' parent_early_stage_heart_disease <- c("education","exercise","diet",
+#' "smoking","alcohol","stress","lipids","waist_hip_ratio","high_blood_pressure")
+#' parent_diabetes <- c("education","exercise","diet","smoking","alcohol",
+#' "stress","lipids","waist_hip_ratio","high_blood_pressure")
+#' parent_case <- c("education","exercise","diet","smoking","alcohol","stress",
+#' "lipids","waist_hip_ratio","high_blood_pressure","early_stage_heart_disease","diabetes")
+#' parent_list <- list(parent_exercise,parent_diet,parent_smoking,
+#' parent_alcohol,parent_stress,parent_high_blood_pressure,
+#' parent_lipids,parent_waist_hip_ratio,parent_early_stage_heart_disease,
+#' parent_diabetes,parent_case)
+#' node_vec=c("exercise","diet","smoking","alcohol","stress","high_blood_pressure",
+#' "lipids","waist_hip_ratio","early_stage_heart_disease",
+#' "diabetes","case")
+#' \dontrun{
+#' model_list=automatic_fit(data=stroke_reduced, parent_list=parent_list,
+#' node_vec=node_vec, prev=.0035,common="region*ns(age,df=5)+
+#' sex*ns(age,df=5)", spline_nodes = c("waist_hip_ratio","lipids","diet"))
+#' }
 automatic_fit <- function(data, parent_list, node_vec, prev=.09,common='',spline_nodes=c(),df_spline_nodes=3){
 
 model_list=list()
@@ -811,6 +921,15 @@ if(!c("weights") %in% colnames(data)) data$weights <- rep(1,nrow(data))
 for(i in 1:length(node_vec)){
   column <- (1:length(colnames(data)))[colnames(data) %in% node_vec[i]]
   formula_text <- make_formula(parent_list[[i]],node_vec[i],common=common,spline_nodes=spline_nodes,df_spline_nodes=df_spline_nodes)
+  thesplit <- ""
+  while(length(grep(pattern='^.*ns\\(.*$',x=formula_text))>0){
+    formula_text <- gsub(pattern='^(.*)ns\\((.*)$',replacement='\\1splines::ns\\(\\2',x=formula_text)
+    stuff <- strsplit(formula_text,split="splines::ns(",fixed=TRUE)
+    formula_text <- stuff[[1]][1]
+    thesplit <- paste0("splines::ns(",stuff[[1]][2],thesplit)
+  }
+  formula_text <- paste0(formula_text,thesplit)
+
   y <- data[,column]
 
   if(i < length(node_vec)){
@@ -880,21 +999,28 @@ order_fun <- function(x){
 #' library(survival)
 #' library(parallel)
 #' options(boot.parallel="snow")
-#' options(boot.ncpus=parallel::detectCores())
-#' #  Simulated data on occupational and environmental exposure to chronic cough from Eide, 1995
-#' # First specify the causal graph, in terms of the parents of each node.  Then put into a list
+#' options(boot.ncpus=2)
+#' # The above could be set to the number of available cores on the machine
+#' #  Simulated data on occupational and environmental exposure to
+#' # chronic cough from Eide, 1995
+#' # First specify the causal graph, in terms of the parents of each node.
+#' # Then put into a list.
 #' parent_urban.rural <- c()
 #' parent_smoking.category <- c("urban.rural")
 #' parent_occupational.exposure <- c("urban.rural")
 #' parent_y <- c("urban.rural","smoking.category","occupational.exposure")
-#' parent_list <- list(parent_urban.rural, parent_smoking.category, parent_occupational.exposure, parent_y)
+#' parent_list <- list(parent_urban.rural, parent_smoking.category,
+#'  parent_occupational.exposure, parent_y)
 #' # also specify nodes of graph, in order from root to leaves
 #' node_vec <- c("urban.rural","smoking.category","occupational.exposure", "y")
 #' # specify a model list according to parent_list
 #' # here we use the auxillary function 'automatic fit'
-#' model_list=automatic_fit(data=Hordaland_data, parent_list=parent_list, node_vec=node_vec, prev=.09)
-#' joint_paf(data=Hordaland_data, model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=.09, vars = c("urban.rural","occupational.exposure"),ci=FALSE)
-#'
+#' model_list=automatic_fit(data=Hordaland_data, parent_list=parent_list,
+#' node_vec=node_vec, prev=.09)
+#' joint_paf(data=Hordaland_data, model_list=model_list, parent_list=parent_list,
+#'  node_vec=node_vec, prev=.09, vars = c("urban.rural",
+#'  "occupational.exposure"),ci=FALSE)
+#' \dontrun{
 #' # More complicated example (slower to run)
 #' parent_exercise <- c("education")
 #' parent_diet <- c("education")
@@ -903,14 +1029,28 @@ order_fun <- function(x){
 #' parent_stress <- c("education")
 #' parent_high_blood_pressure <- c("education","exercise","diet","smoking","alcohol","stress")
 #' parent_lipids <- c("education","exercise","diet","smoking","alcohol","stress")
-#' parent_waist_hip_ratio <- c("education","exercise","diet","smoking","alcohol","stress")
-#' parent_early_stage_heart_disease <- c("education","exercise","diet","smoking","alcohol","stress","lipids","waist_hip_ratio","high_blood_pressure")
-#' parent_diabetes <- c("education","exercise","diet","smoking","alcohol","stress","lipids","waist_hip_ratio","high_blood_pressure")
-#' parent_case <- c("education","exercise","diet","smoking","alcohol","stress","lipids","waist_hip_ratio","high_blood_pressure","early_stage_heart_disease","diabetes")
-#' parent_list <- list(parent_exercise,parent_diet,parent_smoking,parent_alcohol,parent_stress,parent_high_blood_pressure,parent_lipids,parent_waist_hip_ratio,parent_early_stage_heart_disease,parent_diabetes,parent_case)
-#' node_vec=c("exercise","diet","smoking","alcohol","stress","high_blood_pressure","lipids","waist_hip_ratio","early_stage_heart_disease","diabetes","case")
-#' model_list=automatic_fit(data=stroke_reduced, parent_list=parent_list, node_vec=node_vec, prev=.0035,common="region*ns(age,df=5)+sex*ns(age,df=5)", spline_nodes = c("waist_hip_ratio","lipids","diet"))
-#' jointpaf <- joint_paf(data=stroke_reduced, model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=.0035, vars = c("high_blood_pressure","smoking","stress","exercise","alcohol","diabetes","early_stage_heart_disease"),ci=TRUE,boot_rep=10)
+#' parent_waist_hip_ratio <- c("education","exercise","diet","smoking",
+#' "alcohol","stress")
+#' parent_early_stage_heart_disease <- c("education","exercise","diet",
+#' "smoking","alcohol","stress","lipids","waist_hip_ratio","high_blood_pressure")
+#' parent_diabetes <- c("education","exercise","diet","smoking","alcohol",
+#' "stress","lipids","waist_hip_ratio","high_blood_pressure")
+#' parent_case <- c("education","exercise","diet","smoking","alcohol",
+#' "stress","lipids","waist_hip_ratio","high_blood_pressure","early_stage_heart_disease","diabetes")
+#' parent_list <- list(parent_exercise,parent_diet,parent_smoking,parent_alcohol,
+#' parent_stress,parent_high_blood_pressure,parent_lipids,parent_waist_hip_ratio,
+#' parent_early_stage_heart_disease,parent_diabetes,parent_case)
+#' node_vec=c("exercise","diet","smoking","alcohol","stress","high_blood_pressure",
+#' "lipids","waist_hip_ratio","early_stage_heart_disease","diabetes","case")
+#' model_list=automatic_fit(data=stroke_reduced, parent_list=parent_list,
+#' node_vec=node_vec, prev=.0035,common="region*ns(age,df=5)+sex*ns(age,df=5)",
+#'  spline_nodes = c("waist_hip_ratio","lipids","diet"))
+#' jointpaf <- joint_paf(data=stroke_reduced, model_list=model_list,
+#' parent_list=parent_list, node_vec=node_vec, prev=.0035,
+#' vars = c("high_blood_pressure","smoking","stress","exercise","alcohol",
+#' "diabetes","early_stage_heart_disease"),ci=TRUE,boot_rep=10)
+#' print(jointpaf)
+#' }
 joint_paf <- function(data, model_list, parent_list, node_vec, prev=NULL, vars=NULL,ci=FALSE,boot_rep=100, ci_type=c("norm"),ci_level=0.95,nsim=1){
   if(!node_order(parent_list=parent_list,node_vec=node_vec)){
     stop("ancestors must be specified before descendants in node_vec")
@@ -919,7 +1059,12 @@ joint_paf <- function(data, model_list, parent_list, node_vec, prev=NULL, vars=N
     stop("Not all requested variables are in node_vec.  Check spelling")
   }
 if(!ci) return(joint_paf_inner(data=data,ind=1:nrow(data), model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=prev,vars=vars,nsim=nsim))
-  res <- boot::boot(data=data,statistic=joint_paf_inner,R=boot_rep,model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=prev, vars=vars,nsim=nsim)
+  nc <- options()$boot.ncpus
+  cl <- parallel::makeCluster(nc)
+  parallel::clusterExport(cl, c("ns"))
+
+  res <- boot::boot(data=data,statistic=joint_paf_inner,R=boot_rep,model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=prev, vars=vars,nsim=nsim,cl=cl)
+  parallel::stopCluster(cl)
   return(extract_ci(res=res,model_type='glm',ci_level=ci_level,ci_type=ci_type,continuous=TRUE,t_vector=c("joint PAF")))
 
 }
@@ -927,9 +1072,7 @@ if(!ci) return(joint_paf_inner(data=data,ind=1:nrow(data), model_list=model_list
 
 joint_paf_inner <- function(data, ind, model_list, parent_list, node_vec, prev=.09,vars=NULL,nsim=1){
 
-  library(splines)
-  ################################
-
+   ################################
 
   refit <- function(model,data,with_weights=FALSE){
     model_type <- NULL
@@ -946,13 +1089,33 @@ joint_paf_inner <- function(data, ind, model_list, parent_list, node_vec, prev=.
     if(model_type=="clogit"){
       model_text <- as.character(eval(parse(text=as.character(model$userCall)[2])))
       model_text <- paste0(model_text[2],model_text[1],model_text[3])
-      model_text <- paste0("clogit(",model_text,",data=data)")
+      model_text <- paste0("survival::clogit(",model_text,",data=data)")
+      if(length(grep(pattern='^(.*)splines::ns\\((.*)$',x=model_text))==0){
+        thesplit <- ""
+        while(length(grep(pattern='^.*ns\\(.*$',x=model_text))>0){
+          model_text <- gsub(pattern='^(.*)ns\\((.*)$',replacement='\\1splines::ns\\(\\2',x=model_text)
+          stuff <- strsplit(model_text,split="splines::ns(",fixed=TRUE)
+          model_text <- stuff[[1]][1]
+          thesplit <- paste0("splines::ns(",stuff[[1]][2],thesplit)
+        }
+        model_text <- paste0(model_text,thesplit)
+      }
       model <- eval(parse(text=model_text))
     }
     if(model_type=="coxph"){
 
       model_text <- as.character(model$call)
-      model_text <- paste0("coxph(",model_text[2],",data=data)")
+      model_text <- paste0("survival::coxph(",model_text[2],",data=data)")
+      if(length(grep(pattern='^(.*)splines::ns\\((.*)$',x=model_text))==0){
+        thesplit <- ""
+        while(length(grep(pattern='^.*ns\\(.*$',x=model_text))>0){
+          model_text <- gsub(pattern='^(.*)ns\\((.*)$',replacement='\\1splines::ns\\(\\2',x=model_text)
+          stuff <- strsplit(model_text,split="splines::ns(",fixed=TRUE)
+          model_text <- stuff[[1]][1]
+          thesplit <- paste0("splines::ns(",stuff[[1]][2],thesplit)
+        }
+        model_text <- paste0(model_text,thesplit)
+      }
       model <- eval(parse(text=model_text))
     }
 
@@ -962,7 +1125,21 @@ joint_paf_inner <- function(data, ind, model_list, parent_list, node_vec, prev=.
       if(with_weights==FALSE && length(model_text)==4) model_text_u <- paste0("glm(",model_text[2],",data=data, family=binomial(link=",as.character(family(model)[2]),"))")
       if(with_weights==TRUE && length(model_text)==4) model_text_u <- paste0("glm(",model_text[2],",data=data, family=binomial(link=",as.character(family(model)[2]),"),weights=weights)")
       if(length(model_text)==5) model_text_u <- paste0("glm(",model_text[2],",data=data, family=binomial(link=",as.character(family(model)[2]),"),weights=",model_text[5],")")
-      model <- eval(parse(text=model_text_u))
+      model_text <- model_text_u
+      if(length(grep(pattern='^(.*)splines::ns\\((.*)$',x=model_text))==0){
+        thesplit <- ""
+        while(length(grep(pattern='^.*ns\\(.*$',x=model_text))>0){
+          model_text <- gsub(pattern='^(.*)ns\\((.*)$',replacement='\\1splines::ns\\(\\2',x=model_text)
+          stuff <- strsplit(model_text,split="splines::ns(",fixed=TRUE)
+          model_text <- stuff[[1]][1]
+          thesplit <- paste0("splines::ns(",stuff[[1]][2],thesplit)
+        }
+        model_text <- paste0(model_text,thesplit)
+
+    }
+
+
+      model <- eval(parse(text=model_text))
     }
 
     if(model_type == "lm"){
@@ -970,14 +1147,36 @@ joint_paf_inner <- function(data, ind, model_list, parent_list, node_vec, prev=.
       if(with_weights==FALSE && length(model_text)==3) model_text_u <- paste0("lm(",model_text[2],",data=data)")
       if(with_weights==TRUE && length(model_text)==3) model_text_u <- paste0("lm(",model_text[2],",data=data,weights=weights)")
       if(length(model_text)==4) model_text_u <- paste0("lm(",model_text[2],",data=data, weights=",model_text[4],")")
-      model <- eval(parse(text=model_text_u))
+      model_text <- model_text_u
+      if(length(grep(pattern='^(.*)splines::ns\\((.*)$',x=model_text))==0){
+        thesplit <- ""
+        while(length(grep(pattern='^.*ns\\(.*$',x=model_text))>0){
+          model_text <- gsub(pattern='^(.*)ns\\((.*)$',replacement='\\1splines::ns\\(\\2',x=model_text)
+          stuff <- strsplit(model_text,split="splines::ns(",fixed=TRUE)
+          model_text <- stuff[[1]][1]
+          thesplit <- paste0("splines::ns(",stuff[[1]][2],thesplit)
+        }
+        model_text <- paste0(model_text,thesplit)
+      }
+      model <- eval(parse(text=model_text))
     }
 
     if(model_type == "polr"){
       model_text <- as.character(model$call)
       if(length(model_text)==3) model_text_u <- paste0("MASS::polr(",model_text[2],",data=data)")
       if(length(model_text)==4) model_text_u <- paste0("MASS::polr(",model_text[2],",data=data, weights=",model_text[4],")")
-      model <- eval(parse(text=model_text_u))
+      model_text <- model_text_u
+      if(length(grep(pattern='^(.*)splines::ns\\((.*)$',x=model_text))==0){
+        thesplit <- ""
+        while(length(grep(pattern='^.*ns\\(.*$',x=model_text))>0){
+          model_text <- gsub(pattern='^(.*)ns\\((.*)$',replacement='\\1splines::ns\\(\\2',x=model_text)
+          stuff <- strsplit(model_text,split="splines::ns(",fixed=TRUE)
+          model_text <- stuff[[1]][1]
+          thesplit <- paste0("splines::ns(",stuff[[1]][2],thesplit)
+        }
+        model_text <- paste0(model_text,thesplit)
+      }
+      model <- eval(parse(text=model_text))
     }
     model
   }
@@ -1098,22 +1297,65 @@ current_mat <- data
 #' @references Ferguson, J., O’Connell, M. and O’Donnell, M., 2020. Revisiting sequential attributable fractions. Archives of Public Health, 78(1), pp.1-9.
 #'
 #' @examples
+#' library(splines)
+#' library(survival)
+#' library(parallel)
+#' options(boot.parallel="snow")
+#' options(boot.ncpus=2)
+#' # The above could be set to the number of available cores on the machine
+#'
+#' # Simulated data on occupational and environmental exposure to
+#' # chronic cough from Eide, 1995
+#' # First specify the causal graph, in terms of the parents of each node.
+#' # Then put into a list.
+#' parent_urban.rural <- c()
+#' parent_smoking.category <- c("urban.rural")
+#' parent_occupational.exposure <- c("urban.rural")
+#' parent_y <- c("urban.rural","smoking.category","occupational.exposure")
+#' parent_list <- list(parent_urban.rural, parent_smoking.category,
+#'  parent_occupational.exposure, parent_y)
+#' # also specify nodes of graph, in order from root to leaves
+#' node_vec <- c("urban.rural","smoking.category","occupational.exposure", "y")
+#' # specify a model list according to parent_list
+#' # here we use the auxillary function 'automatic fit'
+#' model_list=automatic_fit(data=Hordaland_data, parent_list=parent_list,
+#' node_vec=node_vec, prev=.09)
+#' joint_paf(data=Hordaland_data, model_list=model_list, parent_list=parent_list,
+#'  node_vec=node_vec, prev=.09, vars = c("urban.rural",
+#'  "occupational.exposure"),ci=FALSE)
+#' \dontrun{
+#' # More complicated example (slower to run)
 #' parent_exercise <- c("education")
 #' parent_diet <- c("education")
 #' parent_smoking <- c("education")
 #' parent_alcohol <- c("education")
 #' parent_stress <- c("education")
-#' parent_high_blood_pressure <- c("education","exercise","diet","smoking","alcohol","stress")
+#' parent_high_blood_pressure <- c("education","exercise","diet","smoking","alcohol",
+#' "stress")
 #' parent_lipids <- c("education","exercise","diet","smoking","alcohol","stress")
-#' parent_waist_hip_ratio <- c("education","exercise","diet","smoking","alcohol","stress")
-#' parent_early_stage_heart_disease <- c("education","exercise","diet","smoking","alcohol","stress","lipids","waist_hip_ratio","high_blood_pressure")
-#' parent_diabetes <- c("education","exercise","diet","smoking","alcohol","stress","lipids","waist_hip_ratio","high_blood_pressure")
-#' parent_case <- c("education","exercise","diet","smoking","alcohol","stress","lipids","waist_hip_ratio","high_blood_pressure","early_stage_heart_disease","diabetes")
-#' parent_list <- list(parent_exercise,parent_diet,parent_smoking,parent_alcohol,parent_stress,parent_high_blood_pressure,parent_lipids,parent_waist_hip_ratio,parent_early_stage_heart_disease,parent_diabetes,parent_case)
-#' node_vec=c("exercise","diet","smoking","alcohol","stress","high_blood_pressure","lipids","waist_hip_ratio","early_stage_heart_disease","diabetes","case")
-#' model_list=automatic_fit(data=stroke_reduced, parent_list=parent_list, node_vec=node_vec, prev=.0035,common="region*ns(age,df=5)+sex*ns(age,df=5)", spline_nodes = c("waist_hip_ratio","lipids","diet"))
-#' # calculate sequential PAF for stress, conditional on smoking and blood pressure being eliminated from the population
-#' seqpaf <- seq_paf(data=stroke_reduced, model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=.0035, vars = c("high_blood_pressure","smoking","stress"),ci=TRUE,boot_rep=10)
+#' parent_waist_hip_ratio <- c("education","exercise","diet","smoking",
+#' "alcohol","stress")
+#' parent_early_stage_heart_disease <- c("education","exercise","diet",
+#' "smoking","alcohol","stress","lipids","waist_hip_ratio","high_blood_pressure")
+#' parent_diabetes <- c("education","exercise","diet","smoking","alcohol",
+#' "stress","lipids","waist_hip_ratio","high_blood_pressure")
+#' parent_case <- c("education","exercise","diet","smoking","alcohol",
+#' "stress","lipids","waist_hip_ratio","high_blood_pressure",
+#' "early_stage_heart_disease","diabetes")
+#' parent_list <- list(parent_exercise,parent_diet,parent_smoking,parent_alcohol,
+#' parent_stress,parent_high_blood_pressure,parent_lipids,parent_waist_hip_ratio,
+#' parent_early_stage_heart_disease,parent_diabetes,parent_case)
+#' node_vec=c("exercise","diet","smoking","alcohol","stress","high_blood_pressure",
+#' "lipids","waist_hip_ratio","early_stage_heart_disease","diabetes","case")
+#' model_list=automatic_fit(data=stroke_reduced, parent_list=parent_list,
+#' node_vec=node_vec, prev=.0035,common="region*ns(age,df=5)+sex*ns(age,df=5)",
+#'  spline_nodes = c("waist_hip_ratio","lipids","diet"))
+#' # calculate sequential PAF for stress, conditional on smoking
+#' # and blood pressure being eliminated from the population
+#' seqpaf <- seq_paf(data=stroke_reduced, model_list=model_list, parent_list=
+#' parent_list, node_vec=node_vec, prev=.0035, vars = c("high_blood_pressure",
+#' "smoking","stress"),ci=TRUE,boot_rep=10)
+#' }
 seq_paf <- function(data, model_list, parent_list, node_vec, prev=NULL, vars=NULL,ci=FALSE,boot_rep=100, ci_type=c("norm"),ci_level=0.95,nsim=1){
   if(!node_order(parent_list=parent_list,node_vec=node_vec)){
     stop("ancestors must be specified before descendants in node_vec")
@@ -1125,7 +1367,11 @@ seq_paf <- function(data, model_list, parent_list, node_vec, prev=NULL, vars=NUL
     stop("Enter at least 2 risk factors.  SAF is calculated for the last risk factor conditional on the others in list")
   }
   if(!ci) return(seq_paf_inner(data=data,ind=1:nrow(data), model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=prev,vars=vars,nsim=nsim))
-  res <- boot::boot(data=data,statistic=seq_paf_inner,R=boot_rep,model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=prev, vars=vars,nsim=nsim)
+  nc <- options()$boot.ncpus
+  cl <- parallel::makeCluster(nc)
+  parallel::clusterExport(cl, c("ns"))
+  res <- boot::boot(data=data,statistic=seq_paf_inner,R=boot_rep,model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=prev, vars=vars,nsim=nsim,cl=cl)
+  parallel::stopCluster(cl)
   return(extract_ci(res=res,model_type='glm',ci_level=ci_level,ci_type=ci_type,continuous=TRUE,t_vector=c("Sequential PAF")))
 
 }
@@ -1133,7 +1379,8 @@ seq_paf <- function(data, model_list, parent_list, node_vec, prev=NULL, vars=NUL
 
 seq_paf_inner <- function(data, ind, model_list, parent_list, node_vec, prev=.09,vars=NULL,nsim=1){
 
-  library(splines)
+
+
   ################################
 
 
@@ -1152,13 +1399,33 @@ seq_paf_inner <- function(data, ind, model_list, parent_list, node_vec, prev=.09
     if(model_type=="clogit"){
       model_text <- as.character(eval(parse(text=as.character(model$userCall)[2])))
       model_text <- paste0(model_text[2],model_text[1],model_text[3])
-      model_text <- paste0("clogit(",model_text,",data=data)")
+      model_text <- paste0("survival::clogit(",model_text,",data=data)")
+      if(length(grep(pattern='^(.*)splines::ns\\((.*)$',x=model_text))==0){
+        thesplit <- ""
+        while(length(grep(pattern='^.*ns\\(.*$',x=model_text))>0){
+          model_text <- gsub(pattern='^(.*)ns\\((.*)$',replacement='\\1splines::ns\\(\\2',x=model_text)
+          stuff <- strsplit(model_text,split="splines::ns(",fixed=TRUE)
+          model_text <- stuff[[1]][1]
+          thesplit <- paste0("splines::ns(",stuff[[1]][2],thesplit)
+        }
+        model_text <- paste0(model_text,thesplit)
+      }
       model <- eval(parse(text=model_text))
     }
     if(model_type=="coxph"){
 
       model_text <- as.character(model$call)
-      model_text <- paste0("coxph(",model_text[2],",data=data)")
+      model_text <- paste0("survival::coxph(",model_text[2],",data=data)")
+      if(length(grep(pattern='^(.*)splines::ns\\((.*)$',x=model_text))==0){
+        thesplit <- ""
+        while(length(grep(pattern='^.*ns\\(.*$',x=model_text))>0){
+          model_text <- gsub(pattern='^(.*)ns\\((.*)$',replacement='\\1splines::ns\\(\\2',x=model_text)
+          stuff <- strsplit(model_text,split="splines::ns(",fixed=TRUE)
+          model_text <- stuff[[1]][1]
+          thesplit <- paste0("splines::ns(",stuff[[1]][2],thesplit)
+        }
+        model_text <- paste0(model_text,thesplit)
+      }
       model <- eval(parse(text=model_text))
     }
 
@@ -1168,7 +1435,18 @@ seq_paf_inner <- function(data, ind, model_list, parent_list, node_vec, prev=.09
       if(with_weights==FALSE && length(model_text)==4) model_text_u <- paste0("glm(",model_text[2],",data=data, family=binomial(link=",as.character(family(model)[2]),"))")
       if(with_weights==TRUE && length(model_text)==4) model_text_u <- paste0("glm(",model_text[2],",data=data, family=binomial(link=",as.character(family(model)[2]),"),weights=weights)")
       if(length(model_text)==5) model_text_u <- paste0("glm(",model_text[2],",data=data, family=binomial(link=",as.character(family(model)[2]),"),weights=",model_text[5],")")
-      model <- eval(parse(text=model_text_u))
+      model_text <- model_text_u
+      if(length(grep(pattern='^(.*)splines::ns\\((.*)$',x=model_text))==0){
+        thesplit <- ""
+        while(length(grep(pattern='^.*ns\\(.*$',x=model_text))>0){
+          model_text <- gsub(pattern='^(.*)ns\\((.*)$',replacement='\\1splines::ns\\(\\2',x=model_text)
+          stuff <- strsplit(model_text,split="splines::ns(",fixed=TRUE)
+          model_text <- stuff[[1]][1]
+          thesplit <- paste0("splines::ns(",stuff[[1]][2],thesplit)
+        }
+        model_text <- paste0(model_text,thesplit)
+      }
+      model <- eval(parse(text=model_text))
     }
 
     if(model_type == "lm"){
@@ -1176,14 +1454,36 @@ seq_paf_inner <- function(data, ind, model_list, parent_list, node_vec, prev=.09
       if(with_weights==FALSE && length(model_text)==3) model_text_u <- paste0("lm(",model_text[2],",data=data)")
       if(with_weights==TRUE && length(model_text)==3) model_text_u <- paste0("lm(",model_text[2],",data=data,weights=weights)")
       if(length(model_text)==4) model_text_u <- paste0("lm(",model_text[2],",data=data, weights=",model_text[4],")")
-      model <- eval(parse(text=model_text_u))
+      model_text <- model_text_u
+      if(length(grep(pattern='^(.*)splines::ns\\((.*)$',x=model_text))==0){
+        thesplit <- ""
+        while(length(grep(pattern='^.*ns\\(.*$',x=model_text))>0){
+          model_text <- gsub(pattern='^(.*)ns\\((.*)$',replacement='\\1splines::ns\\(\\2',x=model_text)
+          stuff <- strsplit(model_text,split="splines::ns(",fixed=TRUE)
+          model_text <- stuff[[1]][1]
+          thesplit <- paste0("splines::ns(",stuff[[1]][2],thesplit)
+        }
+        model_text <- paste0(model_text,thesplit)
+      }
+      model <- eval(parse(text=model_text))
     }
 
     if(model_type == "polr"){
       model_text <- as.character(model$call)
       if(length(model_text)==3) model_text_u <- paste0("MASS::polr(",model_text[2],",data=data)")
       if(length(model_text)==4) model_text_u <- paste0("MASS::polr(",model_text[2],",data=data, weights=",model_text[4],")")
-      model <- eval(parse(text=model_text_u))
+      model_text <- model_text_u
+      if(length(grep(pattern='^(.*)splines::ns\\((.*)$',x=model_text))==0){
+        thesplit <- ""
+        while(length(grep(pattern='^.*ns\\(.*$',x=model_text))>0){
+          model_text <- gsub(pattern='^(.*)ns\\((.*)$',replacement='\\1splines::ns\\(\\2',x=model_text)
+          stuff <- strsplit(model_text,split="splines::ns(",fixed=TRUE)
+          model_text <- stuff[[1]][1]
+          thesplit <- paste0("splines::ns(",stuff[[1]][2],thesplit)
+        }
+        model_text <- paste0(model_text,thesplit)
+      }
+      model <- eval(parse(text=model_text))
     }
     model
   }

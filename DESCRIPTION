@@ -20,11 +20,10 @@ Imports:
     gtools,
     MASS,
     reshape2,
-    scales,
-    survival
+    survival,
+    splines,
+    dplyr
 Depends: 
     R (>= 2.10)
-Suggests: 
-    knitr,
-    rmarkdown
-VignetteBuilder: knitr
+Suggests: R.rsp
+VignetteBuilder: R.rsp

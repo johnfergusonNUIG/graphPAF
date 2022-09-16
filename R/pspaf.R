@@ -5,7 +5,11 @@ ps_paf_sim <- function(response_model, mediator_models,riskfactor,refval,data,pr
   for(i in 1:length(mediator_models)) mediator_names[i] <- as.character(formula(mediator_models[[i]]))[2]
   if(!ci) return(ps_paf_inner_sim(data=data,ind=1:N,response_model=response_model, mediator_models=mediator_models,riskfactor=riskfactor,refval=refval,nsims=nsims,prev=prev))
   if(ci){
+    nc <- options()$boot.ncpus
+    cl <- parallel::makeCluster(nc)
+    parallel::clusterExport(cl, c("ns"))
     res <- boot::boot(data=data,statistic=ps_paf_inner_sim,R=boot_rep,response_model=response_model, mediator_models=mediator_models,riskfactor=riskfactor,refval=refval,nsims=nsims,prev=prev)
+    parallel::stopCluster(cl)
   }
 
   return(extract_ci(res=res,model_type='glm',t_vector=c("Direct",mediator_names),ci_level=ci_level,ci_type=ci_type,continuous=TRUE))
@@ -32,20 +36,46 @@ ps_paf_sim <- function(response_model, mediator_models,riskfactor,refval,data,pr
 #' library(survival)
 #' library(parallel)
 #' options(boot.parallel="snow")
-#' options(boot.ncpus=parallel::detectCores())
-#' # Direct and pathway specific attributable fractions estimated on simulated case control stroke data:
-#' # Note that the models here are weighted regressions (based on a column in the dataframe named 'weights') to rebalance the case control structure to make it representative over the population, according to the prev argument.
-#' # Unweighted regression is fine to use if the data arises from cohort or cross sectional studies, in which case prev should be set to NULL
-#' response_model <- glm(case ~ region * ns(age, df = 5) + sex * ns(age, df = 5) + education + exercise + ns(diet, df = 3) + smoking + alcohol + stress + ns(lipids, df = 3) + ns(waist_hip_ratio, df = 3) + high_blood_pressure, data=stroke_reduced,family='binomial', weights=weights)
-#' mediator_models <- list(glm(high_blood_pressure ~ region * ns(age, df = 5) + sex * ns(age, df = 5) + education   +exercise + ns(diet, df = 3) + smoking + alcohol + stress,data=stroke_reduced,family='binomial',weights=weights),lm(lipids ~ region * ns(age, df = 5) + sex * ns(age, df = 5) +education +  exercise + ns(diet, df = 3) + smoking + alcohol + stress, weights=weights, data=stroke_reduced),lm(waist_hip_ratio ~ region * ns(age, df = 5) + sex * ns(age, df = 5) + education + exercise + ns(diet, df = 3) + smoking + alcohol + stress, weights=weights, data=stroke_reduced))
-#' ps_paf(response_model=response_model, mediator_models=mediator_models ,riskfactor="exercise",refval=0,data=stroke_reduced,prev=0.0035, ci=TRUE,boot_rep=100,ci_type="norm")
+#' options(boot.ncpus=2)
+#' # Direct and pathway specific attributable fractions estimated
+#' # on simulated case control stroke data:
+#' # Note that the models here are weighted regressions (based on a column in the
+#' # dataframe named 'weights') to rebalance the case control structure to make it
+#' # representative over the population, according to the prev argument.
+#' # Unweighted regression is fine to use if the data arises from cohort or
+#' # cross sectional studies, in which case prev should be set to NULL
+#' response_model <- glm(case ~ region * ns(age, df = 5) + sex * ns(age, df = 5) +
+#'  education + exercise + ns(diet, df = 3) + smoking + alcohol + stress +
+#'   ns(lipids, df = 3) + ns(waist_hip_ratio, df = 3) + high_blood_pressure,
+#'   data=stroke_reduced,family='binomial', weights=weights)
+#' mediator_models <- list(glm(high_blood_pressure ~ region * ns(age, df = 5) +
+#'  sex * ns(age, df = 5) + education   +exercise + ns(diet, df = 3) + smoking +
+#'  alcohol + stress,data=stroke_reduced,family='binomial',weights=weights),
+#'  lm(lipids ~ region * ns(age, df = 5) + sex * ns(age, df = 5) +education +
+#'   exercise + ns(diet, df = 3) + smoking + alcohol + stress, weights=weights,
+#'    data=stroke_reduced),lm(waist_hip_ratio ~ region * ns(age, df = 5) +
+#'    sex * ns(age, df = 5) + education + exercise + ns(diet, df = 3) +
+#'     smoking + alcohol + stress, weights=weights, data=stroke_reduced))
+#' # point estimate
+#' ps_paf(response_model=response_model, mediator_models=mediator_models ,
+#' riskfactor="exercise",refval=0,data=stroke_reduced,prev=0.0035, ci=FALSE)
+#' # confidence intervals
+#' \dontrun{
+#' ps_paf(response_model=response_model, mediator_models=mediator_models ,
+#' riskfactor="exercise",refval=0,data=stroke_reduced,prev=0.0035, ci=TRUE,
+#' boot_rep=100,ci_type="norm")
+#'}
 ps_paf <- function(response_model, mediator_models,riskfactor,refval,data,prev=NULL,ci=FALSE,boot_rep=100,ci_level=0.95,ci_type=c("norm")){
   N <- nrow(data)
   mediator_names <- c()
   for(i in 1:length(mediator_models)) mediator_names[i] <- as.character(formula(mediator_models[[i]]))[2]
   if(!ci) return(ps_paf_inner(data=data,ind=1:N,response_model=response_model, mediator_models=mediator_models,riskfactor=riskfactor,refval=refval,prev=prev))
   if(ci){
-    res <- boot::boot(data=data,statistic=ps_paf_inner,R=boot_rep,response_model=response_model, mediator_models=mediator_models,riskfactor=riskfactor,refval=refval,prev=prev)
+    nc <- options()$boot.ncpus
+    cl <- parallel::makeCluster(nc)
+    parallel::clusterExport(cl, c("ns"))
+    res <- boot::boot(data=data,statistic=ps_paf_inner,R=boot_rep,response_model=response_model, mediator_models=mediator_models,riskfactor=riskfactor,refval=refval,prev=prev,cl=cl)
+    parallel::stopCluster(cl)
   }
   return(extract_ci(res=res,model_type='glm',t_vector=c("Direct",mediator_names),ci_level=ci_level,ci_type=ci_type,continuous=TRUE))
 }
@@ -53,6 +83,10 @@ ps_paf <- function(response_model, mediator_models,riskfactor,refval,data,prev=N
 # function which does one bootstrap rep
 
 ps_paf_inner_sim <- function(data, ind, response_model, mediator_models,riskfactor,refval,nsims=1,prev=NULL){
+
+  #library(splines)
+  #library(survival)
+
   N <- nrow(data)
   riskfactor_col <- grep(paste0('^',riskfactor,'$'),colnames(data),perl=TRUE)
   M <- length(mediator_models)
@@ -101,6 +135,15 @@ if(mediator_model_type[i]== "glm"){
    model_text <- as.character(mediator_models[[i]]$call)
    if(length(model_text)==4) model_text_u <- paste0("glm(",model_text[2],",data=data, family=binomial(link=",as.character(family(mediator_models[[i]])[2]),"))")
    if(length(model_text)==5) model_text_u <- paste0("glm(",model_text[2],",data=data, family=binomial(link=",as.character(family(mediator_models[[i]])[2]),"),weights=",model_text[5],")")
+   model_text <- model_text_u
+   thesplit=""
+   while(length(grep(pattern='^.*ns\\(.*$',x=model_text))>0){
+     model_text <- gsub(pattern='^(.*)ns\\((.*)$',replacement='\\1splines::ns\\(\\2',x=model_text)
+     stuff <- strsplit(model_text,split="splines::ns(",fixed=TRUE)
+     model_text <- stuff[[1]][1]
+     thesplit <- paste0("splines::ns(",stuff[[1]][2],thesplit)
+   }
+   model_text <- paste0(model_text,thesplit)
    mediator_models[[i]] <- eval(parse(text=model_text_u))
  }
 
@@ -108,6 +151,14 @@ if(mediator_model_type[i]== "glm"){
       model_text <- as.character(mediator_models[[i]]$call)
       if(length(model_text)==3) model_text_u <- paste0("lm(",model_text[2],",data=data)")
       if(length(model_text)==4) model_text_u <- paste0("lm(",model_text[2],",data=data, weights=",model_text[4],")")
+      thesplit=""
+      while(length(grep(pattern='^.*ns\\(.*$',x=model_text))>0){
+        model_text <- gsub(pattern='^(.*)ns\\((.*)$',replacement='\\1splines::ns\\(\\2',x=model_text)
+        stuff <- strsplit(model_text,split="splines::ns(",fixed=TRUE)
+        model_text <- stuff[[1]][1]
+        thesplit <- paste0("splines::ns(",stuff[[1]][2],thesplit)
+      }
+      model_text <- paste0(model_text,thesplit)
       mediator_models[[i]] <- eval(parse(text=model_text_u))
     }
 
@@ -115,6 +166,15 @@ if(mediator_model_type[i]== "glm"){
       model_text <- as.character(mediator_models[[i]]$call)
       if(length(model_text)==3) model_text_u <- paste0("MASS::polr(",model_text[2],",data=data)")
       if(length(model_text)==4) model_text_u <- paste0("MASS::polr(",model_text[2],",data=data, weights=",model_text[4],")")
+      model_text <- model_text_u
+      thesplit=""
+      while(length(grep(pattern='^.*ns\\(.*$',x=model_text))>0){
+        model_text <- gsub(pattern='^(.*)ns\\((.*)$',replacement='\\1splines::ns\\(\\2',x=model_text)
+        stuff <- strsplit(model_text,split="splines::ns(",fixed=TRUE)
+        model_text <- stuff[[1]][1]
+        thesplit <- paste0("splines::ns(",stuff[[1]][2],thesplit)
+      }
+      model_text <- paste0(model_text,thesplit)
       mediator_models[[i]] <- eval(parse(text=model_text_u))
     }
   }
@@ -146,10 +206,9 @@ if(mediator_model_type[i]== "glm"){
 
 ps_paf_inner <- function(data, ind, response_model, mediator_models,riskfactor,refval,nsims=1,prev=NULL){
 
-  library(splines)
-  ########################  load in impact fraction functions:
-  impact_fraction <- function(model, data, new_data, calculation_method="B",prev=NULL,ci=FALSE,boot_rep=100,t_vector=NULL, ci_level=0.95, ci_type=c("norm")){
 
+   ########################  load in impact fraction functions:
+  impact_fraction <- function(model, data, new_data, calculation_method="B",prev=NULL,ci=FALSE,boot_rep=100,t_vector=NULL, ci_level=0.95, ci_type=c("norm")){
 
     if(!is.data.frame(data)){
       stop(
@@ -263,12 +322,11 @@ ps_paf_inner <- function(data, ind, response_model, mediator_models,riskfactor,r
   }
 
 
+
   if_bruzzi <- function(data,ind, model,model_type,  new_data,response){
 
-    N <- nrow(data)
 
-    library(splines)
-    library(survival)
+    N <- nrow(data)
 
     if(model_type == "clogit"){
 
@@ -295,7 +353,15 @@ ps_paf_inner <- function(data, ind, response_model, mediator_models,riskfactor,r
 
 
         #refit model
-        model_text <- paste0("clogit(",model_text,",data=data)")
+        model_text <- paste0("survival::clogit(",model_text,",data=data)")
+        thesplit <- ""
+        while(length(grep(pattern='^.*ns\\(.*$',x=model_text))>0){
+          model_text <- gsub(pattern='^(.*)ns\\((.*)$',replacement='\\1splines::ns\\(\\2',x=model_text)
+          stuff <- strsplit(model_text,split="splines::ns(",fixed=TRUE)
+          model_text <- stuff[[1]][1]
+          thesplit <- paste0("splines::ns(",stuff[[1]][2],thesplit)
+        }
+        model_text <- paste0(model_text,thesplit)
         model <- eval(parse(text=model_text))
 
       }
@@ -325,6 +391,15 @@ ps_paf_inner <- function(data, ind, response_model, mediator_models,riskfactor,r
         new_data <- new_data[ind, ]
         model_text <- as.character(model$call)
         model_text <- paste0("glm(",model_text[2],",data=data, family=binomial(link=",as.character(family(model)[2]),"))")
+        thesplit <- ""
+        while(length(grep(pattern='^.*ns\\(.*$',x=model_text))>0){
+          model_text <- gsub(pattern='^(.*)ns\\((.*)$',replacement='\\1splines::ns\\(\\2',x=model_text)
+          stuff <- strsplit(model_text,split="splines::ns(",fixed=TRUE)
+          model_text <- stuff[[1]][1]
+          thesplit <- paste0("splines::ns(",stuff[[1]][2],thesplit)
+        }
+        model_text <- paste0(model_text,thesplit)
+
         model <- eval(parse(text=model_text))
 
       }
@@ -341,18 +416,23 @@ ps_paf_inner <- function(data, ind, response_model, mediator_models,riskfactor,r
 
   if_direct <- function(data, ind, model,model_type, new_data, prev,t_vector,response){
 
-    library(splines)
-    library(survival)
 
     N <- nrow(data)
     if(model_type == "coxph"){
 
       if(!all(ind==(1:N))){
-
         data <- data[ind, ]
         new_data <- new_data[ind, ]
         model_text <- as.character(model$call)
-        model_text <- paste0("coxph(",model_text[2],",data=data)")
+        model_text <- paste0("survival::coxph(",model_text[2],",data=data)")
+        thesplit <- ""
+        while(length(grep(pattern='^.*ns\\(.*$',x=model_text))>0){
+          model_text <- gsub(pattern='^(.*)ns\\((.*)$',replacement='\\1splines::ns\\(\\2',x=model_text)
+          stuff <- strsplit(model_text,split="splines::ns(",fixed=TRUE)
+          model_text <- stuff[[1]][1]
+          thesplit <- paste0("splines::ns(",stuff[[1]][2],thesplit)
+        }
+        model_text <- paste0(model_text,thesplit)
         model <- eval(parse(text=model_text))
 
       }
@@ -404,7 +484,16 @@ ps_paf_inner <- function(data, ind, response_model, mediator_models,riskfactor,r
         new_data[,colnames(data)==strataname] <- c(1:length(totake),1:length(totake))
 
         #refit model
-        model_text <- paste0("clogit(",model_text,",data=data)")
+
+        model_text <- paste0("survival::clogit(",model_text,",data=data)")
+        thesplit=""
+        while(length(grep(pattern='^.*ns\\(.*$',x=model_text))>0){
+          model_text <- gsub(pattern='^(.*)ns\\((.*)$',replacement='\\1splines::ns\\(\\2',x=model_text)
+          stuff <- strsplit(model_text,split="splines::ns(",fixed=TRUE)
+          model_text <- stuff[[1]][1]
+          thesplit <- paste0("splines::ns(",stuff[[1]][2],thesplit)
+        }
+        model_text <- paste0(model_text,thesplit)
         model <- eval(parse(text=model_text))
 
       }
@@ -450,7 +539,17 @@ ps_paf_inner <- function(data, ind, response_model, mediator_models,riskfactor,r
         model_text <- as.character(model$call)
         if(length(model_text)==4) model_text_u <- paste0("glm(",model_text[2],",data=data, family=binomial(link=",as.character(family(model)[2]),"))")
         if(length(model_text)==5) model_text_u <- paste0("glm(",model_text[2],",data=data, family=binomial(link=",as.character(family(model)[2]),"),weights=",model_text[5],")")
-        model <- eval(parse(text=model_text_u))
+        model_text <- model_text_u
+        thesplit <- ""
+        while(length(grep(pattern='^.*ns\\(.*$',x=model_text))>0){
+          model_text <- gsub(pattern='^(.*)ns\\((.*)$',replacement='\\1splines::ns\\(\\2',x=model_text)
+          stuff <- strsplit(model_text,split="splines::ns(",fixed=TRUE)
+          model_text <- stuff[[1]][1]
+          thesplit <- paste0("splines::ns(",stuff[[1]][2],thesplit)
+        }
+        model_text <- paste0(model_text,thesplit)
+
+        model <- eval(parse(text=model_text))
 
       }
 

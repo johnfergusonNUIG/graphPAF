@@ -15,8 +15,7 @@ PAF_calc_discrete(
   boot_rep = 100,
   t_vector = NULL,
   ci_level = 0.95,
-  ci_type = c("norm"),
-  ind
+  ci_type = c("norm")
 )
 }
 \arguments{
@@ -53,22 +52,39 @@ library(splines)
 library(survival)
 library(parallel)
 options(boot.parallel="snow")
-options(boot.ncpus=parallel::detectCores())
+options(boot.ncpus=2)
+# The above could be set to the number of available cores on the machine
 data(stroke_reduced)
-model_exercise <- glm(formula = case ~ region * ns(age, df = 5) + sex * ns(age, df = 5) + education + exercise + ns(diet, df = 3) + smoking + alcohol + stress, family = "binomial", data = stroke_reduced)
+model_exercise <- glm(formula = case ~ region * ns(age, df = 5) +
+ sex * ns(age, df = 5) + education + exercise + ns(diet, df = 3) +
+ smoking + alcohol + stress, family = "binomial", data = stroke_reduced)
 # calculate discrete PAF using Bruzzi method
-PAF_calc_discrete(model_exercise, "exercise", refval=0, data=stroke_reduced, calculation_method="B")
+PAF_calc_discrete(model_exercise, "exercise", refval=0,
+data=stroke_reduced, calculation_method="B")
 # calculate discrete PAF using Direct method
-# PAF_calc_discrete(model_exercise, "exercise", refval=0, data=stroke_reduced, calculation_method="D", prev=0.0035)
+# PAF_calc_discrete(model_exercise, "exercise", refval=0,
+# data=stroke_reduced, calculation_method="D", prev=0.0035)
 # Use bootstrap resampling to calculate a confidence interval
-PAF_calc_discrete(model_exercise, "exercise", refval=0, data=stroke_reduced, calculation_method="D", prev=0.005, ci=TRUE, boot_rep=10)
+PAF_calc_discrete(model_exercise, "exercise", refval=0,
+data=stroke_reduced, calculation_method="D", prev=0.005, ci=TRUE, boot_rep=10)
 ### use the Bruzzi method derived by Bruzzi, 1985, instead
-PAF_calc_discrete(model_exercise, "exercise", refval=0, data=stroke_reduced, calculation_method="B", ci=TRUE, boot_rep=10)
+PAF_calc_discrete(model_exercise, "exercise", refval=0, data=stroke_reduced,
+ calculation_method="B", ci=TRUE, boot_rep=10)
 # examples of clogit and coxph regressions
 
-model_high_blood_pressure_clogit <- clogit(formula = case ~ age + education +exercise + ns(diet, df = 3) + smoking + alcohol + stress + ns(lipids,df = 3) + ns(waist_hip_ratio, df = 3) + high_blood_pressure +strata(strata),data=stroke_reduced)
-PAF_calc_discrete(model_high_blood_pressure_clogit, "high_blood_pressure", refval=0, data=stroke_reduced, calculation_method="B",ci=TRUE, boot_rep=100, ci_type=c('norm'))
+model_high_blood_pressure_clogit <- clogit(formula = case ~ age +
+education +exercise + ns(diet, df = 3) + smoking + alcohol + stress +
+ ns(lipids,df = 3) + ns(waist_hip_ratio, df = 3) + high_blood_pressure +
+ strata(strata),data=stroke_reduced)
+PAF_calc_discrete(model_high_blood_pressure_clogit, "high_blood_pressure",
+refval=0, data=stroke_reduced, calculation_method="B",ci=TRUE, boot_rep=100,
+ ci_type=c('norm'))
 
-model_high_blood_pressure_coxph <- coxph(formula = Surv(time,event) ~ ns(age,df=5) + education +exercise + ns(diet, df = 3) + smoking + alcohol + stress + ns(lipids,df = 3) + ns(waist_hip_ratio, df = 3) + high_blood_pressure, data = stroke_reduced)
-PAF_calc_discrete(model_high_blood_pressure_coxph, "high_blood_pressure", refval=0, data=stroke_reduced, calculation_method="D", ci=TRUE, boot_rep=10, ci_type=c('norm'),t_vector=c(1,2,3,4,5,6,7,8,9))
+model_high_blood_pressure_coxph <- coxph(formula = Surv(time,event) ~
+ ns(age,df=5) + education +exercise + ns(diet, df = 3) + smoking + alcohol +
+  stress + ns(lipids,df = 3) + ns(waist_hip_ratio, df = 3) +
+  high_blood_pressure, data = stroke_reduced)
+PAF_calc_discrete(model_high_blood_pressure_coxph, "high_blood_pressure",
+refval=0, data=stroke_reduced, calculation_method="D", ci=TRUE,
+boot_rep=10, ci_type=c('norm'),t_vector=c(1,2,3,4,5,6,7,8,9))
 }

@@ -43,6 +43,8 @@ plot_continuous(
 
 \item{theylab}{Default "OR".  Y-axis label of the plot}
 
+\item{qlist}{Vector of quantile values for q, corresponding to the plotted values of PAF_q for each risk factor/exposure}
+
 \item{interact}{Default "FALSE".  Set to TRUE spline models enter as interactions.}
 }
 \value{
@@ -52,9 +54,17 @@ A ggplot2 plotting object
 Plot hazard ratios, odds ratios or risk ratios comparing differing values of a continuous risk factor to a reference
 }
 \examples{
-model_continuous <- glm(formula = case ~ region * ns(age, df = 5) + sex * ns(age, df = 5) + education +exercise + ns(diet, df = 3) + alcohol + stress + ns(lipids,df = 3) + ns(waist_hip_ratio, df = 3) + high_blood_pressure, family = "binomial", data = stroke_reduced)
+library(survival)
+library(splines)
+model_continuous <- glm(formula = case ~ region * ns(age, df = 5) +
+ sex * ns(age, df = 5) + education +exercise + ns(diet, df = 3) +
+ alcohol + stress + ns(lipids,df = 3) + ns(waist_hip_ratio, df = 3) +
+  high_blood_pressure, family = "binomial", data = stroke_reduced)
 plot_continuous(model_continuous,riskfactor="diet",data=stroke_reduced)
-model_continuous_clogit <- clogit(formula = case ~ region * ns(age, df = 5) + sex * ns(age, df = 5) + education +exercise + ns(diet, df = 3)  + alcohol + stress + ns(lipids,df = 3) + ns(waist_hip_ratio, df = 3) + high_blood_pressure + strata(strata), data = stroke_reduced)
+model_continuous_clogit <- clogit(formula = case ~ region * ns(age, df = 5) +
+ sex * ns(age, df = 5) + education +exercise + ns(diet, df = 3)  +
+ alcohol + stress + ns(lipids,df = 3) + ns(waist_hip_ratio, df = 3) +
+  high_blood_pressure + strata(strata), data = stroke_reduced)
 plot_continuous(model_continuous_clogit,riskfactor="diet",data=stroke_reduced)
 }
 \references{

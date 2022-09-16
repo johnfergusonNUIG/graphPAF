@@ -4,14 +4,16 @@
 \alias{plot.SAF_summary}
 \title{Produce plots of sequential and average PAF}
 \usage{
-\method{plot}{SAF_summary}(SAF_summary, number_rows = 3, max_PAF = 0.4, x = NULL, y = NULL)
+\method{plot}{SAF_summary}(x, number_rows = 3, max_PAF = 0.4, ...)
 }
 \arguments{
-\item{SAF_summary}{An SAF_summary R object produced by running the average_paf function.}
+\item{x}{An SAF_summary R object produced by running the average_paf function.}
+
+\item{number_rows}{integer How many rows of plots will be included on the associated figure.}
 
 \item{max_PAF}{range of y axis on PAF plots (default = 0.4)}
 
-\item{nrows}{integer How many rows of plots will be included on the associated figure.}
+\item{...}{Other global arguments inherited by that might be passed to the ggplot routine}
 }
 \value{
 A plot illustrating average sequential PAF by position and average PAF by risk factor.
@@ -24,28 +26,34 @@ library(splines)
 library(survival)
 library(parallel)
 options(boot.parallel="snow")
-options(boot.ncpus=parallel::detectCores())
-#  Simulated data on occupational and environmental exposure to chronic cough from Eide, 1995
+options(boot.ncpus=2)
+#  Simulated data on occupational and environmental exposure to
+# chronic cough from Eide, 1995
 # First specify the causal graph, in terms of the parents of each node.  Then put into a list
 parent_urban.rural <- c()
 parent_smoking.category <- c("urban.rural")
 parent_occupational.exposure <- c("urban.rural")
 parent_y <- c("urban.rural","smoking.category","occupational.exposure")
-parent_list <- list(parent_urban.rural, parent_smoking.category, parent_occupational.exposure, parent_y)
+parent_list <- list(parent_urban.rural, parent_smoking.category,
+parent_occupational.exposure, parent_y)
 # also specify nodes of graph, in order from root to leaves
 node_vec <- c("urban.rural","smoking.category","occupational.exposure", "y")
-# specify a model list according to parent_list
-# here we use the auxillary function 'automatic fit'
 model_list=automatic_fit(data=Hordaland_data, parent_list=parent_list, node_vec=node_vec, prev=.09)
-# By default the function works by stratified simulation of permutations and subsequent simulation of the incremental interventions on the distribution of risk factors.  The permuations are stratified so each factor appears equally often in the first correct_order positions.  correct_order has a default of 2
-plot of sequential PAF point esitmates
-out <- average_paf(data=Hordaland_data, model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=.09, nperm=10,vars = c("urban.rural","occupational.exposure"),ci=FALSE)
+out <- average_paf(data=Hordaland_data, model_list=model_list,
+parent_list=parent_list, node_vec=node_vec, prev=.09, nperm=10,
+vars = c("urban.rural","occupational.exposure"),ci=FALSE)
 plot(out)
-# plot with confidence intervals for average and sequential PAF (This is probably more useful for more than 2 risk factors).  Separate axes for each risk factor so confidence intervals can be clearly displayed
-out <- average_paf(data=Hordaland_data, model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=.09, nperm=10,vars = c("urban.rural","occupational.exposure"),ci=TRUE,boot_rep=8)
+# plot with confidence intervals for average and sequential PAF
+# (This is probably more useful for more than 2 risk factors).
+# Separate axes for each risk factor so confidence intervals can be clearly displayed
+out <- average_paf(data=Hordaland_data, model_list=model_list,
+parent_list=parent_list, node_vec=node_vec, prev=.09, nperm=10,
+vars = c("urban.rural","occupational.exposure"),ci=TRUE,boot_rep=8)
 plot(out)
 # Here we plot, with margin of error of point estimate when 50 permutations are used
-out <- average_paf(data=Hordaland_data, model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=.09, nperm=50,vars = c("urban.rural","occupational.exposure"),ci=FALSE,exact=FALSE)
+out <- average_paf(data=Hordaland_data, model_list=model_list,
+ parent_list=parent_list, node_vec=node_vec, prev=.09, nperm=50,
+ vars = c("urban.rural","occupational.exposure"),ci=FALSE,exact=FALSE)
 plot(out)
 }
 \references{

@@ -34,6 +34,8 @@ PAF_calc_continuous(
 
 \item{ci}{Logical. If TRUE, a bootstrap confidence interval is computed along with point estimate (default FALSE)}
 
+\item{boot_rep}{Integer.  Number of bootstrap replications (Only necessary to specify if ci=TRUE)}
+
 \item{t_vector}{Numeric.  A vector of times at which to calculate PAF (only specified if model is coxph)}
 
 \item{ci_level}{Numeric.  A number between 0 and 1 specifying the confidence level}
@@ -41,8 +43,6 @@ PAF_calc_continuous(
 \item{ci_type}{Character.  A vector specifying the types of confidence interval desired, as available in the 'Boot' package. The default is c('norm'), which calculates a symmetric confidence interval: (Est-Bias +- 1.96*SE), with the standard error calculated via Bootstrap.  Other choices are 'basic', 'perc' and 'bca'.  Increasing the number of Bootstrap repetitions is recommended for the 'basic', 'perc' and 'bca' methods.}
 
 \item{S}{Integer.  The number of randomly selected individuals for which risk is measured (defaults to 1).  Let to perhaps 100 if risk factor involved in interactions in model}
-
-\item{nboot}{Integer.  Number of bootstrap replications (Only necessary to specify if ci=TRUE)}
 }
 \value{
 A PAF_q object.  When ci=FALSE, this will essentially be a vector of estimated PAF corresponding to the quantiles specified in q_vec.  If ci=TRUE, a data frame with columns corresponding to the raw estimate, estiamted bias, bias corrected estimate and lower and upper elements of any confidence procedures requested, and rows corresopnding to the quantiles in q_vec.
@@ -55,16 +55,34 @@ library(splines)
 library(survival)
 library(parallel)
 options(boot.parallel="snow")
-options(boot.ncpus=parallel::detectCores())
-# Example with logistic regression.  PAF_q (as in Ferguson, 2020) estimated at q=0.01, 0.1, 0.3, 0.5, 0.7. 0.9.  PAF_0.01 is roughly analogous to 'eliminating' a discrete risk factor, but its estimation may be unstable for some exposures, and the corresponding intervention may be impractical.  Comparing PAF_q for q >= 0.1 over different risk factors may lead to more sensible comparisons of disease burden.  Either method (direct, D, or Bruzzi )
-model_continuous <- glm(formula = case ~ region * ns(age, df = 5) + sex * ns(age, df = 5) + education +exercise + ns(diet, df = 3) + alcohol + stress + ns(lipids,df = 3) + ns(waist_hip_ratio, df = 3) + high_blood_pressure, family = "binomial", data = stroke_reduced)
+options(boot.ncpus=2)
+# The above could be set to the number of available cores on the machine
+# Example with logistic regression.  PAF_q (as in Ferguson, 2020)
+# estimated at q=0.01, 0.1, 0.3, 0.5, 0.7. 0.9.  PAF_0.01 is roughly
+# analogous to 'eliminating' a discrete risk factor, but its estimation
+# may be unstable for some exposures, and the corresponding intervention
+# may be impractical.  Comparing PAF_q for q >= 0.1 over different risk factors
+# may lead to more sensible comparisons of disease burden.
+# Either method (direct, D, or Bruzzi )
+model_continuous <- glm(formula = case ~ region * ns(age, df = 5) +
+sex * ns(age, df = 5) + education +exercise + ns(diet, df = 3) +
+alcohol + stress + ns(lipids,df = 3) + ns(waist_hip_ratio, df = 3) +
+ high_blood_pressure, family = "binomial", data = stroke_reduced)
+out <- PAF_calc_continuous(model_continuous,riskfactor_vec=
+c("diet","lipids","waist_hip_ratio"),q_vec=c(0.01, 0.1,0.3,0.5,0.7,0.9),
+ci=FALSE,calculation_method="D",data=stroke_reduced, prev=0.0035)
 
-out <- PAF_calc_continuous(model_continuous,riskfactor_vec=c("diet","lipids","waist_hip_ratio"),q_vec=c(0.01, 0.1,0.3,0.5,0.7,0.9),ci=TRUE,calculation_method="D",data=stroke_reduced, prev=0.0035)
-
- # The same example but using conditional logsitic regression.  B
-model_continuous_clogit <- clogit(formula = case ~ region * ns(age, df = 5) + sex * ns(age, df = 5) + education +exercise + ns(diet, df = 3)  + alcohol + stress + ns(lipids,df = 3) + ns(waist_hip_ratio, df = 3) + high_blood_pressure + strata(strata), data = stroke_reduced)
-out <- PAF_calc_continuous(model_continuous_clogit,riskfactor_vec=c("diet","lipids","waist_hip_ratio"),q_vec=c(0.01, 0.1,0.3,0.5,0.7,0.9),ci=TRUE,calculation_method="B",data=stroke_reduced, prev=0.01)
+\dontrun{
+ # The same example but using conditional logsitic regression.
+model_continuous_clogit <- clogit(formula = case ~ region * ns(age, df = 5) +
+sex * ns(age, df = 5) + education +exercise + ns(diet, df = 3)  +
+alcohol + stress + ns(lipids,df = 3) + ns(waist_hip_ratio, df = 3) +
+ high_blood_pressure + strata(strata), data = stroke_reduced)
+out <- PAF_calc_continuous(model_continuous_clogit,riskfactor_vec=c("diet",
+"lipids","waist_hip_ratio"),q_vec=c(0.01, 0.1,0.3,0.5,0.7,0.9),
+ci=TRUE,calculation_method="B",data=stroke_reduced, prev=0.01)
 plot(out)
+}
 }
 \references{
 Ferguson, J., Maturo, F., Yusuf, S. and O’Donnell, M., 2020. Population attributable fractions for continuously distributed exposures. Epidemiologic Methods, 9(1).

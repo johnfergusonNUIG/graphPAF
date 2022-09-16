@@ -9,8 +9,7 @@ risk_quantiles(
   data,
   model,
   S = 1,
-  q = seq(from = 0.01, to = 0.99, by = 0.01),
-  model_type = "clogit"
+  q = seq(from = 0.01, to = 0.99, by = 0.01)
 )
 }
 \arguments{

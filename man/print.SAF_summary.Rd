@@ -4,10 +4,12 @@
 \alias{print.SAF_summary}
 \title{Print out SAF_summary object}
 \usage{
-\method{print}{SAF_summary}(x)
+\method{print}{SAF_summary}(x, ...)
 }
 \arguments{
 \item{x}{A SAF_summary object.  This is a dataframe that is created by running the function average_PAF.}
+
+\item{...}{Other arguments to be passed to print}
 }
 \description{
 Print out SAF_summary object
@@ -17,17 +19,21 @@ library(splines)
 library(survival)
 library(parallel)
 options(boot.parallel="snow")
-options(boot.ncpus=parallel::detectCores())
+options(boot.ncpus=2)
+# The above could be set to the number of available cores on the machine
 #  Simulated data on occupational and environmental exposure to chronic cough from Eide, 1995
 # First specify the causal graph, in terms of the parents of each node.  Then put into a list
 parent_urban.rural <- c()
 parent_smoking.category <- c("urban.rural")
 parent_occupational.exposure <- c("urban.rural")
 parent_y <- c("urban.rural","smoking.category","occupational.exposure")
-parent_list <- list(parent_urban.rural, parent_smoking.category, parent_occupational.exposure, parent_y)
+parent_list <- list(parent_urban.rural, parent_smoking.category,
+parent_occupational.exposure, parent_y)
 node_vec <- c("urban.rural","smoking.category","occupational.exposure", "y")
-model_list=automatic_fit(data=Hordaland_data, parent_list=parent_list, node_vec=node_vec, prev=.09)
-# By default the function works by stratified simulation of permutations and subsequent simulation of the incremental interventions on the distribution of risk factors.  The permuations are stratified so each factor appears equally often in the first correct_order positions.  correct_order has a default of 2.
-out <- average_paf(data=Hordaland_data, model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=.09, nperm=10,vars = c("urban.rural","occupational.exposure"),ci=FALSE)
+model_list=automatic_fit(data=Hordaland_data, parent_list=parent_list,
+ node_vec=node_vec, prev=.09)
+out <- average_paf(data=Hordaland_data, model_list=model_list,
+parent_list=parent_list, node_vec=node_vec, prev=.09, nperm=10,
+vars = c("urban.rural","occupational.exposure"),ci=FALSE)
 print(out)
 }

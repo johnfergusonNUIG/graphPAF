@@ -5,16 +5,18 @@
 #' @param rf_names Acharacter vector of risk factor names
 #' @param rf_prev A numeric vector specifying prevalence of risk factor in disease controls (estimates of population prevalence can also be used if the disease is rare)
 #' @param risk A numeric vector of relative risks or Odds ratios for disease corresponding to each risk factor (if log=FALSE).  Log-relative risks or log-odds ratios can  be alternatively specified (if log=TRUE)
-#' @param log=FALSE Set to TRUE if relative risks/odds ratios are specified on log-scale
-#'
+#' @param log default TRUE. Set to TRUE if relative risks/odds ratios are specified on log-scale
 #' @return A rf.data.frame object
 #' @export
 #'
 #' @references Ferguson, J., O’Leary, N., Maturo, F., Yusuf, S. and O’Donnell, M., 2019. Graphical comparisons of relative disease burden across multiple risk factors. BMC medical research methodology, 19(1), pp.1-9.
 #'
 #' @examples
-#' rfs <- rf_summary(rf_names=c('Hypertension','Inactivity','ApoB/ApoA','Diet','WHR','Smoking','Cardiac causes','Alcohol','Global Stress','Diabetes'),rf_prev=c(.474,.837,.669,.67,.67,.224,.049,.277,.144,.129),risk=c(1.093,0.501,0.428,0.378,0.294,0.513,1.156,0.186,0.301,0.148),log=TRUE)
-rf_summary <- function(rf_names, rf_prev, risk, log=TRUE){
+#' rfs <- rf_summary(rf_names=c('Hypertension','Inactivity','ApoB/ApoA','Diet',
+#' 'WHR','Smoking','Cardiac causes','Alcohol','Global Stress','Diabetes'),
+#' rf_prev=c(.474,.837,.669,.67,.67,.224,.049,.277,.144,.129),
+#' risk=c(1.093,0.501,0.428,0.378,0.294,0.513,1.156,0.186,0.301,0.148),log=TRUE)
+rf_summary <- function(rf_names, rf_prev, risk, log=FALSE){
   stopifnot(length(rf_names)==length(rf_prev) & length(rf_prev)==length(risk))
   stopifnot(is.character(rf_names))
   stopifnot(all(rf_prev > 0 & rf_prev <1))
@@ -35,23 +37,27 @@ rf_summary <- function(rf_names, rf_prev, risk, log=TRUE){
 #'
 #' Create a fan plot displaying approximate PAF, risk factor prevalence and risk ratios
 #'
-#' @param rf_data_frame A rf.data.frame object
+#' @param x A rf.data.frame object
 #' @param type A character representing the type of plot.  "f" for a fan_plot, "n" for a PAF nomogram and "rn" for a reverse PAF nomogram
 #' @param rf_prevmarks Axis marks for risk factor prevalence (only used for type="n" and type = "rn") Default c(0.02, 0.05,0.1,0.2,0.3,0.4,0.5,0.7,0.9)
 #' @param ormarks Axis marks for odds ratios (only used for type="n" and type = "rn") Default c(1.05,1.1,1.4,1.7,2.0,3.0)
 #' @param type A character representing the type of plot.  "f" for a fan_plot, "n" for a PAF nomogram and "rn" for a reverse PAF nomogram.  See Ferguson et al.. "Graphical comparisons of relative disease burden across multiple risk factors." BMC medical research methodology 19, no. 1 (2019): 1-9 for more details
-#' @return
+#' @param ...  Other arguments that can be passed to the plotting routine
+#' @return A fanplot or PAF nomogram
 #' @export
 #'
 #' @references Ferguson, J., O’Leary, N., Maturo, F., Yusuf, S. and O’Donnell, M., 2019. Graphical comparisons of relative disease burden across multiple risk factors. BMC medical research methodology, 19(1), pp.1-9.
 #'
 #' @examples
-#' rfs <- rf_summary(rf_names=c('Hypertension','Inactivity','ApoB/ApoA','Diet','WHR','Smoking','Cardiac causes','Alcohol','Global Stress','Diabetes'),rf_prev=c(.474,.837,.669,.67,.67,.224,.049,.277,.144,.129),risk=c(1.093,0.501,0.428,0.378,0.294,0.513,1.156,0.186,0.301,0.148),log=TRUE)
+#' rfs <- rf_summary(rf_names=c('Hypertension','Inactivity','ApoB/ApoA',
+#' 'Diet','WHR','Smoking','Cardiac causes','Alcohol','Global Stress','Diabetes'),
+#' rf_prev=c(.474,.837,.669,.67,.67,.224,.049,.277,.144,.129),
+#' risk=c(1.093,0.501,0.428,0.378,0.294,0.513,1.156,0.186,0.301,0.148),log=TRUE)
 #' plot(rfs,type="f")
-plot.rf.data.frame <- function(rf_data_frame,type="f", rf_prevmarks= c(0.02, 0.05,0.1,0.2,0.3,0.4,0.5,0.7,0.9),ormarks = c(1.05,1.1,1.4,1.7,2.0,3.0))
+plot.rf.data.frame <- function(x,type="f", rf_prevmarks= c(0.02, 0.05,0.1,0.2,0.3,0.4,0.5,0.7,0.9),ormarks = c(1.05,1.1,1.4,1.7,2.0,3.0), ...)
 {
-
-    if(!class(rf_data_frame)=='rf.data.frame'){
+    rf_data_frame <- x
+    if(!inherits(rfs,"rf.data.frame")){
 
     stop("Create a valid rf.data.frame object before running function")
 

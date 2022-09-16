@@ -1,8 +1,8 @@
 #' Plot of impact fractions against over risk-quantile interventions for several risk factors
 #'
-#' @param data_frame A PAF_q object.  This is a dataframe that is created by running the function PAF_calc_continuous. The final 3 columns of the data frame are assumed to be (in order), PAF and lower and upper confidence bounds.
-#'
-#' @return
+#' @param x A PAF_q object.  This is a dataframe that is created by running the function PAF_calc_continuous. The final 3 columns of the data frame are assumed to be (in order), PAF and lower and upper confidence bounds
+#' @param ... Other global arguments inherited by that might be passed to the ggplot routine
+#' @return A plot of PAF_q
 #' @export
 #'
 #' @examples
@@ -10,13 +10,19 @@
 #' library(survival)
 #' library(parallel)
 #' options(boot.parallel="snow")
-#' options(boot.ncpus=parallel::detectCores())
-#' model_continuous <- glm(formula = case ~ region * ns(age, df = 5) + sex * ns(age, df = 5) + education +exercise + ns(diet, df = 3) + alcohol + stress + ns(lipids,df = 3) + ns(waist_hip_ratio, df = 3) + high_blood_pressure, family = "binomial", data = stroke_reduced)
-#' out <- PAF_calc_continuous(model_continuous,riskfactor_vec=c("diet","lipids","waist_hip_ratio"),q_vec=c(0.01, 0.1,0.3,0.5,0.7,0.9),ci=TRUE,calculation_method="B",data=stroke_reduced)
+#' options(boot.ncpus=2)
+#' # The above could be set to the number of available cores on the machine
+#' model_continuous <- glm(formula = case ~ region * ns(age, df = 5) +
+#' sex * ns(age, df = 5) + education +exercise + ns(diet, df = 3) +
+#'  alcohol + stress + ns(lipids,df = 3) + ns(waist_hip_ratio, df = 3) +
+#'   high_blood_pressure, family = "binomial", data = stroke_reduced)
+#' out <- PAF_calc_continuous(model_continuous,riskfactor_vec=
+#' c("diet","lipids","waist_hip_ratio"),q_vec=c(0.01, 0.1,0.3,0.5,0.7,0.9),
+#' ci=TRUE,calculation_method="B",data=stroke_reduced)
 #' plot(out)
-plot.PAF_q <- function(data_frame,x=NULL,y=NULL){
+plot.PAF_q <- function(x, ...){
 
-  data_frame <- structure(as.list(data_frame),class="data.frame", row.names=attr(data_frame,"row.names"))
+  data_frame <- structure(as.list(x),class="data.frame", row.names=attr(x,"row.names"))
 
   if(!"riskfactor" %in% colnames(data_frame)){
 
@@ -90,7 +96,7 @@ plot_continuous_quick <- function(model,riskfactor,data,S = 10,ref_val=NA, ci_le
   # collapse model_frame now over ind
   #model_frame <- as.data.frame(model_frame)
   #model_frame$ind <- ind
-  #model_frame <- model_frame %>% group_by(ind) %>% summarise_all(funs(mean))
+  #model_frame <- model_frame %>% dplyr::(ind) %>% dplyr::summarize_all(dplyr::funs(mean))
   #model_frame <- model_frame[,colnames(model_frame)!="ind"]
   model_frame <- as.matrix(model_frame)
   # new predictions (pred- pred at median)
@@ -173,6 +179,7 @@ plot_continuous_quick <- function(model,riskfactor,data,S = 10,ref_val=NA, ci_le
 #' @param plot_density  Default TRUE.  Logical specifying whether density of distribution of risk factor is to be added to the plot
 #' @param n_x  Default 1000.  How many values of riskfactor will be used to plot spline (when interact=FALSE)
 #' @param theylab  Default "OR".  Y-axis label of the plot
+#' @param qlist Vector of quantile values for q, corresponding to the plotted values of PAF_q for each risk factor/exposure
 #' @param interact  Default "FALSE".  Set to TRUE spline models enter as interactions.
 #' @param S  Default 10.  The integer number of random samples used to calculate average differences in linear predictors. Only relevant to set when interact=TRUE
 #' @return A ggplot2 plotting object
@@ -180,9 +187,17 @@ plot_continuous_quick <- function(model,riskfactor,data,S = 10,ref_val=NA, ci_le
 #' @references Ferguson, J., Maturo, F., Yusuf, S. and O’Donnell, M., 2020. Population attributable fractions for continuously distributed exposures. Epidemiologic Methods, 9(1)
 #'
 #' @examples
-#' model_continuous <- glm(formula = case ~ region * ns(age, df = 5) + sex * ns(age, df = 5) + education +exercise + ns(diet, df = 3) + alcohol + stress + ns(lipids,df = 3) + ns(waist_hip_ratio, df = 3) + high_blood_pressure, family = "binomial", data = stroke_reduced)
+#' library(survival)
+#' library(splines)
+#' model_continuous <- glm(formula = case ~ region * ns(age, df = 5) +
+#'  sex * ns(age, df = 5) + education +exercise + ns(diet, df = 3) +
+#'  alcohol + stress + ns(lipids,df = 3) + ns(waist_hip_ratio, df = 3) +
+#'   high_blood_pressure, family = "binomial", data = stroke_reduced)
 #' plot_continuous(model_continuous,riskfactor="diet",data=stroke_reduced)
-#' model_continuous_clogit <- clogit(formula = case ~ region * ns(age, df = 5) + sex * ns(age, df = 5) + education +exercise + ns(diet, df = 3)  + alcohol + stress + ns(lipids,df = 3) + ns(waist_hip_ratio, df = 3) + high_blood_pressure + strata(strata), data = stroke_reduced)
+#' model_continuous_clogit <- clogit(formula = case ~ region * ns(age, df = 5) +
+#'  sex * ns(age, df = 5) + education +exercise + ns(diet, df = 3)  +
+#'  alcohol + stress + ns(lipids,df = 3) + ns(waist_hip_ratio, df = 3) +
+#'   high_blood_pressure + strata(strata), data = stroke_reduced)
 #' plot_continuous(model_continuous_clogit,riskfactor="diet",data=stroke_reduced)
 plot_continuous <- function(model,riskfactor,data,S = 10,ref_val=NA, ci_level=0.95,min_risk_q=.1,plot_region=TRUE, plot_density=TRUE,n_x=1000,theylab="OR",  qlist=seq(from=0.001,to=0.999,by=0.001), interact=FALSE){
 
@@ -240,7 +255,9 @@ plot_continuous <- function(model,riskfactor,data,S = 10,ref_val=NA, ci_level=0.
   # collapse model_frame now over ind
   model_frame <- as.data.frame(model_frame)
   model_frame$ind <- ind
-  model_frame <- model_frame %>% group_by(ind) %>% summarise_all(funs(mean))
+  model_frame <- dplyr::group_by(model_frame,ind)
+  stuff <- dplyr::funs(mean)
+  model_frame <- dplyr::summarize_all(model_frame,stuff)
   model_frame <- model_frame[,colnames(model_frame)!="ind"]
   model_frame <- as.matrix(model_frame)
   # new predictions (pred- pred at median)

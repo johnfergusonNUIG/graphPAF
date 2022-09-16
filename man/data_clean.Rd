@@ -25,6 +25,8 @@ Strip out unneeded variables from original data (based on fitted model, or alter
 }
 \examples{
 # example of using dataclean to strip out NAs, redundant columns and recalculate weights
+library(survival)
+library(splines)
 stroke_reduced_2 <- stroke_reduced
 stroke_reduced_2$case[sample(1:length(stroke_reduced_2$case),50)] <- NA
 stroke_reduced_2$random <- rnorm(length(stroke_reduced_2$case))

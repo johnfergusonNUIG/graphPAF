@@ -9,11 +9,11 @@ predict_df_continuous(riskfactor, q_val, risk_q, data)
 \arguments{
 \item{riskfactor}{The name of the risk factor of interest in the dataset}
 
+\item{q_val}{The risk quantile to match to}
+
 \item{risk_q}{Estimated risk quantiles}
 
 \item{data}{A dataframe containing variables used to fit the model}
-
-\item{qval}{The risk quantile to match to}
 }
 \value{
 A data frame where the distribution continuous risk factor so at an individual level, risk is at the q_val-quantile or below

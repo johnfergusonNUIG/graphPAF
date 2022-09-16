@@ -4,10 +4,12 @@
 \alias{print.PAF_q}
 \title{Print out PAF_q for differing risk factors}
 \usage{
-\method{print}{PAF_q}(x)
+\method{print}{PAF_q}(x, ...)
 }
 \arguments{
 \item{x}{A PAF_q object.  This is a dataframe that is created by running the function PAF_calc_continuous. The final 3 columns of the data frame are assumed to be (in order), PAF and lower and upper confidence bounds.}
+
+\item{...}{Other arguments to be passed to print}
 }
 \description{
 Print out PAF_q for differing risk factors
@@ -17,8 +19,15 @@ library(splines)
 library(survival)
 library(parallel)
 options(boot.parallel="snow")
-options(boot.ncpus=parallel::detectCores())
-model_continuous <- glm(formula = case ~ region * ns(age, df = 5) + sex * ns(age, df = 5) + education +exercise + ns(diet, df = 3) + alcohol + stress + ns(lipids,df = 3) + ns(waist_hip_ratio, df = 3) + high_blood_pressure, family = "binomial", data = stroke_reduced)
-out <- PAF_calc_continuous(model_continuous,riskfactor_vec=c("diet","lipids","waist_hip_ratio"),q_vec=c(0.01, 0.1,0.3,0.5,0.7,0.9),ci=TRUE,calculation_method="B",data=stroke_reduced)
+options(boot.ncpus=2)
+# The above could be set to the number of available cores on the machine
+model_continuous <- glm(formula = case ~ region * ns(age, df = 5) +
+sex * ns(age, df = 5) + education +exercise + ns(diet, df = 3) +
+ alcohol + stress + ns(lipids,df = 3) + ns(waist_hip_ratio, df = 3) +
+high_blood_pressure, family = "binomial", data = stroke_reduced)
+out <- PAF_calc_continuous(model_continuous,
+riskfactor_vec=c("diet","lipids","waist_hip_ratio"),
+q_vec=c(0.01, 0.1,0.3,0.5,0.7,0.9),ci=TRUE,calculation_method="B",
+data=stroke_reduced)
 print(out)
 }

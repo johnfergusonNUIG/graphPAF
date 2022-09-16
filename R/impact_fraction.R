@@ -14,6 +14,20 @@
 #' @export
 #'
 #' @examples
+#' library(splines)
+#' library(survival)
+#' new_data <- stroke_reduced
+#' N <- nrow(new_data)
+#' inactive_patients <- (1:N)[stroke_reduced$exercise==1]
+#' N_inactive <- sum(stroke_reduced$exercise)
+#' newly_active_patients <- inactive_patients[sample(1:N_inactive,0.2*N_inactive)]
+#' new_data$exercise[newly_active_patients] <- 0
+#' model_exercise <- clogit(formula = case ~ age + education +exercise +
+#' ns(diet, df = 3) + smoking + alcohol + stress + ns(lipids,df = 3) +
+#' ns(waist_hip_ratio, df = 3) + high_blood_pressure +strata(strata),
+#' data=stroke_reduced)
+#' impact_fraction(model=model_exercise,stroke_reduced,new_data,
+#' calculation_method = "B")
 impact_fraction <- function(model, data, new_data, calculation_method="B",prev=NULL,ci=FALSE,boot_rep=100,t_vector=NULL, ci_level=0.95, ci_type=c("norm")){
 
 
@@ -112,8 +126,11 @@ impact_fraction <- function(model, data, new_data, calculation_method="B",prev=N
 
     if(!ci) return(if_bruzzi(data, ind=1:N, model=model,model_type=model_type,new_data=new_data,response=response))
     if(ci){
-
-            res <- boot::boot(data=data,statistic=if_bruzzi,R=boot_rep, model=model,model_type=model_type,new_data=new_data,response=response)
+         nc <- options()$boot.ncpus
+      cl <- parallel::makeCluster(nc)
+      parallel::clusterExport(cl, c("coxph","clogit","strata","Surv","ns"))
+            res <- boot::boot(data=data,statistic=if_bruzzi,R=boot_rep, model=model,model_type=model_type,new_data=new_data,response=response,cl=cl)
+            parallel::stopCluster(cl)
            return(extract_ci(res=res,model_type=model_type,t_vector=t_vector,ci_level=ci_level,ci_type=ci_type))
     }
   }
@@ -121,7 +138,11 @@ impact_fraction <- function(model, data, new_data, calculation_method="B",prev=N
 
     if(!ci) return(if_direct(data,ind=1:N,model=model, model_type=model_type, new_data=new_data, prev=prev,t_vector=t_vector,response=response))
     if(ci){
-       res <- boot::boot(data=data,statistic=if_direct,R=boot_rep,model=model, model_type=model_type, new_data=new_data, prev=prev,t_vector=t_vector,response=response)
+      nc <- options()$boot.ncpus
+      cl <- parallel::makeCluster(nc)
+      parallel::clusterExport(cl, c("coxph","clogit","strata","Surv","ns"))
+       res <- boot::boot(data=data,statistic=if_direct,R=boot_rep,model=model, model_type=model_type, new_data=new_data, prev=prev,t_vector=t_vector,response=response,cl=cl)
+       parallel::stopCluster(cl)
        return(extract_ci(res=res,model_type=model_type,t_vector=t_vector,ci_level=ci_level,ci_type=ci_type))
     }
   }
@@ -131,10 +152,8 @@ impact_fraction <- function(model, data, new_data, calculation_method="B",prev=N
 
 if_bruzzi <- function(data,ind, model,model_type,  new_data,response){
 
-  N <- nrow(data)
 
-  library(splines)
-  library(survival)
+  N <- nrow(data)
 
   if(model_type == "clogit"){
 
@@ -161,8 +180,16 @@ if_bruzzi <- function(data,ind, model,model_type,  new_data,response){
 
 
       #refit model
-      model_text <- paste0("clogit(",model_text,",data=data)")
-      model <- eval(parse(text=model_text))
+      model_text <- paste0("survival::clogit(",model_text,",data=data)")
+      thesplit <- ""
+      while(length(grep(pattern='^.*ns\\(.*$',x=model_text))>0){
+        model_text <- gsub(pattern='^(.*)ns\\((.*)$',replacement='\\1splines::ns\\(\\2',x=model_text)
+        stuff <- strsplit(model_text,split="splines::ns(",fixed=TRUE)
+        model_text <- stuff[[1]][1]
+        thesplit <- paste0("splines::ns(",stuff[[1]][2],thesplit)
+      }
+      model_text <- paste0(model_text,thesplit)
+          model <- eval(parse(text=model_text))
 
     }
 
@@ -191,6 +218,15 @@ if_bruzzi <- function(data,ind, model,model_type,  new_data,response){
       new_data <- new_data[ind, ]
       model_text <- as.character(model$call)
       model_text <- paste0("glm(",model_text[2],",data=data, family=binomial(link=",as.character(family(model)[2]),"))")
+      thesplit <- ""
+      while(length(grep(pattern='^.*ns\\(.*$',x=model_text))>0){
+        model_text <- gsub(pattern='^(.*)ns\\((.*)$',replacement='\\1splines::ns\\(\\2',x=model_text)
+        stuff <- strsplit(model_text,split="splines::ns(",fixed=TRUE)
+        model_text <- stuff[[1]][1]
+        thesplit <- paste0("splines::ns(",stuff[[1]][2],thesplit)
+      }
+      model_text <- paste0(model_text,thesplit)
+
       model <- eval(parse(text=model_text))
 
     }
@@ -207,18 +243,23 @@ if_bruzzi <- function(data,ind, model,model_type,  new_data,response){
 
 if_direct <- function(data, ind, model,model_type, new_data, prev,t_vector,response){
 
-  library(splines)
-  library(survival)
 
   N <- nrow(data)
   if(model_type == "coxph"){
 
     if(!all(ind==(1:N))){
-
-      data <- data[ind, ]
+         data <- data[ind, ]
       new_data <- new_data[ind, ]
       model_text <- as.character(model$call)
-      model_text <- paste0("coxph(",model_text[2],",data=data)")
+      model_text <- paste0("survival::coxph(",model_text[2],",data=data)")
+     thesplit <- ""
+      while(length(grep(pattern='^.*ns\\(.*$',x=model_text))>0){
+        model_text <- gsub(pattern='^(.*)ns\\((.*)$',replacement='\\1splines::ns\\(\\2',x=model_text)
+        stuff <- strsplit(model_text,split="splines::ns(",fixed=TRUE)
+        model_text <- stuff[[1]][1]
+        thesplit <- paste0("splines::ns(",stuff[[1]][2],thesplit)
+      }
+      model_text <- paste0(model_text,thesplit)
       model <- eval(parse(text=model_text))
 
     }
@@ -270,7 +311,16 @@ if_direct <- function(data, ind, model,model_type, new_data, prev,t_vector,respo
       new_data[,colnames(data)==strataname] <- c(1:length(totake),1:length(totake))
 
       #refit model
-      model_text <- paste0("clogit(",model_text,",data=data)")
+
+      model_text <- paste0("survival::clogit(",model_text,",data=data)")
+      thesplit=""
+      while(length(grep(pattern='^.*ns\\(.*$',x=model_text))>0){
+        model_text <- gsub(pattern='^(.*)ns\\((.*)$',replacement='\\1splines::ns\\(\\2',x=model_text)
+        stuff <- strsplit(model_text,split="splines::ns(",fixed=TRUE)
+        model_text <- stuff[[1]][1]
+        thesplit <- paste0("splines::ns(",stuff[[1]][2],thesplit)
+      }
+      model_text <- paste0(model_text,thesplit)
       model <- eval(parse(text=model_text))
 
     }
@@ -316,7 +366,17 @@ if_direct <- function(data, ind, model,model_type, new_data, prev,t_vector,respo
       model_text <- as.character(model$call)
       if(length(model_text)==4) model_text_u <- paste0("glm(",model_text[2],",data=data, family=binomial(link=",as.character(family(model)[2]),"))")
       if(length(model_text)==5) model_text_u <- paste0("glm(",model_text[2],",data=data, family=binomial(link=",as.character(family(model)[2]),"),weights=",model_text[5],")")
-      model <- eval(parse(text=model_text_u))
+      model_text <- model_text_u
+      thesplit <- ""
+      while(length(grep(pattern='^.*ns\\(.*$',x=model_text))>0){
+        model_text <- gsub(pattern='^(.*)ns\\((.*)$',replacement='\\1splines::ns\\(\\2',x=model_text)
+        stuff <- strsplit(model_text,split="splines::ns(",fixed=TRUE)
+        model_text <- stuff[[1]][1]
+        thesplit <- paste0("splines::ns(",stuff[[1]][2],thesplit)
+      }
+      model_text <- paste0(model_text,thesplit)
+
+      model <- eval(parse(text=model_text))
 
     }
 

@@ -30,11 +30,15 @@ average_paf(
 
 \item{node_vec}{A character vector corresponding to the nodes in the Bayesian network (The variable names should be column names in data).  This must be specified from root to leaves - that is ancestors in the causal graph for a particular node are positioned before their descendants.  If this condition is false the function will return an error.}
 
+\item{prev}{numeric.  Prevalence of disease.  Only relevant to set for case control datasets.}
+
 \item{exact}{logical.  Default TRUE. If TRUE, an efficient calculation is used to calculate average PAF, which enables the average PAF from N! permutations, over all N risk factors to be calculated with only 2^N-1 operations.  If FALSE, permutations are sampled}
 
 \item{nperm}{Default NULL Number of random permutations used to calculate average and sequential PAF.  If correct_order is set to an integer value, nperm is reset to an integer multiple of factorial(N)/factorial(N-correct_order) depending on the size of nperm.  If nperm is NULL or less than factorial(N)/factorial(N-correct_order), factorial(N)/factorial(N-correct_order) permutations will be sampled.  If nperm is larger than factorial(N)/factorial(N-correct_order), nperm will be reset to the smallest integer multiple of factorial(N)/factorial(N-correct_order) less than the input value of nperm}
 
 \item{correct_order}{Default 3.  This enforces stratified sampling of permutations where the first correct_order positions of the sampled permutations are evenly distributed over the integers 1 ... N, N being the number of risk factors of interest, over the sampled permutations.  The other positions are randomly sampled.  This automatically sets the number of simulations when nperm=NULL.  For interest, if N=10 and correct_order=3, nperm is set to factorial(10)/factorial(10-3) = 720.  This special resampling reduces Monte Carlo variation in estimated average and sequential PAFs.}
+
+\item{vars}{A subset of risk factors for which we want to calculate average, sequential and joint PAF}
 
 \item{ci}{Logical. If TRUE, a bootstrap confidence interval is computed along with a point estimate (default FALSE).  If ci=FALSE, only a point estimate is produced.  A simulation procedure (sampling permutations and also simulating the effects of eliminating risk factors over the descendent nodes in a Bayesian network) is required to produce the point estimates.  The point estimate will change on repated runs of the function.  The margin of error of the point estimate is given when ci=FALSE}
 
@@ -57,42 +61,74 @@ library(splines)
 library(survival)
 library(parallel)
 options(boot.parallel="snow")
-options(boot.ncpus=parallel::detectCores())
+options(boot.ncpus=2)
+# The above could be set to the number of available cores on the machine
 #  Simulated data on occupational and environmental exposure to chronic cough from Eide, 1995
 # First specify the causal graph, in terms of the parents of each node.  Then put into a list
 parent_urban.rural <- c()
 parent_smoking.category <- c("urban.rural")
 parent_occupational.exposure <- c("urban.rural")
 parent_y <- c("urban.rural","smoking.category","occupational.exposure")
-parent_list <- list(parent_urban.rural, parent_smoking.category, parent_occupational.exposure, parent_y)
+parent_list <- list(parent_urban.rural, parent_smoking.category,
+ parent_occupational.exposure, parent_y)
 # also specify nodes of graph, in order from root to leaves
 node_vec <- c("urban.rural","smoking.category","occupational.exposure", "y")
 # specify a model list according to parent_list
 # here we use the auxillary function 'automatic fit'
-model_list=automatic_fit(data=Hordaland_data, parent_list=parent_list, node_vec=node_vec, prev=.09)
-# By default the function works by stratified simulation of permutations and subsequent simulation of the incremental interventions on the distribution of risk factors.  The permuations are stratified so each factor appears equally often in the first correct_order positions.  correct_order has a default of 2.
-average_paf(data=Hordaland_data, model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=.09, nperm=10,vars = c("urban.rural","occupational.exposure"),ci=FALSE)
+model_list=automatic_fit(data=Hordaland_data, parent_list=parent_list,
+ node_vec=node_vec, prev=.09)
+# By default the function works by stratified simulation of permutations and
+# subsequent simulation of the incremental interventions on the distribution of risk
+# factors.  The permutations are stratified so each factor appears equally often in
+# the first correct_order positions.  correct_order has a default of 2.
+average_paf(data=Hordaland_data, model_list=model_list, parent_list=parent_list,
+ node_vec=node_vec, prev=.09, nperm=10,vars = c("urban.rural",
+ "occupational.exposure"),ci=FALSE)
 
+\dontrun{
 # More complicated example (slower to run)
 parent_exercise <- c("education")
 parent_diet <- c("education")
 parent_smoking <- c("education")
 parent_alcohol <- c("education")
 parent_stress <- c("education")
-parent_high_blood_pressure <- c("education","exercise","diet","smoking","alcohol","stress")
-parent_lipids <- c("education","exercise","diet","smoking","alcohol","stress")
-parent_waist_hip_ratio <- c("education","exercise","diet","smoking","alcohol","stress")
-parent_early_stage_heart_disease <- c("education","exercise","diet","smoking","alcohol","stress","lipids","waist_hip_ratio","high_blood_pressure")
-parent_diabetes <- c("education","exercise","diet","smoking","alcohol","stress","lipids","waist_hip_ratio","high_blood_pressure")
-parent_case <- c("education","exercise","diet","smoking","alcohol","stress","lipids","waist_hip_ratio","high_blood_pressure","early_stage_heart_disease","diabetes")
-parent_list <- list(parent_exercise,parent_diet,parent_smoking,parent_alcohol,parent_stress,parent_high_blood_pressure,parent_lipids,parent_waist_hip_ratio,parent_early_stage_heart_disease,parent_diabetes,parent_case)
-node_vec=c("exercise","diet","smoking","alcohol","stress","high_blood_pressure","lipids","waist_hip_ratio","early_stage_heart_disease","diabetes","case")
-model_list=automatic_fit(data=stroke_reduced, parent_list=parent_list, node_vec=node_vec, prev=.0035,common="region*ns(age,df=5)+sex*ns(age,df=5)", spline_nodes = c("waist_hip_ratio","lipids","diet"))
-out <- average_paf(data=stroke_reduced, model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=.0035, vars = c("high_blood_pressure","smoking","stress","exercise","alcohol","diabetes","early_stage_heart_disease"),ci=TRUE,boot_rep=10)
+parent_high_blood_pressure <- c("education","exercise","diet","smoking",
+"alcohol","stress")
+parent_lipids <- c("education","exercise","diet","smoking","alcohol",
+"stress")
+parent_waist_hip_ratio <- c("education","exercise","diet","smoking",
+"alcohol","stress")
+parent_early_stage_heart_disease <- c("education","exercise","diet",
+"smoking","alcohol","stress","lipids","waist_hip_ratio","high_blood_pressure")
+parent_diabetes <- c("education","exercise","diet","smoking","alcohol",
+"stress","lipids","waist_hip_ratio","high_blood_pressure")
+parent_case <- c("education","exercise","diet","smoking","alcohol","stress",
+"lipids","waist_hip_ratio","high_blood_pressure",
+"early_stage_heart_disease","diabetes")
+parent_list <- list(parent_exercise,parent_diet,parent_smoking,
+parent_alcohol,parent_stress,parent_high_blood_pressure,
+parent_lipids,parent_waist_hip_ratio,parent_early_stage_heart_disease,
+parent_diabetes,parent_case)
+node_vec=c("exercise","diet","smoking","alcohol","stress",
+"high_blood_pressure","lipids","waist_hip_ratio","early_stage_heart_disease",
+"diabetes","case")
+model_list=automatic_fit(data=stroke_reduced, parent_list=parent_list,
+ node_vec=node_vec, prev=.0035,common="region*ns(age,df=5)+sex*ns(age,df=5)",
+  spline_nodes = c("waist_hip_ratio","lipids","diet"))
+out <- average_paf(data=stroke_reduced, model_list=model_list,
+parent_list=parent_list, node_vec=node_vec, prev=.0035,
+vars = c("high_blood_pressure","smoking","stress","exercise","alcohol",
+"diabetes","early_stage_heart_disease"),ci=TRUE,boot_rep=10)
 # plot sequential and average PAFs by risk factor
-plot_sequential(out, number_rows=3)
-# similar calculation, but now sampling permutations (stratified, so that each risk factor will appear equally often in the first correct_order positions)
-# out <- average_paf(data=stroke_reduced, model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=.0035, exact=FALSE, correct_order=2, vars = c("high_blood_pressure","smoking","stress","exercise","alcohol","diabetes","early_stage_heart_disease"),ci=TRUE,boot_rep=10)
+plot(out, number_rows=3)
+# similar calculation, but now sampling permutations (stratified, so
+# that each risk factor will appear equally often in the first correct_order positions)
+# out <- average_paf(data=stroke_reduced, model_list=model_list,
+parent_list=parent_list, node_vec=node_vec, prev=.0035, exact=FALSE,
+ correct_order=2, vars = c("high_blood_pressure","smoking","stress",
+ "exercise","alcohol","diabetes","early_stage_heart_disease"),ci=TRUE,
+ boot_rep=10)
+}
 }
 \references{
 Ferguson, J., O’Connell, M. and O’Donnell, M., 2020. Revisiting sequential attributable fractions. Archives of Public Health, 78(1), pp.1-9.

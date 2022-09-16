@@ -7,7 +7,7 @@
 #' @param calculation_method A character either 'B' (Bruzzi) or 'D' (Direct method).  For case control data, the method described in Bruzzi 1985 is recommended.  Bruzzi's method estimates PAF from relative risks and prevalence of exposure to the risk factor.  The Direct method estimates PAF by summing estimated probabilities of disease in the absense of exposure on the individual level
 #' @param prev The estimated prevalence of disease (A number between 0 and 1).  This only needs to be specified if the data source is from a case control study, and the direct method is used
 #' @param ci Logical. If TRUE, a bootstrap confidence interval is computed along with point estimate (default FALSE)
-#' @param nboot Integer.  Number of bootstrap replications (Only necessary to specify if ci=TRUE)
+#' @param boot_rep Integer.  Number of bootstrap replications (Only necessary to specify if ci=TRUE)
 #' @param t_vector Numeric.  A vector of times at which to calculate PAF (only specified if model is coxph)
 #' @param ci_level Numeric.  A number between 0 and 1 specifying the confidence level
 #' @param ci_type Character.  A vector specifying the types of confidence interval desired, as available in the 'Boot' package. The default is c('norm'), which calculates a symmetric confidence interval: (Est-Bias +- 1.96*SE), with the standard error calculated via Bootstrap.  Other choices are 'basic', 'perc' and 'bca'.  Increasing the number of Bootstrap repetitions is recommended for the 'basic', 'perc' and 'bca' methods.
@@ -22,16 +22,34 @@
 #' library(survival)
 #' library(parallel)
 #' options(boot.parallel="snow")
-#' options(boot.ncpus=parallel::detectCores())
-#' # Example with logistic regression.  PAF_q (as in Ferguson, 2020) estimated at q=0.01, 0.1, 0.3, 0.5, 0.7. 0.9.  PAF_0.01 is roughly analogous to 'eliminating' a discrete risk factor, but its estimation may be unstable for some exposures, and the corresponding intervention may be impractical.  Comparing PAF_q for q >= 0.1 over different risk factors may lead to more sensible comparisons of disease burden.  Either method (direct, D, or Bruzzi )
-#' model_continuous <- glm(formula = case ~ region * ns(age, df = 5) + sex * ns(age, df = 5) + education +exercise + ns(diet, df = 3) + alcohol + stress + ns(lipids,df = 3) + ns(waist_hip_ratio, df = 3) + high_blood_pressure, family = "binomial", data = stroke_reduced)
+#' options(boot.ncpus=2)
+#' # The above could be set to the number of available cores on the machine
+#' # Example with logistic regression.  PAF_q (as in Ferguson, 2020)
+#' # estimated at q=0.01, 0.1, 0.3, 0.5, 0.7. 0.9.  PAF_0.01 is roughly
+#' # analogous to 'eliminating' a discrete risk factor, but its estimation
+#' # may be unstable for some exposures, and the corresponding intervention
+#' # may be impractical.  Comparing PAF_q for q >= 0.1 over different risk factors
+#' # may lead to more sensible comparisons of disease burden.
+#' # Either method (direct, D, or Bruzzi )
+#' model_continuous <- glm(formula = case ~ region * ns(age, df = 5) +
+#' sex * ns(age, df = 5) + education +exercise + ns(diet, df = 3) +
+#' alcohol + stress + ns(lipids,df = 3) + ns(waist_hip_ratio, df = 3) +
+#'  high_blood_pressure, family = "binomial", data = stroke_reduced)
+#' out <- PAF_calc_continuous(model_continuous,riskfactor_vec=
+#' c("diet","lipids","waist_hip_ratio"),q_vec=c(0.01, 0.1,0.3,0.5,0.7,0.9),
+#' ci=FALSE,calculation_method="D",data=stroke_reduced, prev=0.0035)
 #'
-#' out <- PAF_calc_continuous(model_continuous,riskfactor_vec=c("diet","lipids","waist_hip_ratio"),q_vec=c(0.01, 0.1,0.3,0.5,0.7,0.9),ci=TRUE,calculation_method="D",data=stroke_reduced, prev=0.0035)
-#'
-#'  # The same example but using conditional logsitic regression.  B
-#'model_continuous_clogit <- clogit(formula = case ~ region * ns(age, df = 5) + sex * ns(age, df = 5) + education +exercise + ns(diet, df = 3)  + alcohol + stress + ns(lipids,df = 3) + ns(waist_hip_ratio, df = 3) + high_blood_pressure + strata(strata), data = stroke_reduced)
-#' out <- PAF_calc_continuous(model_continuous_clogit,riskfactor_vec=c("diet","lipids","waist_hip_ratio"),q_vec=c(0.01, 0.1,0.3,0.5,0.7,0.9),ci=TRUE,calculation_method="B",data=stroke_reduced, prev=0.01)
+#' \dontrun{
+#'  # The same example but using conditional logsitic regression.
+#' model_continuous_clogit <- clogit(formula = case ~ region * ns(age, df = 5) +
+#' sex * ns(age, df = 5) + education +exercise + ns(diet, df = 3)  +
+#' alcohol + stress + ns(lipids,df = 3) + ns(waist_hip_ratio, df = 3) +
+#'  high_blood_pressure + strata(strata), data = stroke_reduced)
+#' out <- PAF_calc_continuous(model_continuous_clogit,riskfactor_vec=c("diet",
+#' "lipids","waist_hip_ratio"),q_vec=c(0.01, 0.1,0.3,0.5,0.7,0.9),
+#' ci=TRUE,calculation_method="B",data=stroke_reduced, prev=0.01)
 #' plot(out)
+#' }
 PAF_calc_continuous <- function(model, riskfactor_vec, q_vec=c(0.01), data, calculation_method="B", prev=NULL,ci=FALSE,boot_rep=10, t_vector=NULL, ci_level=.95, ci_type=c("norm"), S=1){
 
   if(!is.data.frame(data)){
@@ -79,9 +97,11 @@ PAF_calc_continuous <- function(model, riskfactor_vec, q_vec=c(0.01), data, calc
 
    }
     if(ci) {
-
-      res <- boot::boot(data, impact_fraction_qvec,model=model,  model_type=model_type, riskfactor_vec=riskfactor_vec, q_vec=q_vec,calculation_method=calculation_method,S=S, prev=prev,t_vector=t_vector, R=boot_rep)
-
+      nc <- options()$boot.ncpus
+      cl <- parallel::makeCluster(nc)
+      parallel::clusterExport(cl, c("coxph","clogit","strata","Surv","ns"))
+      res <- boot::boot(data, impact_fraction_qvec,model=model,  model_type=model_type, riskfactor_vec=riskfactor_vec, q_vec=q_vec,calculation_method=calculation_method,S=S, prev=prev,t_vector=t_vector, R=boot_rep,cl=cl)
+      parallel::stopCluster(cl)
       q_vec_obj <- structure(cbind("riskfactor"=rep(riskfactor_vec,times=rep(length(q_vec),length(riskfactor_vec))),"q_val"=rep(q_vec,length(riskfactor_vec)),extract_ci(res,model_type=model_type,t_vector=t_vector,ci_level=ci_level,ci_type=ci_type,continuous=TRUE)),class="PAF_q")
       print(q_vec_obj)
       return(q_vec_obj)
@@ -92,8 +112,6 @@ PAF_calc_continuous <- function(model, riskfactor_vec, q_vec=c(0.01), data, calc
 ##  write functions that that risk_factor vectors and q_vec and risk_q lists and give corresponding impact fractions
 impact_fraction_qvec <- function(data, ind, model, model_type, riskfactor_vec,  q_vec, calculation_method, S=1, prev=NULL,t_vector=NULL){
 
-  library(splines)
-  library(survival)
 
 ##########################################  add in basic impact fraction functions to enable lexical scoping:
   predict_df_continuous <- function(riskfactor, q_val,risk_q, data){
@@ -270,16 +288,23 @@ impact_fraction_qvec <- function(data, ind, model, model_type, riskfactor_vec,  
 
       if(!ci) return(if_bruzzi(data, ind=1:N, model=model,model_type=model_type,new_data=new_data,response=response))
       if(ci){
-
-        res <- boot::boot(data=data,statistic=if_bruzzi,R=boot_rep, model=model,model_type=model_type,new_data=new_data,response=response)
+        nc <- options()$boot.ncpus
+        cl <- parallel::makeCluster(nc)
+        parallel::clusterExport(cl, c("coxph","clogit","strata","Surv","ns"))
+        res <- boot::boot(data=data,statistic=if_bruzzi,R=boot_rep, model=model,model_type=model_type,new_data=new_data,response=response,cl=cl)
+        parallel::stopCluster(cl)
         return(extract_ci(res=res,model_type=model_type,t_vector=t_vector,ci_level=ci_level,ci_type=ci_type))
       }
     }
     if(calculation_method=="D"){
-
-      if(!ci) return(if_direct(data,ind=1:N,model=model, model_type=model_type, new_data=new_data, prev=prev,t_vector=t_vector,response=response))
+          if(!ci) return(if_direct(data,ind=1:N,model=model, model_type=model_type, new_data=new_data, prev=prev,t_vector=t_vector,response=response))
       if(ci){
-        res <- boot::boot(data=data,statistic=if_direct,R=boot_rep,model=model, model_type=model_type, new_data=new_data, prev=prev,t_vector=t_vector,response=response)
+        nc <- options()$boot.ncpus
+        cl <- parallel::makeCluster(nc)
+        parallel::clusterExport(cl, c("coxph","clogit","strata","Surv","ns"))
+
+        res <- boot::boot(data=data,statistic=if_direct,R=boot_rep,model=model, model_type=model_type, new_data=new_data, prev=prev,t_vector=t_vector,response=response,cl=cl)
+        parallel::stopCluster(cl)
         return(extract_ci(res=res,model_type=model_type,t_vector=t_vector,ci_level=ci_level,ci_type=ci_type))
       }
     }
@@ -291,8 +316,7 @@ impact_fraction_qvec <- function(data, ind, model, model_type, riskfactor_vec,  
 
     N <- nrow(data)
 
-    library(splines)
-    library(survival)
+
 
     if(model_type == "clogit"){
 
@@ -365,8 +389,7 @@ impact_fraction_qvec <- function(data, ind, model, model_type, riskfactor_vec,  
 
   if_direct <- function(data, ind, model,model_type, new_data, prev,t_vector,response){
 
-    library(splines)
-    library(survival)
+
 
     N <- nrow(data)
     if(model_type == "coxph"){
@@ -547,7 +570,16 @@ impact_fraction_qvec <- function(data, ind, model, model_type, riskfactor_vec,  
 
 
       #refit model
-      model_text <- paste0("clogit(",model_text,",data=data)")
+      model_text <- paste0("survival::clogit(",model_text,",data=data)")
+      thesplit <- ""
+      while(length(grep(pattern='^.*ns\\(.*$',x=model_text))>0){
+        model_text <- gsub(pattern='^(.*)ns\\((.*)$',replacement='\\1splines::ns\\(\\2',x=model_text)
+        stuff <- strsplit(model_text,split="splines::ns(",fixed=TRUE)
+        model_text <- stuff[[1]][1]
+        thesplit <- paste0("splines::ns(",stuff[[1]][2],thesplit)
+      }
+      model_text <- paste0(model_text,thesplit)
+
       model <- eval(parse(text=model_text))
 
     }
@@ -558,7 +590,14 @@ impact_fraction_qvec <- function(data, ind, model, model_type, riskfactor_vec,  
 
       data <- data[ind, ]
       model_text <- as.character(model$call)
-      model_text <- paste0("coxph(",model_text[2],",data=data)")
+      model_text <- paste0("survival::coxph(",model_text[2],",data=data)")
+      thesplit <- ""
+      while(length(grep(pattern='^.*ns\\(.*$',x=model_text))>0){
+        model_text <- gsub(pattern='^(.*)ns\\((.*)$',replacement='\\1splines::ns\\(\\2',x=model_text)
+        stuff <- strsplit(model_text,split="splines::ns(",fixed=TRUE)
+        model_text <- stuff[[1]][1]
+        thesplit <- paste0("splines::ns(",stuff[[1]][2],thesplit)
+      }
       model <- eval(parse(text=model_text))
 
     }
@@ -570,6 +609,16 @@ impact_fraction_qvec <- function(data, ind, model, model_type, riskfactor_vec,  
       data <- data[ind, ]
         model_text <- as.character(model$call)
       model_text <- paste0("glm(",model_text[2],",data=data, family=binomial(link=",as.character(family(model)[2]),"))")
+
+      thesplit <- ""
+      while(length(grep(pattern='^.*ns\\(.*$',x=model_text))>0){
+        model_text <- gsub(pattern='^(.*)ns\\((.*)$',replacement='\\1splines::ns\\(\\2',x=model_text)
+        stuff <- strsplit(model_text,split="splines::ns(",fixed=TRUE)
+        model_text <- stuff[[1]][1]
+        thesplit <- paste0("splines::ns(",stuff[[1]][2],thesplit)
+      }
+      model_text <- paste0(model_text,thesplit)
+
       model <- eval(parse(text=model_text))
 
     }
@@ -596,11 +645,10 @@ impact_fraction_qvec <- function(data, ind, model, model_type, riskfactor_vec,  
 #' Create a data frame for predictions (when risk factor is continuous).
 #'
 #' @param riskfactor The name of the risk factor of interest in the dataset
-#' @param qval The risk quantile to match to
+#' @param q_val The risk quantile to match to
 #' @param risk_q Estimated risk quantiles
 #' @param data A dataframe containing variables used to fit the model
 #' @return A data frame where the distribution continuous risk factor so at an individual level, risk is at the q_val-quantile or below
-#' @examples
 predict_df_continuous <- function(riskfactor, q_val,risk_q, data){
 
   if(all(!grepl(paste0("^",riskfactor,"$"),colnames(data),perl=TRUE))){
@@ -640,9 +688,7 @@ predict_df_continuous <- function(riskfactor, q_val,risk_q, data){
 #' @param S The number of randomly selected individuals for which risk is measured (defaults to 1).  Let to perhaps 100 if risk factor involved in interactions in model
 #'
 #' @return A named vector of size S giving the risk factor quantiles
-#'
-#' @examples
-risk_quantiles <- function(riskfactor, data, model, S=1, q=seq(from=0.01,to=0.99,by=0.01),model_type="clogit"){
+risk_quantiles <- function(riskfactor, data, model, S=1, q=seq(from=0.01,to=0.99,by=0.01)){
 
   data <- data[row.names(model.frame(model)) %in% row.names(data),]
 
@@ -687,8 +733,8 @@ risk_quantiles <- function(riskfactor, data, model, S=1, q=seq(from=0.01,to=0.99
 #' Print out PAF_q for differing risk factors
 #'
 #' @param x A PAF_q object.  This is a dataframe that is created by running the function PAF_calc_continuous. The final 3 columns of the data frame are assumed to be (in order), PAF and lower and upper confidence bounds.
-#'
-#' @return
+#' @param ...  Other arguments to be passed to print
+#' @return NULL
 #' @export
 #'
 #' @examples
@@ -696,11 +742,18 @@ risk_quantiles <- function(riskfactor, data, model, S=1, q=seq(from=0.01,to=0.99
 #' library(survival)
 #' library(parallel)
 #' options(boot.parallel="snow")
-#' options(boot.ncpus=parallel::detectCores())
-#' model_continuous <- glm(formula = case ~ region * ns(age, df = 5) + sex * ns(age, df = 5) + education +exercise + ns(diet, df = 3) + alcohol + stress + ns(lipids,df = 3) + ns(waist_hip_ratio, df = 3) + high_blood_pressure, family = "binomial", data = stroke_reduced)
-#' out <- PAF_calc_continuous(model_continuous,riskfactor_vec=c("diet","lipids","waist_hip_ratio"),q_vec=c(0.01, 0.1,0.3,0.5,0.7,0.9),ci=TRUE,calculation_method="B",data=stroke_reduced)
+#' options(boot.ncpus=2)
+#' # The above could be set to the number of available cores on the machine
+#' model_continuous <- glm(formula = case ~ region * ns(age, df = 5) +
+#' sex * ns(age, df = 5) + education +exercise + ns(diet, df = 3) +
+#'  alcohol + stress + ns(lipids,df = 3) + ns(waist_hip_ratio, df = 3) +
+#' high_blood_pressure, family = "binomial", data = stroke_reduced)
+#' out <- PAF_calc_continuous(model_continuous,
+#' riskfactor_vec=c("diet","lipids","waist_hip_ratio"),
+#' q_vec=c(0.01, 0.1,0.3,0.5,0.7,0.9),ci=TRUE,calculation_method="B",
+#' data=stroke_reduced)
 #' print(out)
-print.PAF_q <- function(x){
+print.PAF_q <- function(x,...){
 
   data_frame <- structure(as.list(x),class="data.frame", row.names=attr(x,"row.names"))
   data_frame

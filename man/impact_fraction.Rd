@@ -44,3 +44,19 @@ An estimated impact if ci=FALSE, or for survival data a vector of estimated impa
 \description{
 General calculations of impact fractions
 }
+\examples{
+library(splines)
+library(survival)
+new_data <- stroke_reduced
+N <- nrow(new_data)
+inactive_patients <- (1:N)[stroke_reduced$exercise==1]
+N_inactive <- sum(stroke_reduced$exercise)
+newly_active_patients <- inactive_patients[sample(1:N_inactive,0.2*N_inactive)]
+new_data$exercise[newly_active_patients] <- 0
+model_exercise <- clogit(formula = case ~ age + education +exercise +
+ns(diet, df = 3) + smoking + alcohol + stress + ns(lipids,df = 3) +
+ns(waist_hip_ratio, df = 3) + high_blood_pressure +strata(strata),
+data=stroke_reduced)
+impact_fraction(model=model_exercise,stroke_reduced,new_data,
+calculation_method = "B")
+}
