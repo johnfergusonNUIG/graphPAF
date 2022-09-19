@@ -17,10 +17,11 @@
 #'  alcohol + stress + ns(lipids,df = 3) + ns(waist_hip_ratio, df = 3) +
 #'   high_blood_pressure, family = "binomial", data = stroke_reduced)
 #' out <- PAF_calc_continuous(model_continuous,riskfactor_vec=
-#' c("diet","lipids","waist_hip_ratio"),q_vec=c(0.1,0.5,0.9),
+#' c("diet","lipids","waist_hip_ratio"),q_vec=c(0.1,0.9),
 #' ci=FALSE,calculation_method="B",data=stroke_reduced)
 #' plot(out)
 #' \dontrun{
+#' # example with more quantile points (more useful - but a bit slower to run)
 #' out <- PAF_calc_continuous(model_continuous,riskfactor_vec=
 #' c("diet","lipids","waist_hip_ratio"),q_vec=c(0.01, 0.1,0.3,0.5,0.7,0.9),
 #' ci=TRU,calculation_method="B",data=stroke_reduced)
