@@ -60,7 +60,8 @@ model_exercise <- glm(formula = case ~ region * ns(age, df = 5) +
  smoking + alcohol + stress, family = "binomial", data = stroke_reduced)
 # calculate discrete PAF using Bruzzi method
 PAF_calc_discrete(model_exercise, "exercise", refval=0,
-data=stroke_reduced, calculation_method="B")
+data=stroke_reduced, calculation_method="B",ci=FALSE)
+\dontrun{
 # calculate discrete PAF using Direct method
 # PAF_calc_discrete(model_exercise, "exercise", refval=0,
 # data=stroke_reduced, calculation_method="D", prev=0.0035)
@@ -87,4 +88,5 @@ model_high_blood_pressure_coxph <- coxph(formula = Surv(time,event) ~
 PAF_calc_discrete(model_high_blood_pressure_coxph, "high_blood_pressure",
 refval=0, data=stroke_reduced, calculation_method="D", ci=TRUE,
 boot_rep=10, ci_type=c('norm'),t_vector=c(1,2,3,4,5,6,7,8,9))
+}
 }

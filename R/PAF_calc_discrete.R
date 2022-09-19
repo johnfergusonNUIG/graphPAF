@@ -27,7 +27,8 @@
 #'  smoking + alcohol + stress, family = "binomial", data = stroke_reduced)
 #' # calculate discrete PAF using Bruzzi method
 #' PAF_calc_discrete(model_exercise, "exercise", refval=0,
-#' data=stroke_reduced, calculation_method="B")
+#' data=stroke_reduced, calculation_method="B",ci=FALSE)
+#' \dontrun{
 #' # calculate discrete PAF using Direct method
 #' # PAF_calc_discrete(model_exercise, "exercise", refval=0,
 #' # data=stroke_reduced, calculation_method="D", prev=0.0035)
@@ -54,6 +55,7 @@
 #' PAF_calc_discrete(model_high_blood_pressure_coxph, "high_blood_pressure",
 #' refval=0, data=stroke_reduced, calculation_method="D", ci=TRUE,
 #' boot_rep=10, ci_type=c('norm'),t_vector=c(1,2,3,4,5,6,7,8,9))
+#' }
 PAF_calc_discrete <- function(model, riskfactor, refval, data, calculation_method="B", prev=NULL,ci=FALSE,boot_rep=100, t_vector=NULL, ci_level=.95, ci_type=c("norm")){
 
   if(!is.data.frame(data)){

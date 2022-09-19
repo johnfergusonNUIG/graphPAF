@@ -33,6 +33,7 @@
 #' parent_list=parent_list, node_vec=node_vec, prev=.09, nperm=10,
 #' vars = c("urban.rural","occupational.exposure"),ci=FALSE)
 #' plot(out)
+#' \dontrun{
 #' # plot with confidence intervals for average and sequential PAF
 #' # (This is probably more useful for more than 2 risk factors).
 #' # Separate axes for each risk factor so confidence intervals can be clearly displayed
@@ -42,9 +43,10 @@
 #' plot(out)
 #' # Here we plot, with margin of error of point estimate when 50 permutations are used
 #' out <- average_paf(data=Hordaland_data, model_list=model_list,
-#'  parent_list=parent_list, node_vec=node_vec, prev=.09, nperm=50,
-#'  vars = c("urban.rural","occupational.exposure"),ci=FALSE,exact=FALSE)
+#' parent_list=parent_list, node_vec=node_vec, prev=.09, nperm=50,
+#' vars = c("urban.rural","occupational.exposure"),ci=FALSE,exact=FALSE)
 #' plot(out)
+#' }
 plot.SAF_summary <- function(x,number_rows=3, max_PAF=0.4,...){
   SAF_summary <- x
   SAF_summary <- structure(as.list(SAF_summary),class="data.frame", row.names=attr(SAF_summary,"row.names"))

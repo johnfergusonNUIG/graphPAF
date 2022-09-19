@@ -43,6 +43,7 @@ out <- average_paf(data=Hordaland_data, model_list=model_list,
 parent_list=parent_list, node_vec=node_vec, prev=.09, nperm=10,
 vars = c("urban.rural","occupational.exposure"),ci=FALSE)
 plot(out)
+\dontrun{
 # plot with confidence intervals for average and sequential PAF
 # (This is probably more useful for more than 2 risk factors).
 # Separate axes for each risk factor so confidence intervals can be clearly displayed
@@ -52,9 +53,10 @@ vars = c("urban.rural","occupational.exposure"),ci=TRUE,boot_rep=8)
 plot(out)
 # Here we plot, with margin of error of point estimate when 50 permutations are used
 out <- average_paf(data=Hordaland_data, model_list=model_list,
- parent_list=parent_list, node_vec=node_vec, prev=.09, nperm=50,
- vars = c("urban.rural","occupational.exposure"),ci=FALSE,exact=FALSE)
+parent_list=parent_list, node_vec=node_vec, prev=.09, nperm=50,
+vars = c("urban.rural","occupational.exposure"),ci=FALSE,exact=FALSE)
 plot(out)
+}
 }
 \references{
 Ferguson, J., O’Connell, M. and O’Donnell, M., 2020. Revisiting sequential attributable fractions. Archives of Public Health, 78(1), pp.1-9.

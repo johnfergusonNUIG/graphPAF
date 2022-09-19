@@ -18,8 +18,14 @@
 #'   high_blood_pressure, family = "binomial", data = stroke_reduced)
 #' out <- PAF_calc_continuous(model_continuous,riskfactor_vec=
 #' c("diet","lipids","waist_hip_ratio"),q_vec=c(0.01, 0.1,0.3,0.5,0.7,0.9),
-#' ci=TRUE,calculation_method="B",data=stroke_reduced)
+#' ci=FALSE,calculation_method="B",data=stroke_reduced)
 #' plot(out)
+#' \dontrun{
+#' out <- PAF_calc_continuous(model_continuous,riskfactor_vec=
+#' c("diet","lipids","waist_hip_ratio"),q_vec=c(0.01, 0.1,0.3,0.5,0.7,0.9),
+#' ci=TRU,calculation_method="B",data=stroke_reduced)
+#' }
+
 plot.PAF_q <- function(x, ...){
 
   data_frame <- structure(as.list(x),class="data.frame", row.names=attr(x,"row.names"))

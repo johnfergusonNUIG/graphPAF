@@ -3,3 +3,4 @@
 ^LICENSE\.md$
 cran-comments.md
 news.md
+^CRAN-SUBMISSION$

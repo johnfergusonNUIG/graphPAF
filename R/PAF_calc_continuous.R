@@ -38,9 +38,10 @@
 #' out <- PAF_calc_continuous(model_continuous,riskfactor_vec=
 #' c("diet","lipids","waist_hip_ratio"),q_vec=c(0.01, 0.1,0.3,0.5,0.7,0.9),
 #' ci=FALSE,calculation_method="D",data=stroke_reduced, prev=0.0035)
-#'
+#' print(out)
+#' plot(out)
 #' \dontrun{
-#'  # The same example but using conditional logsitic regression.
+#'  # with confidence intervals (via bootstrap).
 #' model_continuous_clogit <- clogit(formula = case ~ region * ns(age, df = 5) +
 #' sex * ns(age, df = 5) + education +exercise + ns(diet, df = 3)  +
 #' alcohol + stress + ns(lipids,df = 3) + ns(waist_hip_ratio, df = 3) +
@@ -750,7 +751,7 @@ risk_quantiles <- function(riskfactor, data, model, S=1, q=seq(from=0.01,to=0.99
 #' high_blood_pressure, family = "binomial", data = stroke_reduced)
 #' out <- PAF_calc_continuous(model_continuous,
 #' riskfactor_vec=c("diet","lipids","waist_hip_ratio"),
-#' q_vec=c(0.01, 0.1,0.3,0.5,0.7,0.9),ci=TRUE,calculation_method="B",
+#' q_vec=c(0.01, 0.1,0.3,0.5,0.7,0.9),ci=FALSE,calculation_method="B",
 #' data=stroke_reduced)
 #' print(out)
 print.PAF_q <- function(x,...){
