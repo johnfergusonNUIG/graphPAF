@@ -24,7 +24,7 @@ average_paf(
 \arguments{
 \item{data}{Data frame. A dataframe containing variables used for fitting the models.  Must contain all variables used in fitting}
 
-\item{model_list}{List.  A list of models corresponding for the outcome variables in node_vec, with parents as described in parent_vec.  This list must be in the same order as node_vec and parent_list}
+\item{model_list}{List.  A list of fitted models corresponding for the outcome variables in node_vec, with parents as described in parent_vec.  This list must be in the same order as node_vec and parent_list.  Models can be linear (lm), logistic (glm) or ordinal logistic (polr). Non-linear effects of variables (if necessary) should be specified via ns(x, df=y), where ns is the natural spline function from the splines library.}
 
 \item{parent_list}{A list.  The ith element is the vector of variable names that are direct causes of ith variable in node_vec (Note that the variable names should be columns in data)}
 

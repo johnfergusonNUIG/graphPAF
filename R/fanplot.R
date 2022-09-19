@@ -1,8 +1,8 @@
 #' Create a summary data frame for risk factors
 #'
-#' Create a summary data frame for risk factors, prevalence and risk ratios.  This will be used in fan plots and nomograms
+#' Create a rf.data.frame object for risk factors, prevalence and risk ratios.  This will be used in fan plots and nomograms (by simply sending the rf.dat.frame object to plot)
 #'
-#' @param rf_names Acharacter vector of risk factor names
+#' @param rf_names A character vector of risk factor names
 #' @param rf_prev A numeric vector specifying prevalence of risk factor in disease controls (estimates of population prevalence can also be used if the disease is rare)
 #' @param risk A numeric vector of relative risks or Odds ratios for disease corresponding to each risk factor (if log=FALSE).  Log-relative risks or log-odds ratios can  be alternatively specified (if log=TRUE)
 #' @param log default TRUE. Set to TRUE if relative risks/odds ratios are specified on log-scale
@@ -16,6 +16,12 @@
 #' 'WHR','Smoking','Cardiac causes','Alcohol','Global Stress','Diabetes'),
 #' rf_prev=c(.474,.837,.669,.67,.67,.224,.049,.277,.144,.129),
 #' risk=c(1.093,0.501,0.428,0.378,0.294,0.513,1.156,0.186,0.301,0.148),log=TRUE)
+#' # fanplot
+#' plot(rfs,type="f")
+#' # nomogram
+#' plot(rfs,type="n")
+#' # reverse nomogram
+#' # plot(rfs,type="rn")
 rf_summary <- function(rf_names, rf_prev, risk, log=FALSE){
   stopifnot(length(rf_names)==length(rf_prev) & length(rf_prev)==length(risk))
   stopifnot(is.character(rf_names))
@@ -53,7 +59,12 @@ rf_summary <- function(rf_names, rf_prev, risk, log=FALSE){
 #' 'Diet','WHR','Smoking','Cardiac causes','Alcohol','Global Stress','Diabetes'),
 #' rf_prev=c(.474,.837,.669,.67,.67,.224,.049,.277,.144,.129),
 #' risk=c(1.093,0.501,0.428,0.378,0.294,0.513,1.156,0.186,0.301,0.148),log=TRUE)
+#' # fanplot
 #' plot(rfs,type="f")
+#' # nomogram
+#' plot(rfs,type="n")
+#' # reverse nomogram
+#' # plot(rfs,type="rn")
 plot.rf.data.frame <- function(x,type="f", rf_prevmarks= c(0.02, 0.05,0.1,0.2,0.3,0.4,0.5,0.7,0.9),ormarks = c(1.05,1.1,1.4,1.7,2.0,3.0), ...)
 {
     rf_data_frame <- x

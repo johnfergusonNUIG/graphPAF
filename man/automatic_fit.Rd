@@ -15,7 +15,7 @@ automatic_fit(
 )
 }
 \arguments{
-\item{data}{Data frame. A dataframe containing variables used for fitting the models.  Must contain all variables used in fitting}
+\item{data}{Data frame. A data frame containing variables used for fitting the models.  Must contain all variables used in fitting}
 
 \item{parent_list}{A list.  The ith element is the vector of variable names that are direct causes of ith variable in node_vec}
 
@@ -25,15 +25,15 @@ automatic_fit(
 
 \item{common}{character text for part of the model formula that doesn't involve any variable in node_vec.  Useful for specifying confounders involved in all models automatically}
 
-\item{spline_nodes}{Vector of continuous variable names that are fit as splines (when involved as parents)}
+\item{spline_nodes}{Vector of continuous variable names that are fit as splines (when involved as parents).  Natural splines are used.}
 
-\item{df_spline_nodes}{How many df for each spline node}
+\item{df_spline_nodes}{How many degrees of freedom for each spline (Default 3).  At the moment, this can not be specified separately for differing variables.}
 }
 \value{
 A list of models corresponding to node_vec and parent_vec.
 }
 \description{
-Main effects models are fit by default.  For continuosu variables, lm is used, for binary (numeric 0/1 variables), glm is used and for factor valued variables polr is used.  For factors, ensure that the factor levels are ordered by increasing levels of risk.  If interactions are required for certain models, it is advisable to populate the elements of model_list separately.
+Main effects models are fit by default.  For continuous variables, lm is used, for binary (numeric 0/1 variables), glm is used and for factor valued variables polr is used.  For factors, ensure that the factor levels are ordered by increasing levels of risk.  If interactions are required for certain models, it is advisable to populate the elements of model_list separately.
 }
 \examples{
 # More complicated example (slower to run)

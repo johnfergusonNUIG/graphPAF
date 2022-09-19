@@ -234,7 +234,7 @@ if(!exact){
 #' Calculation of average and sequential paf taking into account risk factor sequencing
 #'
 #' @param data Data frame. A dataframe containing variables used for fitting the models.  Must contain all variables used in fitting
-#' @param model_list List.  A list of models corresponding for the outcome variables in node_vec, with parents as described in parent_vec.  This list must be in the same order as node_vec and parent_list
+#' @param model_list List.  A list of fitted models corresponding for the outcome variables in node_vec, with parents as described in parent_vec.  This list must be in the same order as node_vec and parent_list.  Models can be linear (lm), logistic (glm) or ordinal logistic (polr). Non-linear effects of variables (if necessary) should be specified via ns(x, df=y), where ns is the natural spline function from the splines library.
 #' @param parent_list A list.  The ith element is the vector of variable names that are direct causes of ith variable in node_vec (Note that the variable names should be columns in data)
 #' @param node_vec A character vector corresponding to the nodes in the Bayesian network (The variable names should be column names in data).  This must be specified from root to leaves - that is ancestors in the causal graph for a particular node are positioned before their descendants.  If this condition is false the function will return an error.
 #' @param prev numeric.  Prevalence of disease.  Only relevant to set for case control datasets.
@@ -864,15 +864,15 @@ make_formula <- function(parents,outcome_node,common='',spline_nodes=c(),df_spli
 }
 #' Automatic fitting models for Bayesian network.
 #'
-#' Main effects models are fit by default.  For continuosu variables, lm is used, for binary (numeric 0/1 variables), glm is used and for factor valued variables polr is used.  For factors, ensure that the factor levels are ordered by increasing levels of risk.  If interactions are required for certain models, it is advisable to populate the elements of model_list separately.
+#' Main effects models are fit by default.  For continuous variables, lm is used, for binary (numeric 0/1 variables), glm is used and for factor valued variables polr is used.  For factors, ensure that the factor levels are ordered by increasing levels of risk.  If interactions are required for certain models, it is advisable to populate the elements of model_list separately.
 #'
-#' @param data Data frame. A dataframe containing variables used for fitting the models.  Must contain all variables used in fitting
+#' @param data Data frame. A data frame containing variables used for fitting the models.  Must contain all variables used in fitting
 #' @param parent_list A list.  The ith element is the vector of variable names that are direct causes of ith variable in node_vec
 #' @param node_vec A vector corresponding to the nodes in the Bayesian network.  This must be specified from root to leaves - that is ancestors in the causal graph for a particular node are positioned before their descendants.  If this condition is false the function will return an error.
 #' @param prev  Prevalence of disease.  Set to NULL for cohort or cross sectional studies
 #' @param common character text for part of the model formula that doesn't involve any variable in node_vec.  Useful for specifying confounders involved in all models automatically
-#' @param spline_nodes  Vector of continuous variable names that are fit as splines (when involved as parents)
-#' @param df_spline_nodes How many df for each spline node
+#' @param spline_nodes  Vector of continuous variable names that are fit as splines (when involved as parents).  Natural splines are used.
+#' @param df_spline_nodes How many degrees of freedom for each spline (Default 3).  At the moment, this can not be specified separately for differing variables.
 #' @return A list of models corresponding to node_vec and parent_vec.
 #' @export
 #'
@@ -980,7 +980,7 @@ order_fun <- function(x){
 #' Calculation of joint paf taking into account risk factor sequencing
 #'
 #' @param data Data frame. A dataframe containing variables used for fitting the models.  Must contain all variables used in fitting
-#' @param model_list List.  A list of models corresponding for the outcome variables in node_vec, with parents as described in parent_vec.  This list must be in the same order as node_vec and parent_list
+#' @param model_list List.  A list of fitted models corresponding for the outcome variables in node_vec, with parents as described in parent_vec.  This list must be in the same order as node_vec and parent_list. Non-linear effects should be specified via ns(x, df=y), where ns is the natural spline function from the splines library.  Linear (lm), logistic (glm) and ordinal logistic (polr) models are permitted
 #' @param parent_list A list.  The ith element is the vector of variable names that are direct causes of ith variable in node_vec
 #' @param node_vec A vector corresponding to the nodes in the Bayesian network.  This must be specified from root to leaves - that is ancestors in the causal graph for a particular node are positioned before their descendants.  If this condition is false the function will return an error.
 #' @param prev prevalence of the disease (default is NULL)
@@ -1281,7 +1281,7 @@ current_mat <- data
 #' Calculation of Sequential paf taking into account risk factor sequencing
 #'
 #' @param data Data frame. A dataframe containing variables used for fitting the models.  Must contain all variables used in fitting
-#' @param model_list List.  A list of models corresponding for the outcome variables in node_vec, with parents as described in parent_vec.  This list must be in the same order as node_vec and parent_list
+#' @param model_list List.  A list of fitted model objects corresponding for the outcome variables in node_vec, with parents as described in parent_vec. Linear (lm), logistic (glm) and ordinal (polr) objects are allowed. This list must be in the same order as node_vec and parent_list.  Non-linear effects should be specified via ns(x, df=y), where ns is the natural spline function from the splines library.
 #' @param parent_list A list.  The ith element is the vector of variable names that are direct causes of ith variable in node_vec
 #' @param node_vec A vector corresponding to the nodes in the Bayesian network.  This must be specified from root to leaves - that is ancestors in the causal graph for a particular node are positioned before their descendants.  If this condition is false the function will return an error.
 #' @param prev prevalence of the disease (default is NULL)
@@ -1291,7 +1291,6 @@ current_mat <- data
 #' @param ci_type Character.  Default norm.  A vector specifying the types of confidence interval desired.  "norm", "basic", "perc" and "bca" are the available metho
 #' @param ci_level Numeric.  Confidence level.  Default 0.95
 #' @param nsim Numeric.  Number of independent simulations of the dataset.  Default of 1.
-
 #' @export
 #'
 #' @references Ferguson, J., O’Connell, M. and O’Donnell, M., 2020. Revisiting sequential attributable fractions. Archives of Public Health, 78(1), pp.1-9.

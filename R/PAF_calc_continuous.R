@@ -1,17 +1,17 @@
 #' Calculation of attributable fraction with a continuous risk factor
 #'
-#' @param model Either a clogit, glm or survival regression
-#' @param riskfactor_vec A vector of continuous risk names.
-#' @param q_vec A vector of 'risk quantiles' for the continuous exposure.  q_vec=c(0.01) (the default) calculates an estimate of the PAF, and is in some way analogous to eliminating a categorical risk factor.  Other values in q_vec correspond to interventions on the continuous risk factor that results in a risk level for all individuals thresholded above by the corresponding quantile of the pre-intervention population risk.  For survival regressions only single element values of q_vec are allowed
+#' @param model Either a clogit, glm or coxph R model object.  Non-linear effects should be specified via ns(x, df=y), where ns is the natural spline function from the splines library.
+#' @param riskfactor_vec A character vector of names for continuous exposures/riskfactors that are predictors the model.
+#' @param q_vec A vector of 'risk quantiles' for the continuous exposure.  q_vec=c(0.01) (the default) calculates an estimate of the PAF that is in some way analogous to eliminating a categorical risk factor.  Other values in q_vec correspond to interventions on the continuous risk factor that results in a risk level for all individuals thresholded above by the corresponding quantile of pre-intervention population risk.  For survival regressions only single element values of q_vec are allowed
 #' @param data A dataframe containing variables used for fitting the model
-#' @param calculation_method A character either 'B' (Bruzzi) or 'D' (Direct method).  For case control data, the method described in Bruzzi 1985 is recommended.  Bruzzi's method estimates PAF from relative risks and prevalence of exposure to the risk factor.  The Direct method estimates PAF by summing estimated probabilities of disease in the absense of exposure on the individual level
-#' @param prev The estimated prevalence of disease (A number between 0 and 1).  This only needs to be specified if the data source is from a case control study, and the direct method is used
+#' @param calculation_method A character either 'B' (Bruzzi) or 'D' (Direct method).  For case control data, the method described in Bruzzi 1985 is recommended.  Bruzzi's method estimates PAF from relative risks and prevalence of exposure to the risk factor.  The Direct method estimates PAF via summing estimated probabilities of disease in the absence of exposure over differing individuals.
+#' @param prev The estimated prevalence of disease (A number between 0 and 1).  This only needs to be specified if the data source is from a case control study, and the direct calculation method is used
 #' @param ci Logical. If TRUE, a bootstrap confidence interval is computed along with point estimate (default FALSE)
 #' @param boot_rep Integer.  Number of bootstrap replications (Only necessary to specify if ci=TRUE)
 #' @param t_vector Numeric.  A vector of times at which to calculate PAF (only specified if model is coxph)
 #' @param ci_level Numeric.  A number between 0 and 1 specifying the confidence level
 #' @param ci_type Character.  A vector specifying the types of confidence interval desired, as available in the 'Boot' package. The default is c('norm'), which calculates a symmetric confidence interval: (Est-Bias +- 1.96*SE), with the standard error calculated via Bootstrap.  Other choices are 'basic', 'perc' and 'bca'.  Increasing the number of Bootstrap repetitions is recommended for the 'basic', 'perc' and 'bca' methods.
-#' @param S Integer.  The number of randomly selected individuals for which risk is measured (defaults to 1).  Let to perhaps 100 if risk factor involved in interactions in model
+#' @param S Integer (default 1).  Only relevant to change if there is an interaction between the continuous exposure and other variables in the model.  In this case, marginal comparisons of disease risk at differing levels of the exposure need to be averaged over many individuals.  S is the number of individuals used in this averaging.  May be slow for large S.
 #' @return A PAF_q object.  When ci=FALSE, this will essentially be a vector of estimated PAF corresponding to the quantiles specified in q_vec.  If ci=TRUE, a data frame with columns corresponding to the raw estimate, estiamted bias, bias corrected estimate and lower and upper elements of any confidence procedures requested, and rows corresopnding to the quantiles in q_vec.
 #' @export
 #'

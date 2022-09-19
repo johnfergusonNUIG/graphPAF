@@ -19,7 +19,7 @@ PAF_calc_discrete(
 )
 }
 \arguments{
-\item{model}{Either a clogit, glm or coxph survival regression}
+\item{model}{Either a clogit, glm or coxph fitted regression object.  Non-linear effects can be specified in these models if necessary via ns(x, df=y), where ns is the natural spline function from the splines library.}
 
 \item{riskfactor}{The name of the risk factor of interest in the dataset.  The risk factor values can be 0/1 numeric, categorical or factor valued.}
 

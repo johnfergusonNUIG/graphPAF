@@ -3,7 +3,13 @@ ps_paf_sim <- function(response_model, mediator_models,riskfactor,refval,data,pr
   N <- nrow(data)
   mediator_names <- c()
   for(i in 1:length(mediator_models)) mediator_names[i] <- as.character(formula(mediator_models[[i]]))[2]
-  if(!ci) return(ps_paf_inner_sim(data=data,ind=1:N,response_model=response_model, mediator_models=mediator_models,riskfactor=riskfactor,refval=refval,nsims=nsims,prev=prev))
+  if(!ci){
+    return_vec <- ps_paf_inner_sim(data=data,ind=1:N,response_model=response_model, mediator_models=mediator_models,riskfactor=riskfactor,refval=refval,nsims=nsims,prev=prev)
+    return_vec_names <- c("Direct",mediator_names)
+    names(return_vec) <- return_vec_names
+    return(return_vec)
+  }
+
   if(ci){
     nc <- options()$boot.ncpus
     cl <- parallel::makeCluster(nc)
@@ -17,12 +23,12 @@ ps_paf_sim <- function(response_model, mediator_models,riskfactor,refval,data,pr
 
 #' Estimate Pathway specific population attributable fractions
 #'
-#' @param response_model A R model object for a binary outcome that involves a risk factor, confounders and mediators of the risk factor outcome relationship.  Note that a weighted model should be used for case control data.
-#' @param mediator_models A list of R object models for the mediator relationship (depending on the risk factor and any confounders)  Note a weighted model should be used for case control data
+#' @param response_model A R model object for a binary outcome that involves a risk factor, confounders and mediators of the risk factor outcome relationship.  Note that a weighted model should be used for case control data.  Non-linear effects should be specified via ns(x, df=y), where ns is the natural spline function from the splines library.
+#' @param mediator_models A list of fitted  models describing the risk factor/mediator relationship (the predictors in the model will be the risk factor and any confounders)  Note a weighted model should be fit when data arise from a case control study.  Models can be specified for linear responses (lm), binary responses (glm) and ordinal factors (through polr).  Non-linear effects should be specified via ns(x, df=y), where ns is the natural spline function from the splines library.
 #' @param riskfactor character.  Represents the name of the risk factor
 #' @param refval For factor valued risk factors, the reference level of the risk factor.  If the risk factor is numeric, the reference level is assumed to be 0.
 #' @param data dataframe. A dataframe (with no missing values) containing the data used to fit the mediator and response models.  You can run data_clean to the input dataset if the data has missing values as a pre-processing step
-#' @param prev numeric.  A value between 0 and 1 specifying the prevalence of disease.  Used to calculate weights in PS-PAF formula.  If prev is NULL weights are assumed to be 1.
+#' @param prev numeric.  A value between 0 and 1 specifying the prevalence of disease: only relevant to set if data arises from a case control study.
 #' @param boot_rep Integer.  Number of bootstrap replications (Only necessary to specify if ci=TRUE)
 #' @param ci logical.  If TRUE a confidence interval is calculated using Bootstrap
 #' @param ci_level Numeric.  Default 0.95. A number between 0 and 1 specifying the confidence level (only necessary to specify when ci=TRUE)
@@ -36,6 +42,7 @@ ps_paf_sim <- function(response_model, mediator_models,riskfactor,refval,data,pr
 #' library(survival)
 #' library(parallel)
 #' options(boot.parallel="snow")
+#' # User could set the next option to number of cores on machine:
 #' options(boot.ncpus=2)
 #' # Direct and pathway specific attributable fractions estimated
 #' # on simulated case control stroke data:
@@ -69,7 +76,12 @@ ps_paf <- function(response_model, mediator_models,riskfactor,refval,data,prev=N
   N <- nrow(data)
   mediator_names <- c()
   for(i in 1:length(mediator_models)) mediator_names[i] <- as.character(formula(mediator_models[[i]]))[2]
-  if(!ci) return(ps_paf_inner(data=data,ind=1:N,response_model=response_model, mediator_models=mediator_models,riskfactor=riskfactor,refval=refval,prev=prev))
+    if(!ci){
+      return_vec <- ps_paf_inner(data=data,ind=1:N,response_model=response_model, mediator_models=mediator_models,riskfactor=riskfactor,refval=refval,prev=prev)
+      return_vec_names <- c("Direct",mediator_names)
+      names(return_vec) <- return_vec_names
+      return(return_vec)
+    }
   if(ci){
     nc <- options()$boot.ncpus
     cl <- parallel::makeCluster(nc)

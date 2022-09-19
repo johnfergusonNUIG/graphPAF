@@ -7,7 +7,7 @@
 rf_summary(rf_names, rf_prev, risk, log = FALSE)
 }
 \arguments{
-\item{rf_names}{Acharacter vector of risk factor names}
+\item{rf_names}{A character vector of risk factor names}
 
 \item{rf_prev}{A numeric vector specifying prevalence of risk factor in disease controls (estimates of population prevalence can also be used if the disease is rare)}
 
@@ -19,13 +19,19 @@ rf_summary(rf_names, rf_prev, risk, log = FALSE)
 A rf.data.frame object
 }
 \description{
-Create a summary data frame for risk factors, prevalence and risk ratios.  This will be used in fan plots and nomograms
+Create a rf.data.frame object for risk factors, prevalence and risk ratios.  This will be used in fan plots and nomograms (by simply sending the rf.dat.frame object to plot)
 }
 \examples{
 rfs <- rf_summary(rf_names=c('Hypertension','Inactivity','ApoB/ApoA','Diet',
 'WHR','Smoking','Cardiac causes','Alcohol','Global Stress','Diabetes'),
 rf_prev=c(.474,.837,.669,.67,.67,.224,.049,.277,.144,.129),
 risk=c(1.093,0.501,0.428,0.378,0.294,0.513,1.156,0.186,0.301,0.148),log=TRUE)
+# fanplot
+plot(rfs,type="f")
+# nomogram
+plot(rfs,type="n")
+# reverse nomogram
+# plot(rfs,type="rn")
 }
 \references{
 Ferguson, J., O’Leary, N., Maturo, F., Yusuf, S. and O’Donnell, M., 2019. Graphical comparisons of relative disease burden across multiple risk factors. BMC medical research methodology, 19(1), pp.1-9.

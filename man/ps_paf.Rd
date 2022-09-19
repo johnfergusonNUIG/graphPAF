@@ -18,9 +18,9 @@ ps_paf(
 )
 }
 \arguments{
-\item{response_model}{A R model object for a binary outcome that involves a risk factor, confounders and mediators of the risk factor outcome relationship.  Note that a weighted model should be used for case control data.}
+\item{response_model}{A R model object for a binary outcome that involves a risk factor, confounders and mediators of the risk factor outcome relationship.  Note that a weighted model should be used for case control data.  Non-linear effects should be specified via ns(x, df=y), where ns is the natural spline function from the splines library.}
 
-\item{mediator_models}{A list of R object models for the mediator relationship (depending on the risk factor and any confounders)  Note a weighted model should be used for case control data}
+\item{mediator_models}{A list of fitted  models describing the risk factor/mediator relationship (the predictors in the model will be the risk factor and any confounders)  Note a weighted model should be fit when data arise from a case control study.  Models can be specified for linear responses (lm), binary responses (glm) and ordinal factors (through polr).  Non-linear effects should be specified via ns(x, df=y), where ns is the natural spline function from the splines library.}
 
 \item{riskfactor}{character.  Represents the name of the risk factor}
 
@@ -28,7 +28,7 @@ ps_paf(
 
 \item{data}{dataframe. A dataframe (with no missing values) containing the data used to fit the mediator and response models.  You can run data_clean to the input dataset if the data has missing values as a pre-processing step}
 
-\item{prev}{numeric.  A value between 0 and 1 specifying the prevalence of disease.  Used to calculate weights in PS-PAF formula.  If prev is NULL weights are assumed to be 1.}
+\item{prev}{numeric.  A value between 0 and 1 specifying the prevalence of disease: only relevant to set if data arises from a case control study.}
 
 \item{ci}{logical.  If TRUE a confidence interval is calculated using Bootstrap}
 
@@ -49,6 +49,7 @@ library(splines)
 library(survival)
 library(parallel)
 options(boot.parallel="snow")
+# User could set the next option to number of cores on machine:
 options(boot.ncpus=2)
 # Direct and pathway specific attributable fractions estimated
 # on simulated case control stroke data:
