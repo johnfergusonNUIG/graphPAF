@@ -3,7 +3,7 @@ Title: A R Package to Estimate and Display Population Attributable Fractions
 Version: 1.0.0
 Authors@R: 
     person("John", "Ferguson",, "john.ferguson@nuigalway.ie", role = c("aut", "cre"))
-Description: Estimation and display of various types of population attributable fractions and impact fractions, including functions for continuous exposures, pathway specific population attributable fractions and joint, average and sequential population attributable fractions.  
+Description: Estimation and display of various types of population attributable fraction and impact fraction, including functions for continuous exposures, pathway specific population attributable fractions and joint, average and sequential population attributable fractions.  
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
