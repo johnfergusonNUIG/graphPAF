@@ -45,7 +45,7 @@ PAF_calc_continuous(
 \item{S}{Integer (default 1).  Only relevant to change if there is an interaction between the continuous exposure and other variables in the model.  In this case, marginal comparisons of disease risk at differing levels of the exposure need to be averaged over many individuals.  S is the number of individuals used in this averaging.  May be slow for large S.}
 }
 \value{
-A PAF_q object.  When ci=FALSE, this will essentially be a vector of estimated PAF corresponding to the quantiles specified in q_vec.  If ci=TRUE, a data frame with columns corresponding to the raw estimate, estiamted bias, bias corrected estimate and lower and upper elements of any confidence procedures requested, and rows corresopnding to the quantiles in q_vec.
+A PAF_q object.  When ci=FALSE, this will essentially be a vector of estimated PAF corresponding to the quantiles specified in q_vec.  If ci=TRUE, a data frame with columns corresponding to the raw estimate, estimated bias, bias corrected estimate and lower and upper elements of any confidence procedures requested, and rows corresponding to the quantiles in q_vec.
 }
 \description{
 Calculation of attributable fraction with a continuous risk factor

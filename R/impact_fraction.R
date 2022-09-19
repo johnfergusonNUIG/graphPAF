@@ -3,14 +3,14 @@
 #' @param model Either a clogit, glm or coxph fitted model object.  Non-linear effects should be specified via ns(x, df=y), where ns is the natural spline function from the splines library.
 #' @param data A dataframe containing variables used for fitting the model
 #' @param new_data A dataframe (of the same variables and size as data) representing an alternative distribution of risk factors
-#' @param calculation_method A character either 'B' (Bruzzi) or 'D' (Direct method).  For case control data, the method described in Bruzzi 1985 is recommended.  Bruzzi's method estimates PAF from relative risks and prevalence of exposure to the risk factor.  The Direct method estimates PAF by summing estimated probabilities of disease in the absense of exposure on the individual level
+#' @param calculation_method A character either 'B' (Bruzzi) or 'D' (Direct method).  For case control data, the method described in Bruzzi 1985 is recommended.  Bruzzi's method estimates PAF from relative risks and prevalence of exposure to the risk factor.  The Direct method estimates PAF by summing estimated probabilities of disease in the absence of exposure on the individual level
 #' @param prev estimated prevalence of disease.  This only needs to be specified if the data source is from a case control study, and the direct method is used
 #' @param ci Logical. If TRUE, a bootstrap confidence interval is computed along with point estimate (default FALSE)
 #' @param boot_rep Integer.  Number of bootstrap replications (Only necessary to specify if ci=TRUE)
 #' @param t_vector Numeric.  A vector of times at which to calculate PAF (only specified if model is coxph)
 #' @param ci_level Numeric.  Default 0.95. A number between 0 and 1 specifying the confidence level
 #' @param ci_type Character.  Defalt norm.  A vector specifying the types of confidence interval desired.  "norm", "basic", "perc" and "bca" are the available methods
-#' @return An estimated impact fraction if ci=FALSE, or for survival data a vector of estimated impact corresponding to event times in the data.  If ci=TRUE, a vector with elements corresponding to the raw estimated impact fraction, estiamted bias, bias corrected estimate and lower and upper elements of any confidence procedures requested.  If ci=TRUE, and a coxph model is fit, a matrix will be returned, with rows corresponding to the times at which the impact fraction is calculated.
+#' @return An estimated impact fraction if ci=FALSE, or for survival data a vector of estimated impact corresponding to event times in the data.  If ci=TRUE, a vector with elements corresponding to the raw estimated impact fraction, estimated bias, bias corrected estimate and lower and upper elements of any confidence procedures requested.  If ci=TRUE, and a coxph model is fit, a matrix will be returned, with rows corresponding to the times at which the impact fraction is calculated.
 #' @export
 #'
 #' @examples

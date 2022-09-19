@@ -31,7 +31,7 @@ joint_paf(
 
 \item{vars}{A subset of risk factors for which we want to calculate joint PAF}
 
-\item{ci}{Logical. If TRUE, a bootstrap confidence interval is computed along with a point estimate (default FALSE).  If ci=FALSE, only a point estimate is produced.  A simulation procedure (sampling permutations and also simulating the effects of eliminating risk factors over the descendent nodes in a Bayesian network) is required to produce the point estimates.  The point estimate will change on repated runs of the function.  The margin of error of the point estimate is given when ci=FALSE}
+\item{ci}{Logical. If TRUE, a bootstrap confidence interval is computed along with a point estimate (default FALSE).  If ci=FALSE, only a point estimate is produced.  A simulation procedure (sampling permutations and also simulating the effects of eliminating risk factors over the descendant nodes in a Bayesian network) is required to produce the point estimates.  The point estimate will change on repeated runs of the function.  The margin of error of the point estimate is given when ci=FALSE}
 
 \item{boot_rep}{Integer.  Number of bootstrap replications (Only necessary to specify if ci=TRUE)}
 

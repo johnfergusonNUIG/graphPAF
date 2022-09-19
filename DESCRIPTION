@@ -1,10 +1,10 @@
 Package: graphPAF
-Title: A R package to estimate and display population attributable fractions
-Version: 1.0
+Title: A R Package to Estimate and Display Population Attributable Fractions
+Version: 1.0.0
 Authors@R: 
     person("John", "Ferguson", , "john.ferguson@universityofgalway.ie", role = c("aut", "cre"),
-           comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: GraphPAF focuses on estimation and display of various types of population attributable fractions (PAF) and impact fractions.  In addition to allowing inference for standard population attributable fraction and impact fractions, graphPAF can display these estimates with fan-plots and nomograms.  In addition, graphPAF allows computation and display of attributable fraction analogues for continuous exposures, inference for attributable fractions appropriate for specific risk-factor → mediator → outcome pathways (pathway-specific attributable fractions) and Bayesian network-based calculations and inference for joint, sequential and average population attributable fractions in multi-risk factor scenarios.
+           comment = c(ORCID = "0000-0003-3853-2654"))
+Description: This package focuses on estimation and display of various types of population attributable fractions (PAFs) and impact fractions.  In addition to allowing inference for standard population attributable fraction and impact fractions, graphPAF can display these estimates with fan-plots and nomograms.  In addition, graphPAF allows computation and display of attributable fraction analogues for continuous exposures, inference for attributable fractions appropriate for specific risk-factor → mediator → outcome pathways (pathway-specific attributable fractions) and Bayesian network-based calculations and inference for joint, sequential and average population attributable fractions in multi-risk factor scenarios.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true

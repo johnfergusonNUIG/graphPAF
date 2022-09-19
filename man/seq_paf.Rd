@@ -31,11 +31,11 @@ seq_paf(
 
 \item{vars}{A character vector of riskfactors.  Sequential PAF is calculated for the risk factor specified in the last position of the vector, conditional on the other risk factors}
 
-\item{ci}{Logical. If TRUE, a bootstrap confidence interval is computed along with a point estimate (default FALSE).  If ci=FALSE, only a point estimate is produced.  A simulation procedure (sampling permutations and also simulating the effects of eliminating risk factors over the descendent nodes in a Bayesian network) is required to produce the point estimates.  The point estimate will change on repated runs of the function.  The margin of error of the point estimate is given when ci=FALSE}
+\item{ci}{Logical. If TRUE, a bootstrap confidence interval is computed along with a point estimate (default FALSE).  If ci=FALSE, only a point estimate is produced.  A simulation procedure (sampling permutations and also simulating the effects of eliminating risk factors over the descendant nodes in a Bayesian network) is required to produce the point estimates.  The point estimate will change on repeated runs of the function.  The margin of error of the point estimate is given when ci=FALSE}
 
 \item{boot_rep}{Integer.  Number of bootstrap replications (Only necessary to specify if ci=TRUE)}
 
-\item{ci_type}{Character.  Default norm.  A vector specifying the types of confidence interval desired.  "norm", "basic", "perc" and "bca" are the available metho}
+\item{ci_type}{Character.  Default norm.  A vector specifying the types of confidence interval desired.  "norm", "basic", "perc" and "bca" are the available methods}
 
 \item{ci_level}{Numeric.  Confidence level.  Default 0.95}
 

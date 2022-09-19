@@ -27,7 +27,7 @@ PAF_calc_discrete(
 
 \item{data}{A dataframe containing variables used for fitting the model}
 
-\item{calculation_method}{A character either 'B' (Bruzzi) or 'D' (Direct method).  For case control data, the method described in Bruzzi 1985 is recommended.  Bruzzi's method estimates PAF from relative risks and prevalence of exposure to the risk factor.  The Direct method estimates PAF by summing estimated probabilities of disease in the absense of exposure on the individual level}
+\item{calculation_method}{A character either 'B' (Bruzzi) or 'D' (Direct method).  For case control data, the method described in Bruzzi 1985 is recommended.  Bruzzi's method estimates PAF from relative risks and prevalence of exposure to the risk factor.  The Direct method estimates PAF by summing estimated probabilities of disease in the absence of exposure on the individual level}
 
 \item{prev}{The estimated prevalence of disease (A number between 0 and 1).  This only needs to be specified if the data source is from a case control study, and the direct method is used}
 
@@ -42,7 +42,7 @@ PAF_calc_discrete(
 \item{ci_type}{Character.  A vector specifying the types of confidence interval desired, as available in the 'Boot' package. The default is c('norm'), which calculates a symmetric confidence interval: (Est-Bias +- 1.96*SE), with the standard error calculated via Bootstrap.  Other choices are 'basic', 'perc' and 'bca'.  Increasing the number of Bootstrap repetitions is recommended for the 'basic', 'perc' and 'bca' methods.}
 }
 \value{
-An estimated PAF if ci=FALSE, or for survival data a vector of estimated PAF corresponding to event times in the data.  If ci=TRUE, a vector with elements corresponding to the raw estimate, estiamted bias, bias corrected estimate and lower and upper elements of any confidence procedures requested.  If ci=TRUE, and a coxph model is fit, a matrix will be returned, with rows corresponding to differing times at which the PAF might be calculated.
+An estimated PAF if ci=FALSE, or for survival data a vector of estimated PAF corresponding to event times in the data.  If ci=TRUE, a vector with elements corresponding to the raw estimate, estimated bias, bias corrected estimate and lower and upper elements of any confidence procedures requested.  If ci=TRUE, and a coxph model is fit, a matrix will be returned, with rows corresponding to differing times at which the PAF might be calculated.
 }
 \description{
 Calculation of attributable fraction using a categorized risk factor
