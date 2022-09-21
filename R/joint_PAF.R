@@ -1,4 +1,7 @@
 average_paf_no_CI <- function(data, model_list, parent_list, node_vec,  prev=.09, nperm=NULL, correct_order=3, alpha=0.05,vars=NULL, exact=TRUE){
+  oldw <- getOption("warn")
+  options(warn = -1)
+
   response_col <- (1:length(colnames(data)))[colnames(data) %in% node_vec[length(node_vec)]]
   if(!c("weights") %in% colnames(data)) data$weights = rep(1, nrow(data))
   if(!is.null(prev)){
@@ -53,7 +56,7 @@ average_paf_no_CI <- function(data, model_list, parent_list, node_vec,  prev=.09
     }
     perm_mat <- perm_mat_temp
     rm(perm_mat_temp)
-    print(paste0("doing ", nperm, " permutations"))
+    #print(paste0("doing ", nperm, " permutations"))
   }
 
   if(exact){
@@ -184,8 +187,12 @@ if(!exact){
     SAF_mat_exact <- t(SAF_mat_exact)
     colnames(SAF_mat_exact) <- colnames(data)[col_list][1:N]
     names(average_PAF) <- colnames(data)[col_list][1:N]
-    print(list(SAF_mat=SAF_mat_exact,average_PAF=average_PAF,joint_PAF=joint_PAF_vec[N]))
-    return(structure(data.frame(position=c(rep(paste("elimination position",1:N),N),rep("Average",N),"Joint"),"risk factor"=c(rep(colnames(SAF_mat_exact),times=rep(N,N)),colnames(SAF_mat_exact),""),estimate=c(as.vector(SAF_mat_exact),average_PAF,joint_PAF_vec[N]),check.names=FALSE),class="SAF_summary"))
+    #print(list(SAF_mat=SAF_mat_exact,average_PAF=average_PAF,joint_PAF=joint_PAF_vec[N]))
+    options(warn = oldw)
+    thedframe <- data.frame(position=c(rep(paste("elimination position",1:N),N),rep("Average",N),"Joint"),"risk factor"=c(rep(colnames(SAF_mat_exact),times=rep(N,N)),colnames(SAF_mat_exact),""),estimate=c(as.vector(SAF_mat_exact),average_PAF,joint_PAF_vec[N]),check.names=FALSE)
+    #print(thedframe)
+    avepafs <- structure(thedframe,class="SAF_summary")
+      return(avepafs)
   }
 
   colnames(SAF_mat) <- colnames(data)[col_list][1:N]
@@ -225,8 +232,9 @@ if(!exact){
   SAF_summary <- rbind(SAF_summary, newdf,newdf2)
   rownames(SAF_summary) = NULL
   colnames(SAF_summary) <- c("position", "risk factor", "estimate", "Margin error", "lower bound", "Upper bound")
-  print(SAF_summary)
+  #print(SAF_summary)
   SAF_summary <- structure(data.frame(SAF_summary,check.names=FALSE),class="SAF_summary")
+  options(warn = oldw)
   return(SAF_summary)
 
 }
@@ -243,7 +251,7 @@ if(!exact){
 #' @param correct_order Default 3.  This enforces stratified sampling of permutations where the first correct_order positions of the sampled permutations are evenly distributed over the integers 1 ... N, N being the number of risk factors of interest, over the sampled permutations.  The other positions are randomly sampled.  This automatically sets the number of simulations when nperm=NULL.  For interest, if N=10 and correct_order=3, nperm is set to factorial(10)/factorial(10-3) = 720.  This special resampling reduces Monte Carlo variation in estimated average and sequential PAFs.
 #' @param vars A subset of risk factors for which we want to calculate average, sequential and joint PAF
 #' @param ci Logical. If TRUE, a bootstrap confidence interval is computed along with a point estimate (default FALSE).  If ci=FALSE, only a point estimate is produced.  A simulation procedure (sampling permutations and also simulating the effects of eliminating risk factors over the descendant nodes in a Bayesian network) is required to produce the point estimates.  The point estimate will change on repeated runs of the function.  The margin of error of the point estimate is given when ci=FALSE
-#' @param boot_rep Integer.  Number of bootstrap replications (Only necessary to specify if ci=TRUE)
+#' @param boot_rep Integer.  Number of bootstrap replications (Only necessary to specify if ci=TRUE).  Note that at least 50 replicates are recommended to achieve stable estimates of standard error.  In the examples below, values of boot_rep less than 50 are sometimes used to limit run time.
 #' @param ci_type Character.  Default norm.  A vector specifying the types of confidence interval desired.  "norm", "basic", "perc" and "bca" are the available methods
 #' @param ci_level Numeric.  Default 0.95. A number between 0 and 1 specifying the level of the confidence interval (when ci=TRUE)
 #' @param ci_level_ME Numeric.  Default 0.95. A number between 0 and 1 specifying the level of the margin of error for the point estimate (only revelant when ci=FALSE and exact=FALSE)
@@ -277,11 +285,12 @@ if(!exact){
 #' # subsequent simulation of the incremental interventions on the distribution of risk
 #' # factors.  The permutations are stratified so each factor appears equally often in
 #' # the first correct_order positions.  correct_order has a default of 2.
-#' average_paf(data=Hordaland_data, model_list=model_list, parent_list=parent_list,
+#' out <- average_paf(data=Hordaland_data, model_list=model_list, parent_list=parent_list,
 #'  node_vec=node_vec, prev=.09, nperm=10,vars = c("urban.rural",
 #'  "occupational.exposure"),ci=FALSE)
+#'  print(out)
 #'
-#' \dontrun{
+#' \donttest{
 #' # More complicated example (slower to run)
 #' parent_exercise <- c("education")
 #' parent_diet <- c("education")
@@ -315,17 +324,21 @@ if(!exact){
 #' parent_list=parent_list, node_vec=node_vec, prev=.0035,
 #' vars = c("high_blood_pressure","smoking","stress","exercise","alcohol",
 #' "diabetes","early_stage_heart_disease"),ci=TRUE,boot_rep=10)
+#' print(out)
+#' plot(out,max_PAF=0.5,min_PAF=-0.1,number_rows=3)
 #' # plot sequential and average PAFs by risk factor
-#' plot(out, number_rows=3)
 #' # similar calculation, but now sampling permutations (stratified, so
 #' # that each risk factor will appear equally often in the first correct_order positions)
-#' # out <- average_paf(data=stroke_reduced, model_list=model_list,
+#' out <- average_paf(data=stroke_reduced, model_list=model_list,
 #' parent_list=parent_list, node_vec=node_vec, prev=.0035, exact=FALSE,
 #'  correct_order=2, vars = c("high_blood_pressure","smoking","stress",
 #'  "exercise","alcohol","diabetes","early_stage_heart_disease"),ci=TRUE,
 #'  boot_rep=10)
+#'  print(out)
+#'  plot(out,max_PAF=0.5,min_PAF=-0.1,number_rows=3)
 #' }
 average_paf <- function(data, model_list, parent_list, node_vec, prev=.09, exact=TRUE, nperm=NULL, correct_order=2, vars=NULL,ci=FALSE,boot_rep=100, ci_type=c("norm"),ci_level=0.95, ci_level_ME=0.95){
+
   if(!node_order(parent_list=parent_list,node_vec=node_vec)){
     stop("ancestors must be specified before descendants in node_vec")
   }
@@ -352,7 +365,12 @@ average_paf <- function(data, model_list, parent_list, node_vec, prev=.09, exact
 
   }
 
-  if(!ci) return(average_paf_no_CI(data=data, model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=prev, nperm=nperm, correct_order=correct_order, alpha=1-ci_level_ME,vars=vars,exact=exact))
+  if(!ci){
+    res <- average_paf_no_CI(data=data, model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=prev, nperm=nperm, correct_order=correct_order, alpha=1-ci_level_ME,vars=vars,exact=exact)
+    return(res)
+  }
+  oldw <- getOption("warn")
+  options(warn = -1)
   nc <- options()$boot.ncpus
   cl <- parallel::makeCluster(nc)
   parallel::clusterExport(cl, c("ns"))
@@ -365,18 +383,19 @@ average_paf <- function(data, model_list, parent_list, node_vec, prev=.09, exact
   res$`risk factor` <- gsub(pattern="(.*)_[0-9]",replacement="\\1",x=res$`risk factor`,perl=TRUE)
   res$`risk factor` <- gsub(pattern="Average PAF (.*)",replacement="\\1",x=res$`risk factor`,perl=TRUE)
   res$`risk factor` <- gsub(pattern="Joint",replacement="",x=res$`risk factor`,perl=TRUE)
-  print(res)
+  #print(res)
   res <- structure(res,class="SAF_summary")
+  options(warn = oldw)
   return(res)
 
 }
 
 #' Print out SAF_summary object
 #'
-#' @param x A SAF_summary object.  This is a dataframe that is created by running the function average_PAF.
+#' @param x A SAF_summary object.  This is a special dataframe that is created by running the function average_PAF.
 #' @param ... Other arguments to be passed to print
 #'
-#' @return NULL
+#' @return No return value.  Prints the SAF_summary object to the console.
 #' @export
 #'
 #' @examples
@@ -403,11 +422,10 @@ average_paf <- function(data, model_list, parent_list, node_vec, prev=.09, exact
 #' out <- average_paf(data=Hordaland_data, model_list=model_list,
 #' parent_list=parent_list, node_vec=node_vec, prev=.09, nperm=10,
 #' vars = c("urban.rural","occupational.exposure"),ci=FALSE)
-#' print(out)
 print.SAF_summary <- function(x,...){
 
   data_frame <- structure(as.list(x),class="data.frame", row.names=attr(x,"row.names"))
-  data_frame
+  print(data_frame)
 
 }
 
@@ -873,7 +891,7 @@ make_formula <- function(parents,outcome_node,common='',spline_nodes=c(),df_spli
 #' @param common character text for part of the model formula that doesn't involve any variable in node_vec.  Useful for specifying confounders involved in all models automatically
 #' @param spline_nodes  Vector of continuous variable names that are fit as splines (when involved as parents).  Natural splines are used.
 #' @param df_spline_nodes How many degrees of freedom for each spline (Default 3).  At the moment, this can not be specified separately for differing variables.
-#' @return A list of models corresponding to node_vec and parent_vec.
+#' @return A list of fitted models corresponding to node_vec and parent_vec.
 #' @export
 #'
 #' @examples
@@ -903,12 +921,14 @@ make_formula <- function(parents,outcome_node,common='',spline_nodes=c(),df_spli
 #' node_vec=c("exercise","diet","smoking","alcohol","stress","high_blood_pressure",
 #' "lipids","waist_hip_ratio","early_stage_heart_disease",
 #' "diabetes","case")
-#' \dontrun{
+#' \donttest{
 #' model_list=automatic_fit(data=stroke_reduced, parent_list=parent_list,
 #' node_vec=node_vec, prev=.0035,common="region*ns(age,df=5)+
 #' sex*ns(age,df=5)", spline_nodes = c("waist_hip_ratio","lipids","diet"))
 #' }
 automatic_fit <- function(data, parent_list, node_vec, prev=.09,common='',spline_nodes=c(),df_spline_nodes=3){
+  oldw <- getOption("warn")
+  options(warn = -1)
 
 model_list=list()
 outcome_name <- node_vec[length(node_vec)]
@@ -948,6 +968,7 @@ for(i in 1:length(node_vec)){
   to_execute <- paste("model_list[[i]] <-", theform,sep='')
   eval(parse(text=to_execute))
 }
+options(warn = oldw)
 
 model_list
 }
@@ -986,10 +1007,11 @@ order_fun <- function(x){
 #' @param prev prevalence of the disease (default is NULL)
 #' @param vars A subset of risk factors for which we want to calculate joint PAF
 #' @param ci Logical. If TRUE, a bootstrap confidence interval is computed along with a point estimate (default FALSE).  If ci=FALSE, only a point estimate is produced.  A simulation procedure (sampling permutations and also simulating the effects of eliminating risk factors over the descendant nodes in a Bayesian network) is required to produce the point estimates.  The point estimate will change on repeated runs of the function.  The margin of error of the point estimate is given when ci=FALSE
-#' @param boot_rep Integer.  Number of bootstrap replications (Only necessary to specify if ci=TRUE)
+#' @param boot_rep Integer.  Number of bootstrap replications (Only necessary to specify if ci=TRUE).  Note that at least 50 replicates are recommended to achieve stable estimates of standard error.  In the examples below, values of boot_rep less than 50 are sometimes used to limit run time.
 #' @param ci_type Character.  Default norm.  A vector specifying the types of confidence interval desired.  "norm", "basic", "perc" and "bca" are the available method
 #' @param ci_level Numeric.  Confidence level.  Default 0.95
 #' @param nsim Numeric.  Number of independent simulations of the dataset.  Default of 1.
+#' @return A numeric estimate of the joint PAF for all risk factors (if ci=FALSE), or a data frame giving joint PAF and confidence intervals (if ci=TRUE)
 #' @export
 #'
 #' @references Ferguson, J., O’Connell, M. and O’Donnell, M., 2020. Revisiting sequential attributable fractions. Archives of Public Health, 78(1), pp.1-9.
@@ -1020,7 +1042,7 @@ order_fun <- function(x){
 #' joint_paf(data=Hordaland_data, model_list=model_list, parent_list=parent_list,
 #'  node_vec=node_vec, prev=.09, vars = c("urban.rural",
 #'  "occupational.exposure"),ci=FALSE)
-#' \dontrun{
+#' \donttest{
 #' # More complicated example (slower to run)
 #' parent_exercise <- c("education")
 #' parent_diet <- c("education")
@@ -1049,7 +1071,6 @@ order_fun <- function(x){
 #' parent_list=parent_list, node_vec=node_vec, prev=.0035,
 #' vars = c("high_blood_pressure","smoking","stress","exercise","alcohol",
 #' "diabetes","early_stage_heart_disease"),ci=TRUE,boot_rep=10)
-#' print(jointpaf)
 #' }
 joint_paf <- function(data, model_list, parent_list, node_vec, prev=NULL, vars=NULL,ci=FALSE,boot_rep=100, ci_type=c("norm"),ci_level=0.95,nsim=1){
   if(!node_order(parent_list=parent_list,node_vec=node_vec)){
@@ -1065,7 +1086,8 @@ if(!ci) return(joint_paf_inner(data=data,ind=1:nrow(data), model_list=model_list
 
   res <- boot::boot(data=data,statistic=joint_paf_inner,R=boot_rep,model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=prev, vars=vars,nsim=nsim,cl=cl)
   parallel::stopCluster(cl)
-  return(extract_ci(res=res,model_type='glm',ci_level=ci_level,ci_type=ci_type,continuous=TRUE,t_vector=c("joint PAF")))
+  stuff <- extract_ci(res=res,model_type='glm',ci_level=ci_level,ci_type=ci_type,continuous=TRUE,t_vector=c("joint PAF"))
+  return(stuff)
 
 }
 
@@ -1287,10 +1309,11 @@ current_mat <- data
 #' @param prev prevalence of the disease (default is NULL)
 #' @param vars A character vector of riskfactors.  Sequential PAF is calculated for the risk factor specified in the last position of the vector, conditional on the other risk factors
 #' @param ci Logical. If TRUE, a bootstrap confidence interval is computed along with a point estimate (default FALSE).  If ci=FALSE, only a point estimate is produced.  A simulation procedure (sampling permutations and also simulating the effects of eliminating risk factors over the descendant nodes in a Bayesian network) is required to produce the point estimates.  The point estimate will change on repeated runs of the function.  The margin of error of the point estimate is given when ci=FALSE
-#' @param boot_rep Integer.  Number of bootstrap replications (Only necessary to specify if ci=TRUE)
+#' @param boot_rep Integer.  Number of bootstrap replications (Only necessary to specify if ci=TRUE).  Note that at least 50 replicates are recommended to achieve stable estimates of standard error.  In the examples below, values of boot_rep less than 50 are sometimes used to limit run time.
 #' @param ci_type Character.  Default norm.  A vector specifying the types of confidence interval desired.  "norm", "basic", "perc" and "bca" are the available methods
 #' @param ci_level Numeric.  Confidence level.  Default 0.95
 #' @param nsim Numeric.  Number of independent simulations of the dataset.  Default of 1.
+#' @return A numeric estimate of sequential PAF (if ci=FALSE), or else a data frame giving estimates and confidence limits of sequential PAF (if ci=TRUE)
 #' @export
 #'
 #' @references Ferguson, J., O’Connell, M. and O’Donnell, M., 2020. Revisiting sequential attributable fractions. Archives of Public Health, 78(1), pp.1-9.
@@ -1319,10 +1342,11 @@ current_mat <- data
 #' # here we use the auxillary function 'automatic fit'
 #' model_list=automatic_fit(data=Hordaland_data, parent_list=parent_list,
 #' node_vec=node_vec, prev=.09)
-#' joint_paf(data=Hordaland_data, model_list=model_list, parent_list=parent_list,
+#' # sequential paf for occupational exposure conditional on elimination of urban.rural
+#' seq_paf(data=Hordaland_data, model_list=model_list, parent_list=parent_list,
 #'  node_vec=node_vec, prev=.09, vars = c("urban.rural",
 #'  "occupational.exposure"),ci=FALSE)
-#' \dontrun{
+#' \donttest{
 #' # More complicated example (slower to run)
 #' parent_exercise <- c("education")
 #' parent_diet <- c("education")
@@ -1371,7 +1395,8 @@ seq_paf <- function(data, model_list, parent_list, node_vec, prev=NULL, vars=NUL
   parallel::clusterExport(cl, c("ns"))
   res <- boot::boot(data=data,statistic=seq_paf_inner,R=boot_rep,model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=prev, vars=vars,nsim=nsim,cl=cl)
   parallel::stopCluster(cl)
-  return(extract_ci(res=res,model_type='glm',ci_level=ci_level,ci_type=ci_type,continuous=TRUE,t_vector=c("Sequential PAF")))
+  stuff <- extract_ci(res=res,model_type='glm',ci_level=ci_level,ci_type=ci_type,continuous=TRUE,t_vector=c("sequential PAF"))
+  return(stuff)
 
 }
 

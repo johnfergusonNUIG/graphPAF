@@ -34,7 +34,7 @@ PAF_calc_continuous(
 
 \item{ci}{Logical. If TRUE, a bootstrap confidence interval is computed along with point estimate (default FALSE)}
 
-\item{boot_rep}{Integer.  Number of bootstrap replications (Only necessary to specify if ci=TRUE)}
+\item{boot_rep}{Integer.  Number of bootstrap replications (Only necessary to specify if ci=TRUE).  Note that at least 50 replicates are recommended to achieve stable estimates of standard error.  In the examples below, values of boot_rep less than 50 are sometimes used to limit run time.}
 
 \item{t_vector}{Numeric.  A vector of times at which to calculate PAF (only specified if model is coxph)}
 
@@ -73,7 +73,7 @@ c("diet","lipids","waist_hip_ratio"),q_vec=c(0.01, 0.1,0.3,0.5,0.7,0.9),
 ci=FALSE,calculation_method="D",data=stroke_reduced, prev=0.0035)
 print(out)
 plot(out)
-\dontrun{
+\donttest{
  # with confidence intervals (via bootstrap).
 model_continuous_clogit <- clogit(formula = case ~ region * ns(age, df = 5) +
 sex * ns(age, df = 5) + education +exercise + ns(diet, df = 3)  +
@@ -82,6 +82,7 @@ alcohol + stress + ns(lipids,df = 3) + ns(waist_hip_ratio, df = 3) +
 out <- PAF_calc_continuous(model_continuous_clogit,riskfactor_vec=c("diet",
 "lipids","waist_hip_ratio"),q_vec=c(0.01, 0.1,0.3,0.5,0.7,0.9),
 ci=TRUE,calculation_method="B",data=stroke_reduced, prev=0.01)
+print(out)
 plot(out)
 }
 }

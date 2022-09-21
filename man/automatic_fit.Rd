@@ -30,7 +30,7 @@ automatic_fit(
 \item{df_spline_nodes}{How many degrees of freedom for each spline (Default 3).  At the moment, this can not be specified separately for differing variables.}
 }
 \value{
-A list of models corresponding to node_vec and parent_vec.
+A list of fitted models corresponding to node_vec and parent_vec.
 }
 \description{
 Main effects models are fit by default.  For continuous variables, lm is used, for binary (numeric 0/1 variables), glm is used and for factor valued variables polr is used.  For factors, ensure that the factor levels are ordered by increasing levels of risk.  If interactions are required for certain models, it is advisable to populate the elements of model_list separately.
@@ -62,7 +62,7 @@ parent_diabetes,parent_case)
 node_vec=c("exercise","diet","smoking","alcohol","stress","high_blood_pressure",
 "lipids","waist_hip_ratio","early_stage_heart_disease",
 "diabetes","case")
-\dontrun{
+\donttest{
 model_list=automatic_fit(data=stroke_reduced, parent_list=parent_list,
 node_vec=node_vec, prev=.0035,common="region*ns(age,df=5)+
 sex*ns(age,df=5)", spline_nodes = c("waist_hip_ratio","lipids","diet"))

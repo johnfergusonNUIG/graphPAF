@@ -4,19 +4,21 @@
 \alias{plot.SAF_summary}
 \title{Produce plots of sequential and average PAF}
 \usage{
-\method{plot}{SAF_summary}(x, number_rows = 3, max_PAF = 0.4, ...)
+\method{plot}{SAF_summary}(x, number_rows = 3, max_PAF = 0.4, min_PAF = 0, ...)
 }
 \arguments{
 \item{x}{An SAF_summary R object produced by running the average_paf function.}
 
 \item{number_rows}{integer How many rows of plots will be included on the associated figure.}
 
-\item{max_PAF}{range of y axis on PAF plots (default = 0.4)}
+\item{max_PAF}{upper limit of y axis on PAF plots (default = 0.4)}
+
+\item{min_PAF}{lower limit of y axis on PAF plots (default = 0)}
 
 \item{...}{Other global arguments inherited by that might be passed to the ggplot routine}
 }
 \value{
-A plot illustrating average sequential PAF by position and average PAF by risk factor.
+A ggplot2 plotting object illustrating average sequential PAF by position and average PAF by risk factor.
 }
 \description{
 Produce plots of sequential and average PAF
@@ -43,7 +45,7 @@ out <- average_paf(data=Hordaland_data, model_list=model_list,
 parent_list=parent_list, node_vec=node_vec, prev=.09, nperm=10,
 vars = c("urban.rural","occupational.exposure"),ci=FALSE)
 plot(out)
-\dontrun{
+\donttest{
 # plot with confidence intervals for average and sequential PAF
 # (This is probably more useful for more than 2 risk factors).
 # Separate axes for each risk factor so confidence intervals can be clearly displayed

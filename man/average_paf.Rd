@@ -42,7 +42,7 @@ average_paf(
 
 \item{ci}{Logical. If TRUE, a bootstrap confidence interval is computed along with a point estimate (default FALSE).  If ci=FALSE, only a point estimate is produced.  A simulation procedure (sampling permutations and also simulating the effects of eliminating risk factors over the descendant nodes in a Bayesian network) is required to produce the point estimates.  The point estimate will change on repeated runs of the function.  The margin of error of the point estimate is given when ci=FALSE}
 
-\item{boot_rep}{Integer.  Number of bootstrap replications (Only necessary to specify if ci=TRUE)}
+\item{boot_rep}{Integer.  Number of bootstrap replications (Only necessary to specify if ci=TRUE).  Note that at least 50 replicates are recommended to achieve stable estimates of standard error.  In the examples below, values of boot_rep less than 50 are sometimes used to limit run time.}
 
 \item{ci_type}{Character.  Default norm.  A vector specifying the types of confidence interval desired.  "norm", "basic", "perc" and "bca" are the available methods}
 
@@ -81,11 +81,12 @@ model_list=automatic_fit(data=Hordaland_data, parent_list=parent_list,
 # subsequent simulation of the incremental interventions on the distribution of risk
 # factors.  The permutations are stratified so each factor appears equally often in
 # the first correct_order positions.  correct_order has a default of 2.
-average_paf(data=Hordaland_data, model_list=model_list, parent_list=parent_list,
+out <- average_paf(data=Hordaland_data, model_list=model_list, parent_list=parent_list,
  node_vec=node_vec, prev=.09, nperm=10,vars = c("urban.rural",
  "occupational.exposure"),ci=FALSE)
+ print(out)
 
-\dontrun{
+\donttest{
 # More complicated example (slower to run)
 parent_exercise <- c("education")
 parent_diet <- c("education")
@@ -119,15 +120,18 @@ out <- average_paf(data=stroke_reduced, model_list=model_list,
 parent_list=parent_list, node_vec=node_vec, prev=.0035,
 vars = c("high_blood_pressure","smoking","stress","exercise","alcohol",
 "diabetes","early_stage_heart_disease"),ci=TRUE,boot_rep=10)
+print(out)
+plot(out,max_PAF=0.5,min_PAF=-0.1,number_rows=3)
 # plot sequential and average PAFs by risk factor
-plot(out, number_rows=3)
 # similar calculation, but now sampling permutations (stratified, so
 # that each risk factor will appear equally often in the first correct_order positions)
-# out <- average_paf(data=stroke_reduced, model_list=model_list,
+out <- average_paf(data=stroke_reduced, model_list=model_list,
 parent_list=parent_list, node_vec=node_vec, prev=.0035, exact=FALSE,
  correct_order=2, vars = c("high_blood_pressure","smoking","stress",
  "exercise","alcohol","diabetes","early_stage_heart_disease"),ci=TRUE,
  boot_rep=10)
+ print(out)
+ plot(out,max_PAF=0.5,min_PAF=-0.1,number_rows=3)
 }
 }
 \references{

@@ -32,14 +32,14 @@ ps_paf(
 
 \item{ci}{logical.  If TRUE a confidence interval is calculated using Bootstrap}
 
-\item{boot_rep}{Integer.  Number of bootstrap replications (Only necessary to specify if ci=TRUE)}
+\item{boot_rep}{Integer.  Number of bootstrap replications (Only necessary to specify if ci=TRUE).  Note that at least 50 replicates are recommended to achieve stable estimates of standard error.  In the examples below, values of boot_rep less than 50 are sometimes used to limit run time.}
 
 \item{ci_level}{Numeric.  Default 0.95. A number between 0 and 1 specifying the confidence level (only necessary to specify when ci=TRUE)}
 
 \item{ci_type}{Character.  Defalt norm.  A vector specifying the types of confidence interval desired.  "norm", "basic", "perc" and "bca" are the available methods}
 }
 \value{
-Estimated PS-PAF (and confidence intervals if ci=TRUE) for each mediator referred to in mediator_models, together with estimated direct PS-PAF.
+A numeric vector (if ci=FALSE), or data frame (if CI=TRUE) containing estimated PS-PAF for each mediator referred to in mediator_models, together with estimated direct PS-PAF and possibly confidence intervals.
 }
 \description{
 Estimate Pathway specific population attributable fractions
@@ -74,7 +74,7 @@ mediator_models <- list(glm(high_blood_pressure ~ region * ns(age, df = 5) +
 ps_paf(response_model=response_model, mediator_models=mediator_models ,
 riskfactor="exercise",refval=0,data=stroke_reduced,prev=0.0035, ci=FALSE)
 # confidence intervals
-\dontrun{
+\donttest{
 ps_paf(response_model=response_model, mediator_models=mediator_models ,
 riskfactor="exercise",refval=0,data=stroke_reduced,prev=0.0035, ci=TRUE,
 boot_rep=100,ci_type="norm")

@@ -3,11 +3,11 @@
 #' Strip out unneeded variables from original data (based on fitted model, or alternatively based on specifying a list of variables), and remove rows with NA values.  The function works for logistic, survival and conditional logistic regressions.  The function also creates a column of weights, which will be just a vector of 1s if prevalence is unspecified.
 #'
 #' @param model A glm (with logistic or log link, with binomial family), clogit or coxph model.
-#' @param data A data set that was used to fit the model
+#' @param data A data frame that was used to fit the model
 #' @param vars Default NULL.  Variables required in output data set.  If set to NULL and model is specified, the variables kept are the response and covariates assumed in model
 #' @param response Default "case".  response variable in dataset.  Used when recalculating weights (if the argument prev is set)  If set to NULL, the response is inferred from the model
 #' @param prev Default NULL.  Prevalence of disease (or yearly incidence of disease in healthy controls).  Only relevant to set in case control studies and if path specific PAF or sequential joint PAF calculations are required.  The purpose of this is to create a vector of weights that reweights the cases and controls to reflect the general population
-#' @return A cleaned dataset
+#' @return A cleaned data frame
 #' @export
 #' @examples
 #' # example of using dataclean to strip out NAs, redundant columns and recalculate weights

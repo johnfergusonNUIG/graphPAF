@@ -7,9 +7,12 @@
 \method{print}{SAF_summary}(x, ...)
 }
 \arguments{
-\item{x}{A SAF_summary object.  This is a dataframe that is created by running the function average_PAF.}
+\item{x}{A SAF_summary object.  This is a special dataframe that is created by running the function average_PAF.}
 
 \item{...}{Other arguments to be passed to print}
+}
+\value{
+No return value.  Prints the SAF_summary object to the console.
 }
 \description{
 Print out SAF_summary object
@@ -35,5 +38,4 @@ model_list=automatic_fit(data=Hordaland_data, parent_list=parent_list,
 out <- average_paf(data=Hordaland_data, model_list=model_list,
 parent_list=parent_list, node_vec=node_vec, prev=.09, nperm=10,
 vars = c("urban.rural","occupational.exposure"),ci=FALSE)
-print(out)
 }

@@ -33,7 +33,7 @@ PAF_calc_discrete(
 
 \item{ci}{Logical. If TRUE, a bootstrap confidence interval is computed along with point estimate (default FALSE)}
 
-\item{boot_rep}{Integer.  Number of bootstrap replications (Only necessary to specify if ci=TRUE)}
+\item{boot_rep}{Integer.  Number of bootstrap replications (Only necessary to specify if ci=TRUE).  Note that at least 50 replicates are recommended to achieve stable estimates of standard error.  In the examples below, values of boot_rep less than 50 are sometimes used to limit run time.}
 
 \item{t_vector}{Numeric.  A vector of times at which to calculate PAF (only specified if model is coxph)}
 
@@ -61,7 +61,7 @@ model_exercise <- glm(formula = case ~ region * ns(age, df = 5) +
 # calculate discrete PAF using Bruzzi method
 PAF_calc_discrete(model_exercise, "exercise", refval=0,
 data=stroke_reduced, calculation_method="B",ci=FALSE)
-\dontrun{
+\donttest{
 # calculate discrete PAF using Direct method
 # PAF_calc_discrete(model_exercise, "exercise", refval=0,
 # data=stroke_reduced, calculation_method="D", prev=0.0035)
@@ -89,4 +89,7 @@ PAF_calc_discrete(model_high_blood_pressure_coxph, "high_blood_pressure",
 refval=0, data=stroke_reduced, calculation_method="D", ci=TRUE,
 boot_rep=10, ci_type=c('norm'),t_vector=c(1,2,3,4,5,6,7,8,9))
 }
+}
+\references{
+Bruzzi, P., Green, S.B., Byar, D.P., Brinton, L.A. and Schairer, C., 1985. Estimating the population attributable risk for multiple risk factors using case-control data. American journal of epidemiology, 122(5), pp.904-914
 }

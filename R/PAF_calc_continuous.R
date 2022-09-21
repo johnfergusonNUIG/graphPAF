@@ -7,7 +7,7 @@
 #' @param calculation_method A character either 'B' (Bruzzi) or 'D' (Direct method).  For case control data, the method described in Bruzzi 1985 is recommended.  Bruzzi's method estimates PAF from relative risks and prevalence of exposure to the risk factor.  The Direct method estimates PAF via summing estimated probabilities of disease in the absence of exposure over differing individuals.
 #' @param prev The estimated prevalence of disease (A number between 0 and 1).  This only needs to be specified if the data source is from a case control study, and the direct calculation method is used
 #' @param ci Logical. If TRUE, a bootstrap confidence interval is computed along with point estimate (default FALSE)
-#' @param boot_rep Integer.  Number of bootstrap replications (Only necessary to specify if ci=TRUE)
+#' @param boot_rep Integer.  Number of bootstrap replications (Only necessary to specify if ci=TRUE).  Note that at least 50 replicates are recommended to achieve stable estimates of standard error.  In the examples below, values of boot_rep less than 50 are sometimes used to limit run time.
 #' @param t_vector Numeric.  A vector of times at which to calculate PAF (only specified if model is coxph)
 #' @param ci_level Numeric.  A number between 0 and 1 specifying the confidence level
 #' @param ci_type Character.  A vector specifying the types of confidence interval desired, as available in the 'Boot' package. The default is c('norm'), which calculates a symmetric confidence interval: (Est-Bias +- 1.96*SE), with the standard error calculated via Bootstrap.  Other choices are 'basic', 'perc' and 'bca'.  Increasing the number of Bootstrap repetitions is recommended for the 'basic', 'perc' and 'bca' methods.
@@ -40,7 +40,7 @@
 #' ci=FALSE,calculation_method="D",data=stroke_reduced, prev=0.0035)
 #' print(out)
 #' plot(out)
-#' \dontrun{
+#' \donttest{
 #'  # with confidence intervals (via bootstrap).
 #' model_continuous_clogit <- clogit(formula = case ~ region * ns(age, df = 5) +
 #' sex * ns(age, df = 5) + education +exercise + ns(diet, df = 3)  +
@@ -49,6 +49,7 @@
 #' out <- PAF_calc_continuous(model_continuous_clogit,riskfactor_vec=c("diet",
 #' "lipids","waist_hip_ratio"),q_vec=c(0.01, 0.1,0.3,0.5,0.7,0.9),
 #' ci=TRUE,calculation_method="B",data=stroke_reduced, prev=0.01)
+#' print(out)
 #' plot(out)
 #' }
 PAF_calc_continuous <- function(model, riskfactor_vec, q_vec=c(0.01), data, calculation_method="B", prev=NULL,ci=FALSE,boot_rep=10, t_vector=NULL, ci_level=.95, ci_type=c("norm"), S=1){
@@ -89,12 +90,14 @@ PAF_calc_continuous <- function(model, riskfactor_vec, q_vec=c(0.01), data, calc
     )
 
   }
+  oldw <- getOption("warn")
+  options(warn = -1)
 
    if(!ci) {
       res <- impact_fraction_qvec(data, ind=(1:N), model=model, model_type=model_type, riskfactor_vec=riskfactor_vec,  q_vec=q_vec,calculation_method=calculation_method,S=S,prev=prev,t_vector=t_vector)
       q_vec_obj <- structure(data.frame("riskfactor"=rep(riskfactor_vec,times=rep(length(q_vec),length(riskfactor_vec))),"q_val"=rep(q_vec,length(riskfactor_vec)),paf_q=res),class="PAF_q")
-      print(q_vec_obj)
-      return(q_vec_obj)
+      options(warn = oldw)
+         return(q_vec_obj)
 
    }
     if(ci) {
@@ -104,7 +107,7 @@ PAF_calc_continuous <- function(model, riskfactor_vec, q_vec=c(0.01), data, calc
       res <- boot::boot(data, impact_fraction_qvec,model=model,  model_type=model_type, riskfactor_vec=riskfactor_vec, q_vec=q_vec,calculation_method=calculation_method,S=S, prev=prev,t_vector=t_vector, R=boot_rep,cl=cl)
       parallel::stopCluster(cl)
       q_vec_obj <- structure(cbind("riskfactor"=rep(riskfactor_vec,times=rep(length(q_vec),length(riskfactor_vec))),"q_val"=rep(q_vec,length(riskfactor_vec)),extract_ci(res,model_type=model_type,t_vector=t_vector,ci_level=ci_level,ci_type=ci_type,continuous=TRUE)),class="PAF_q")
-      print(q_vec_obj)
+      options(warn = oldw)
       return(q_vec_obj)
     }
 
@@ -735,7 +738,7 @@ risk_quantiles <- function(riskfactor, data, model, S=1, q=seq(from=0.01,to=0.99
 #'
 #' @param x A PAF_q object.  This is a dataframe that is created by running the function PAF_calc_continuous. The final 3 columns of the data frame are assumed to be (in order), PAF and lower and upper confidence bounds.
 #' @param ...  Other arguments to be passed to print
-#' @return NULL
+#' @return No return value, prints the PAF_q object to the console.
 #' @export
 #'
 #' @examples
@@ -757,7 +760,7 @@ risk_quantiles <- function(riskfactor, data, model, S=1, q=seq(from=0.01,to=0.99
 print.PAF_q <- function(x,...){
 
   data_frame <- structure(as.list(x),class="data.frame", row.names=attr(x,"row.names"))
-  data_frame
+  print(data_frame)
 
 }
 

@@ -7,12 +7,12 @@
 \method{plot}{PAF_q}(x, ...)
 }
 \arguments{
-\item{x}{A PAF_q object.  This is a dataframe that is created by running the function PAF_calc_continuous. The final 3 columns of the data frame are assumed to be (in order), PAF and lower and upper confidence bounds}
+\item{x}{A PAF_q object.  This is a dataframe that is created by running the function PAF_calc_continuous.}
 
 \item{...}{Other global arguments inherited by that might be passed to the ggplot routine}
 }
 \value{
-A plot of PAF_q
+A ggplot2 ploting object for PAF_q over the differing risk factors in x
 }
 \description{
 Plot of impact fractions against over risk-quantile interventions for several risk factors
@@ -32,10 +32,12 @@ out <- PAF_calc_continuous(model_continuous,riskfactor_vec=
 c("diet","lipids","waist_hip_ratio"),q_vec=c(0.1,0.9),
 ci=FALSE,calculation_method="B",data=stroke_reduced)
 plot(out)
-\dontrun{
-# example with more quantile points (more useful - but a bit slower to run)
+\donttest{
+# example with more quantile points and including confidence intervals
+# (more useful - but a bit slower to run)
 out <- PAF_calc_continuous(model_continuous,riskfactor_vec=
 c("diet","lipids","waist_hip_ratio"),q_vec=c(0.01, 0.1,0.3,0.5,0.7,0.9),
-ci=TRU,calculation_method="B",data=stroke_reduced)
+ci=TRUE,calculation_method="B",data=stroke_reduced)
+plot(out)
 }
 }

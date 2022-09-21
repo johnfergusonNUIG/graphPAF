@@ -33,13 +33,16 @@ joint_paf(
 
 \item{ci}{Logical. If TRUE, a bootstrap confidence interval is computed along with a point estimate (default FALSE).  If ci=FALSE, only a point estimate is produced.  A simulation procedure (sampling permutations and also simulating the effects of eliminating risk factors over the descendant nodes in a Bayesian network) is required to produce the point estimates.  The point estimate will change on repeated runs of the function.  The margin of error of the point estimate is given when ci=FALSE}
 
-\item{boot_rep}{Integer.  Number of bootstrap replications (Only necessary to specify if ci=TRUE)}
+\item{boot_rep}{Integer.  Number of bootstrap replications (Only necessary to specify if ci=TRUE).  Note that at least 50 replicates are recommended to achieve stable estimates of standard error.  In the examples below, values of boot_rep less than 50 are sometimes used to limit run time.}
 
 \item{ci_type}{Character.  Default norm.  A vector specifying the types of confidence interval desired.  "norm", "basic", "perc" and "bca" are the available method}
 
 \item{ci_level}{Numeric.  Confidence level.  Default 0.95}
 
 \item{nsim}{Numeric.  Number of independent simulations of the dataset.  Default of 1.}
+}
+\value{
+A numeric estimate of the joint PAF for all risk factors (if ci=FALSE), or a data frame giving joint PAF and confidence intervals (if ci=TRUE)
 }
 \description{
 Calculation of joint paf taking into account risk factor sequencing
@@ -70,7 +73,7 @@ node_vec=node_vec, prev=.09)
 joint_paf(data=Hordaland_data, model_list=model_list, parent_list=parent_list,
  node_vec=node_vec, prev=.09, vars = c("urban.rural",
  "occupational.exposure"),ci=FALSE)
-\dontrun{
+\donttest{
 # More complicated example (slower to run)
 parent_exercise <- c("education")
 parent_diet <- c("education")
@@ -99,7 +102,6 @@ jointpaf <- joint_paf(data=stroke_reduced, model_list=model_list,
 parent_list=parent_list, node_vec=node_vec, prev=.0035,
 vars = c("high_blood_pressure","smoking","stress","exercise","alcohol",
 "diabetes","early_stage_heart_disease"),ci=TRUE,boot_rep=10)
-print(jointpaf)
 }
 }
 \references{

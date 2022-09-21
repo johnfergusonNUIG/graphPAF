@@ -10,7 +10,8 @@
 #' @param t_vector Numeric.  A vector of times at which to calculate PAF (only specified if model is coxph)
 #' @param ci_level Numeric.  Default 0.95. A number between 0 and 1 specifying the confidence level
 #' @param ci_type Character.  Defalt norm.  A vector specifying the types of confidence interval desired.  "norm", "basic", "perc" and "bca" are the available methods
-#' @return An estimated impact fraction if ci=FALSE, or for survival data a vector of estimated impact corresponding to event times in the data.  If ci=TRUE, a vector with elements corresponding to the raw estimated impact fraction, estimated bias, bias corrected estimate and lower and upper elements of any confidence procedures requested.  If ci=TRUE, and a coxph model is fit, a matrix will be returned, with rows corresponding to the times at which the impact fraction is calculated.
+#' @references Bruzzi, P., Green, S.B., Byar, D.P., Brinton, L.A. and Schairer, C., 1985. Estimating the population attributable risk for multiple risk factors using case-control data. American journal of epidemiology, 122(5), pp.904-914
+#' @return A numeric estimated impact fraction if ci=FALSE, or for survival data a vector of estimated impact corresponding to event times in the data.  If ci=TRUE, a vector with elements corresponding to the raw estimated impact fraction, estimated bias, bias corrected estimate and lower and upper elements of any confidence procedures requested.  If ci=TRUE, and a coxph model is fit, a matrix will be returned, with rows corresponding to the times at which the impact fraction is calculated.
 #' @export
 #'
 #' @examples

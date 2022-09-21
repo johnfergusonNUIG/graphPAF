@@ -7,7 +7,7 @@
 data_clean(data, model = NULL, vars = NULL, response = "case", prev = NULL)
 }
 \arguments{
-\item{data}{A data set that was used to fit the model}
+\item{data}{A data frame that was used to fit the model}
 
 \item{model}{A glm (with logistic or log link, with binomial family), clogit or coxph model.}
 
@@ -18,7 +18,7 @@ data_clean(data, model = NULL, vars = NULL, response = "case", prev = NULL)
 \item{prev}{Default NULL.  Prevalence of disease (or yearly incidence of disease in healthy controls).  Only relevant to set in case control studies and if path specific PAF or sequential joint PAF calculations are required.  The purpose of this is to create a vector of weights that reweights the cases and controls to reflect the general population}
 }
 \value{
-A cleaned dataset
+A cleaned data frame
 }
 \description{
 Strip out unneeded variables from original data (based on fitted model, or alternatively based on specifying a list of variables), and remove rows with NA values.  The function works for logistic, survival and conditional logistic regressions.  The function also creates a column of weights, which will be just a vector of 1s if prevalence is unspecified.

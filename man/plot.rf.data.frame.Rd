@@ -24,7 +24,7 @@
 \item{...}{Other arguments that can be passed to the plotting routine}
 }
 \value{
-A fanplot or PAF nomogram
+fanplot or PAF nomogram (each is a ggplotting object)
 }
 \description{
 Create a fan plot displaying approximate PAF, risk factor prevalence and risk ratios

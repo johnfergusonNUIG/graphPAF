@@ -29,11 +29,11 @@ ps_paf_sim <- function(response_model, mediator_models,riskfactor,refval,data,pr
 #' @param refval For factor valued risk factors, the reference level of the risk factor.  If the risk factor is numeric, the reference level is assumed to be 0.
 #' @param data dataframe. A dataframe (with no missing values) containing the data used to fit the mediator and response models.  You can run data_clean to the input dataset if the data has missing values as a pre-processing step
 #' @param prev numeric.  A value between 0 and 1 specifying the prevalence of disease: only relevant to set if data arises from a case control study.
-#' @param boot_rep Integer.  Number of bootstrap replications (Only necessary to specify if ci=TRUE)
+#' @param boot_rep Integer.  Number of bootstrap replications (Only necessary to specify if ci=TRUE).  Note that at least 50 replicates are recommended to achieve stable estimates of standard error.  In the examples below, values of boot_rep less than 50 are sometimes used to limit run time.
 #' @param ci logical.  If TRUE a confidence interval is calculated using Bootstrap
 #' @param ci_level Numeric.  Default 0.95. A number between 0 and 1 specifying the confidence level (only necessary to specify when ci=TRUE)
 #' @param ci_type Character.  Defalt norm.  A vector specifying the types of confidence interval desired.  "norm", "basic", "perc" and "bca" are the available methods
-#' @return Estimated PS-PAF (and confidence intervals if ci=TRUE) for each mediator referred to in mediator_models, together with estimated direct PS-PAF.
+#' @return A numeric vector (if ci=FALSE), or data frame (if CI=TRUE) containing estimated PS-PAF for each mediator referred to in mediator_models, together with estimated direct PS-PAF and possibly confidence intervals.
 #' @export
 #'
 #' @references Pathway specific Population attributable fractions.  O’Connell, M.M. and Ferguson, J.P., 2022. IEA. International Journal of Epidemiology, 1, p.13.  Accessible at: https://academic.oup.com/ije/advance-article/doi/10.1093/ije/dyac079/6583255?login=true
@@ -67,12 +67,14 @@ ps_paf_sim <- function(response_model, mediator_models,riskfactor,refval,data,pr
 #' ps_paf(response_model=response_model, mediator_models=mediator_models ,
 #' riskfactor="exercise",refval=0,data=stroke_reduced,prev=0.0035, ci=FALSE)
 #' # confidence intervals
-#' \dontrun{
+#' \donttest{
 #' ps_paf(response_model=response_model, mediator_models=mediator_models ,
 #' riskfactor="exercise",refval=0,data=stroke_reduced,prev=0.0035, ci=TRUE,
 #' boot_rep=100,ci_type="norm")
 #'}
 ps_paf <- function(response_model, mediator_models,riskfactor,refval,data,prev=NULL,ci=FALSE,boot_rep=100,ci_level=0.95,ci_type=c("norm")){
+  defaultW <- getOption("warn")
+  options(warn = -1)
   N <- nrow(data)
   mediator_names <- c()
   for(i in 1:length(mediator_models)) mediator_names[i] <- as.character(formula(mediator_models[[i]]))[2]
@@ -80,6 +82,7 @@ ps_paf <- function(response_model, mediator_models,riskfactor,refval,data,prev=N
       return_vec <- ps_paf_inner(data=data,ind=1:N,response_model=response_model, mediator_models=mediator_models,riskfactor=riskfactor,refval=refval,prev=prev)
       return_vec_names <- c("Direct",mediator_names)
       names(return_vec) <- return_vec_names
+      options(warn = defaultW)
       return(return_vec)
     }
   if(ci){
@@ -89,6 +92,7 @@ ps_paf <- function(response_model, mediator_models,riskfactor,refval,data,prev=N
     res <- boot::boot(data=data,statistic=ps_paf_inner,R=boot_rep,response_model=response_model, mediator_models=mediator_models,riskfactor=riskfactor,refval=refval,prev=prev,cl=cl)
     parallel::stopCluster(cl)
   }
+  options(warn = defaultW)
   return(extract_ci(res=res,model_type='glm',t_vector=c("Direct",mediator_names),ci_level=ci_level,ci_type=ci_type,continuous=TRUE))
 }
 

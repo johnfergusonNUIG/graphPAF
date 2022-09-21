@@ -1,8 +1,8 @@
 #' Plot of impact fractions against over risk-quantile interventions for several risk factors
 #'
-#' @param x A PAF_q object.  This is a dataframe that is created by running the function PAF_calc_continuous. The final 3 columns of the data frame are assumed to be (in order), PAF and lower and upper confidence bounds
+#' @param x A PAF_q object.  This is a dataframe that is created by running the function PAF_calc_continuous.
 #' @param ... Other global arguments inherited by that might be passed to the ggplot routine
-#' @return A plot of PAF_q
+#' @return A ggplot2 ploting object for PAF_q over the differing risk factors in x
 #' @export
 #'
 #' @examples
@@ -20,15 +20,16 @@
 #' c("diet","lipids","waist_hip_ratio"),q_vec=c(0.1,0.9),
 #' ci=FALSE,calculation_method="B",data=stroke_reduced)
 #' plot(out)
-#' \dontrun{
-#' # example with more quantile points (more useful - but a bit slower to run)
+#' \donttest{
+#' # example with more quantile points and including confidence intervals
+#' # (more useful - but a bit slower to run)
 #' out <- PAF_calc_continuous(model_continuous,riskfactor_vec=
 #' c("diet","lipids","waist_hip_ratio"),q_vec=c(0.01, 0.1,0.3,0.5,0.7,0.9),
-#' ci=TRU,calculation_method="B",data=stroke_reduced)
+#' ci=TRUE,calculation_method="B",data=stroke_reduced)
+#' plot(out)
 #' }
-
 plot.PAF_q <- function(x, ...){
-
+   options(warn = -1)
   data_frame <- structure(as.list(x),class="data.frame", row.names=attr(x,"row.names"))
 
   if(!"riskfactor" %in% colnames(data_frame)){
@@ -57,13 +58,13 @@ p <- ggplot2::ggplot(data_frame, ggplot2::aes(x=-q_val, y=PAF, colour=riskfactor
       ggplot2::labs(col = "Risk Factor")+ggplot2::ylab(expression(paste(hat(PAF[q]))))+ggplot2::xlab("q") + ggplot2::scale_x_continuous(breaks=c(-1,-.8,-0.6,-0.4,-0.2,0),labels=c(1,0.8,0.6,0.4,0.2,0))
 
   }
-  p
+   p
 }
 
 
 
 plot_continuous_quick <- function(model,riskfactor,data,S = 10,ref_val=NA, ci_level=0.95,min_risk_q=.1,n_x=1000,plot_region=TRUE, plot_density=TRUE,theylab="OR",qlist){
-  data_orig <- data
+   data_orig <- data
   if(n_x<=nrow(data)){
     data <- data[sample(1:nrow(data),n_x,replace=FALSE),]
   }
@@ -170,7 +171,7 @@ plot_continuous_quick <- function(model,riskfactor,data,S = 10,ref_val=NA, ci_le
     newd <- newd[xdensity>=quantile(xvals,min(qlist))&xdensity<=quantile(xvals,max(qlist)),]
     gg <- gg + ggplot2::geom_line(ggplot2::aes(x=xdensity,y=ydensity),lwd=2,col='black',data=newd)
   }
-  gg
+   gg
 
 }
 
@@ -208,8 +209,11 @@ plot_continuous_quick <- function(model,riskfactor,data,S = 10,ref_val=NA, ci_le
 #' plot_continuous(model_continuous_clogit,riskfactor="diet",data=stroke_reduced)
 plot_continuous <- function(model,riskfactor,data,S = 10,ref_val=NA, ci_level=0.95,min_risk_q=.1,plot_region=TRUE, plot_density=TRUE,n_x=1000,theylab="OR",  qlist=seq(from=0.001,to=0.999,by=0.001), interact=FALSE){
 
-  if(!interact) return(plot_continuous_quick(model=model,riskfactor=riskfactor,data=data,ci_level=ci_level,min_risk_q=min_risk_q,n_x=n_x,plot_region=plot_region,plot_density=plot_density,theylab=theylab,qlist=qlist))
-
+  if(!interact){
+        return(plot_continuous_quick(model=model,riskfactor=riskfactor,data=data,ci_level=ci_level,min_risk_q=min_risk_q,n_x=n_x,plot_region=plot_region,plot_density=plot_density,theylab=theylab,qlist=qlist))
+  }
+  options(warn = defaultW)
+  options(warn = -1)
   xmat <- model.matrix(model, data=data) # design matrix
   col_indexes <- grep(paste('^.*',riskfactor,'.*$',sep=''),
                       colnames(xmat),perl=TRUE)
@@ -327,6 +331,7 @@ plot_continuous <- function(model,riskfactor,data,S = 10,ref_val=NA, ci_level=0.
   newd <- newd[xdensity>=quantile(xvals,min(qlist))&xdensity<=quantile(xvals,max(qlist)),]
   gg <- gg + ggplot2::geom_line(ggplot2::aes(x=xdensity,y=ydensity),lwd=2,col='black',data=newd)
   }
+  options(warn = defaultW)
   gg
 
 }

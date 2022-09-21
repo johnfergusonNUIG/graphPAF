@@ -11,6 +11,9 @@
 
 \item{...}{Other arguments to be passed to print}
 }
+\value{
+No return value, prints the PAF_q object to the console.
+}
 \description{
 Print out PAF_q for differing risk factors
 }
