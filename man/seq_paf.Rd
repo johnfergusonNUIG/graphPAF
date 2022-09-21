@@ -33,13 +33,16 @@ seq_paf(
 
 \item{ci}{Logical. If TRUE, a bootstrap confidence interval is computed along with a point estimate (default FALSE).  If ci=FALSE, only a point estimate is produced.  A simulation procedure (sampling permutations and also simulating the effects of eliminating risk factors over the descendant nodes in a Bayesian network) is required to produce the point estimates.  The point estimate will change on repeated runs of the function.  The margin of error of the point estimate is given when ci=FALSE}
 
-\item{boot_rep}{Integer.  Number of bootstrap replications (Only necessary to specify if ci=TRUE)}
+\item{boot_rep}{Integer.  Number of bootstrap replications (Only necessary to specify if ci=TRUE).  Note that at least 50 replicates are recommended to achieve stable estimates of standard error.  In the examples below, values of boot_rep less than 50 are sometimes used to limit run time.}
 
 \item{ci_type}{Character.  Default norm.  A vector specifying the types of confidence interval desired.  "norm", "basic", "perc" and "bca" are the available methods}
 
 \item{ci_level}{Numeric.  Confidence level.  Default 0.95}
 
 \item{nsim}{Numeric.  Number of independent simulations of the dataset.  Default of 1.}
+}
+\value{
+A numeric estimate of sequential PAF (if ci=FALSE), or else a data frame giving estimates and confidence limits of sequential PAF (if ci=TRUE)
 }
 \description{
 Calculation of Sequential paf taking into account risk factor sequencing
@@ -68,10 +71,11 @@ node_vec <- c("urban.rural","smoking.category","occupational.exposure", "y")
 # here we use the auxillary function 'automatic fit'
 model_list=automatic_fit(data=Hordaland_data, parent_list=parent_list,
 node_vec=node_vec, prev=.09)
-joint_paf(data=Hordaland_data, model_list=model_list, parent_list=parent_list,
+# sequential paf for occupational exposure conditional on elimination of urban.rural
+seq_paf(data=Hordaland_data, model_list=model_list, parent_list=parent_list,
  node_vec=node_vec, prev=.09, vars = c("urban.rural",
  "occupational.exposure"),ci=FALSE)
-\dontrun{
+\donttest{
 # More complicated example (slower to run)
 parent_exercise <- c("education")
 parent_diet <- c("education")
