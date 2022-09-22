@@ -64,17 +64,19 @@ options(boot.ncpus=2)
 # may be impractical.  Comparing PAF_q for q >= 0.1 over different risk factors
 # may lead to more sensible comparisons of disease burden.
 # Either method (direct, D, or Bruzzi )
+# reduce dataset to improve run time (not recommended on real data!)
+stroke_small <- stroke_reduced[sample(1:nrow(stroke_reduced),1000),]
 model_continuous <- glm(formula = case ~ region * ns(age, df = 5) +
 sex * ns(age, df = 5) + education +exercise + ns(diet, df = 3) +
 alcohol + stress + ns(lipids,df = 3) + ns(waist_hip_ratio, df = 3) +
- high_blood_pressure, family = "binomial", data = stroke_reduced)
+ high_blood_pressure, family = "binomial", data = stroke_small)
 out <- PAF_calc_continuous(model_continuous,riskfactor_vec=
-c("diet","lipids","waist_hip_ratio"),q_vec=c(0.01, 0.1,0.3,0.5,0.7,0.9),
-ci=FALSE,calculation_method="D",data=stroke_reduced, prev=0.0035)
+c("diet","lipids","waist_hip_ratio"),q_vec=c(0.1,0.5,0.9),
+ci=FALSE,calculation_method="D",data=stroke_small, prev=0.0035)
 print(out)
 plot(out)
 \donttest{
- # with confidence intervals (via bootstrap).
+ # with confidence intervals (via bootstrap) on full dataset.  Slower.
 model_continuous_clogit <- clogit(formula = case ~ region * ns(age, df = 5) +
 sex * ns(age, df = 5) + education +exercise + ns(diet, df = 3)  +
 alcohol + stress + ns(lipids,df = 3) + ns(waist_hip_ratio, df = 3) +
