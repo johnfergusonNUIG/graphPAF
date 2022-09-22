@@ -61,11 +61,6 @@ model_continuous <- glm(formula = case ~ region * ns(age, df = 5) +
  alcohol + stress + ns(lipids,df = 3) + ns(waist_hip_ratio, df = 3) +
   high_blood_pressure, family = "binomial", data = stroke_reduced)
 plot_continuous(model_continuous,riskfactor="diet",data=stroke_reduced)
-model_continuous_clogit <- clogit(formula = case ~ region * ns(age, df = 5) +
- sex * ns(age, df = 5) + education +exercise + ns(diet, df = 3)  +
- alcohol + stress + ns(lipids,df = 3) + ns(waist_hip_ratio, df = 3) +
-  high_blood_pressure + strata(strata), data = stroke_reduced)
-plot_continuous(model_continuous_clogit,riskfactor="diet",data=stroke_reduced)
 }
 \references{
 Ferguson, J., Maturo, F., Yusuf, S. and O’Donnell, M., 2020. Population attributable fractions for continuously distributed exposures. Epidemiologic Methods, 9(1)

@@ -39,7 +39,7 @@ plot(rfs,type="f")
 # nomogram
 plot(rfs,type="n")
 # reverse nomogram
-# plot(rfs,type="rn")
+plot(rfs,type="rn")
 }
 \references{
 Ferguson, J., O’Leary, N., Maturo, F., Yusuf, S. and O’Donnell, M., 2019. Graphical comparisons of relative disease burden across multiple risk factors. BMC medical research methodology, 19(1), pp.1-9.

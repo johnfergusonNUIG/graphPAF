@@ -1,6 +1,6 @@
 average_paf_no_CI <- function(data, model_list, parent_list, node_vec,  prev=.09, nperm=NULL, correct_order=3, alpha=0.05,vars=NULL, exact=TRUE){
-  oldw <- getOption("warn")
-  options(warn = -1)
+  #oldw <- getOption("warn")
+  #options(warn = -1)
 
   response_col <- (1:length(colnames(data)))[colnames(data) %in% node_vec[length(node_vec)]]
   if(!c("weights") %in% colnames(data)) data$weights = rep(1, nrow(data))
@@ -188,7 +188,7 @@ if(!exact){
     colnames(SAF_mat_exact) <- colnames(data)[col_list][1:N]
     names(average_PAF) <- colnames(data)[col_list][1:N]
     #print(list(SAF_mat=SAF_mat_exact,average_PAF=average_PAF,joint_PAF=joint_PAF_vec[N]))
-    options(warn = oldw)
+    #options(warn = oldw)
     thedframe <- data.frame(position=c(rep(paste("elimination position",1:N),N),rep("Average",N),"Joint"),"risk factor"=c(rep(colnames(SAF_mat_exact),times=rep(N,N)),colnames(SAF_mat_exact),""),estimate=c(as.vector(SAF_mat_exact),average_PAF,joint_PAF_vec[N]),check.names=FALSE)
     #print(thedframe)
     avepafs <- structure(thedframe,class="SAF_summary")
@@ -234,7 +234,7 @@ if(!exact){
   colnames(SAF_summary) <- c("position", "risk factor", "estimate", "Margin error", "lower bound", "Upper bound")
   #print(SAF_summary)
   SAF_summary <- structure(data.frame(SAF_summary,check.names=FALSE),class="SAF_summary")
-  options(warn = oldw)
+  #options(warn = oldw)
   return(SAF_summary)
 
 }
@@ -369,8 +369,8 @@ average_paf <- function(data, model_list, parent_list, node_vec, prev=.09, exact
     res <- average_paf_no_CI(data=data, model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=prev, nperm=nperm, correct_order=correct_order, alpha=1-ci_level_ME,vars=vars,exact=exact)
     return(res)
   }
-  oldw <- getOption("warn")
-  options(warn = -1)
+  #oldw <- getOption("warn")
+  #options(warn = -1)
   nc <- options()$boot.ncpus
   cl <- parallel::makeCluster(nc)
   parallel::clusterExport(cl, c("ns"))
@@ -385,7 +385,7 @@ average_paf <- function(data, model_list, parent_list, node_vec, prev=.09, exact
   res$`risk factor` <- gsub(pattern="Joint",replacement="",x=res$`risk factor`,perl=TRUE)
   #print(res)
   res <- structure(res,class="SAF_summary")
-  options(warn = oldw)
+  #options(warn = oldw)
   return(res)
 
 }
@@ -927,8 +927,8 @@ make_formula <- function(parents,outcome_node,common='',spline_nodes=c(),df_spli
 #' sex*ns(age,df=5)", spline_nodes = c("waist_hip_ratio","lipids","diet"))
 #' }
 automatic_fit <- function(data, parent_list, node_vec, prev=.09,common='',spline_nodes=c(),df_spline_nodes=3){
-  oldw <- getOption("warn")
-  options(warn = -1)
+  #oldw <- getOption("warn")
+  #options(warn = -1)
 
 model_list=list()
 outcome_name <- node_vec[length(node_vec)]
@@ -968,7 +968,7 @@ for(i in 1:length(node_vec)){
   to_execute <- paste("model_list[[i]] <-", theform,sep='')
   eval(parse(text=to_execute))
 }
-options(warn = oldw)
+#options(warn = oldw)
 
 model_list
 }

@@ -49,8 +49,8 @@
 #' plot(out)
 #' }
 plot.SAF_summary <- function(x,number_rows=3, max_PAF=0.4,min_PAF=0,...){
-  defaultW <- getOption("warn")
-  options(warn = -1)
+  #defaultW <- getOption("warn")
+  #options(warn = -1)
   SAF_summary <- x
   SAF_summary <- structure(as.list(SAF_summary),class="data.frame", row.names=attr(SAF_summary,"row.names"))
 
@@ -92,6 +92,6 @@ plot.SAF_summary <- function(x,number_rows=3, max_PAF=0.4,min_PAF=0,...){
       p_i
 
   }
-  options(warn = defaultW)
+  #options(warn = defaultW)
 }
 

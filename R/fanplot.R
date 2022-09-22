@@ -64,7 +64,7 @@ rf_summary <- function(rf_names, rf_prev, risk, log=FALSE){
 #' # nomogram
 #' plot(rfs,type="n")
 #' # reverse nomogram
-#' # plot(rfs,type="rn")
+#' plot(rfs,type="rn")
 plot.rf.data.frame <- function(x,type="f", rf_prevmarks= c(0.02, 0.05,0.1,0.2,0.3,0.4,0.5,0.7,0.9),ormarks = c(1.05,1.1,1.4,1.7,2.0,3.0), ...)
 {
     rf_data_frame <- x

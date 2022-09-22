@@ -73,8 +73,8 @@ ps_paf_sim <- function(response_model, mediator_models,riskfactor,refval,data,pr
 #' boot_rep=100,ci_type="norm")
 #'}
 ps_paf <- function(response_model, mediator_models,riskfactor,refval,data,prev=NULL,ci=FALSE,boot_rep=100,ci_level=0.95,ci_type=c("norm")){
-  defaultW <- getOption("warn")
-  options(warn = -1)
+  #defaultW <- getOption("warn")
+  #options(warn = -1)
   N <- nrow(data)
   mediator_names <- c()
   for(i in 1:length(mediator_models)) mediator_names[i] <- as.character(formula(mediator_models[[i]]))[2]
@@ -82,7 +82,7 @@ ps_paf <- function(response_model, mediator_models,riskfactor,refval,data,prev=N
       return_vec <- ps_paf_inner(data=data,ind=1:N,response_model=response_model, mediator_models=mediator_models,riskfactor=riskfactor,refval=refval,prev=prev)
       return_vec_names <- c("Direct",mediator_names)
       names(return_vec) <- return_vec_names
-      options(warn = defaultW)
+      #options(warn = defaultW)
       return(return_vec)
     }
   if(ci){
@@ -92,7 +92,7 @@ ps_paf <- function(response_model, mediator_models,riskfactor,refval,data,prev=N
     res <- boot::boot(data=data,statistic=ps_paf_inner,R=boot_rep,response_model=response_model, mediator_models=mediator_models,riskfactor=riskfactor,refval=refval,prev=prev,cl=cl)
     parallel::stopCluster(cl)
   }
-  options(warn = defaultW)
+  #options(warn = defaultW)
   return(extract_ci(res=res,model_type='glm',t_vector=c("Direct",mediator_names),ci_level=ci_level,ci_type=ci_type,continuous=TRUE))
 }
 

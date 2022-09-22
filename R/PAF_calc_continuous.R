@@ -90,13 +90,13 @@ PAF_calc_continuous <- function(model, riskfactor_vec, q_vec=c(0.01), data, calc
     )
 
   }
-  oldw <- getOption("warn")
-  options(warn = -1)
+  #oldw <- getOption("warn")
+  #options(warn = -1)
 
    if(!ci) {
       res <- impact_fraction_qvec(data, ind=(1:N), model=model, model_type=model_type, riskfactor_vec=riskfactor_vec,  q_vec=q_vec,calculation_method=calculation_method,S=S,prev=prev,t_vector=t_vector)
       q_vec_obj <- structure(data.frame("riskfactor"=rep(riskfactor_vec,times=rep(length(q_vec),length(riskfactor_vec))),"q_val"=rep(q_vec,length(riskfactor_vec)),paf_q=res),class="PAF_q")
-      options(warn = oldw)
+      #options(warn = oldw)
          return(q_vec_obj)
 
    }
@@ -107,7 +107,7 @@ PAF_calc_continuous <- function(model, riskfactor_vec, q_vec=c(0.01), data, calc
       res <- boot::boot(data, impact_fraction_qvec,model=model,  model_type=model_type, riskfactor_vec=riskfactor_vec, q_vec=q_vec,calculation_method=calculation_method,S=S, prev=prev,t_vector=t_vector, R=boot_rep,cl=cl)
       parallel::stopCluster(cl)
       q_vec_obj <- structure(cbind("riskfactor"=rep(riskfactor_vec,times=rep(length(q_vec),length(riskfactor_vec))),"q_val"=rep(q_vec,length(riskfactor_vec)),extract_ci(res,model_type=model_type,t_vector=t_vector,ci_level=ci_level,ci_type=ci_type,continuous=TRUE)),class="PAF_q")
-      options(warn = oldw)
+      #options(warn = oldw)
       return(q_vec_obj)
     }
 

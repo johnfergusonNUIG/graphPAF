@@ -29,7 +29,7 @@
 #' plot(out)
 #' }
 plot.PAF_q <- function(x, ...){
-   options(warn = -1)
+   #options(warn = -1)
   data_frame <- structure(as.list(x),class="data.frame", row.names=attr(x,"row.names"))
 
   if(!"riskfactor" %in% colnames(data_frame)){
@@ -202,18 +202,13 @@ plot_continuous_quick <- function(model,riskfactor,data,S = 10,ref_val=NA, ci_le
 #'  alcohol + stress + ns(lipids,df = 3) + ns(waist_hip_ratio, df = 3) +
 #'   high_blood_pressure, family = "binomial", data = stroke_reduced)
 #' plot_continuous(model_continuous,riskfactor="diet",data=stroke_reduced)
-#' model_continuous_clogit <- clogit(formula = case ~ region * ns(age, df = 5) +
-#'  sex * ns(age, df = 5) + education +exercise + ns(diet, df = 3)  +
-#'  alcohol + stress + ns(lipids,df = 3) + ns(waist_hip_ratio, df = 3) +
-#'   high_blood_pressure + strata(strata), data = stroke_reduced)
-#' plot_continuous(model_continuous_clogit,riskfactor="diet",data=stroke_reduced)
 plot_continuous <- function(model,riskfactor,data,S = 10,ref_val=NA, ci_level=0.95,min_risk_q=.1,plot_region=TRUE, plot_density=TRUE,n_x=1000,theylab="OR",  qlist=seq(from=0.001,to=0.999,by=0.001), interact=FALSE){
 
   if(!interact){
         return(plot_continuous_quick(model=model,riskfactor=riskfactor,data=data,ci_level=ci_level,min_risk_q=min_risk_q,n_x=n_x,plot_region=plot_region,plot_density=plot_density,theylab=theylab,qlist=qlist))
   }
-  options(warn = defaultW)
-  options(warn = -1)
+  #options(warn = defaultW)
+  #options(warn = -1)
   xmat <- model.matrix(model, data=data) # design matrix
   col_indexes <- grep(paste('^.*',riskfactor,'.*$',sep=''),
                       colnames(xmat),perl=TRUE)
@@ -331,7 +326,7 @@ plot_continuous <- function(model,riskfactor,data,S = 10,ref_val=NA, ci_level=0.
   newd <- newd[xdensity>=quantile(xvals,min(qlist))&xdensity<=quantile(xvals,max(qlist)),]
   gg <- gg + ggplot2::geom_line(ggplot2::aes(x=xdensity,y=ydensity),lwd=2,col='black',data=newd)
   }
-  options(warn = defaultW)
+  #options(warn = defaultW)
   gg
 
 }
