@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot_PAF_continuous.R
 \name{plot.PAF_q}
 \alias{plot.PAF_q}
-\title{Plot of impact fractions against over risk-quantile interventions for several risk factors}
+\title{Plot impact fractions corresponding to risk-quantiles over several risk factors}
 \usage{
 \method{plot}{PAF_q}(x, ...)
 }
@@ -15,7 +15,7 @@
 A ggplot2 ploting object for PAF_q over the differing risk factors in x
 }
 \description{
-Plot of impact fractions against over risk-quantile interventions for several risk factors
+Plot impact fractions corresponding to risk-quantiles over several risk factors
 }
 \examples{
 library(splines)

@@ -2,7 +2,7 @@
 % Please edit documentation in R/joint_PAF.R
 \name{joint_paf}
 \alias{joint_paf}
-\title{Calculation of joint paf taking into account risk factor sequencing}
+\title{Calculation of joint attributable fractions over several risk factors taking into account risk factor sequencing}
 \usage{
 joint_paf(
   data,
@@ -45,7 +45,7 @@ joint_paf(
 A numeric estimate of the joint PAF for all risk factors (if ci=FALSE), or a data frame giving joint PAF and confidence intervals (if ci=TRUE)
 }
 \description{
-Calculation of joint paf taking into account risk factor sequencing
+Calculation of joint attributable fractions over several risk factors taking into account risk factor sequencing
 }
 \examples{
 library(splines)

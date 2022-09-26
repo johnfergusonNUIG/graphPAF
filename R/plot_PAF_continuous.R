@@ -1,4 +1,4 @@
-#' Plot of impact fractions against over risk-quantile interventions for several risk factors
+#' Plot impact fractions corresponding to risk-quantiles over several risk factors
 #'
 #' @param x A PAF_q object.  This is a dataframe that is created by running the function PAF_calc_continuous.
 #' @param ... Other global arguments inherited by that might be passed to the ggplot routine
@@ -176,7 +176,7 @@ plot_continuous_quick <- function(model,riskfactor,data,S = 10,ref_val=NA, ci_le
 }
 
 
-#' Plot hazard ratios, odds ratios or risk ratios comparing differing values of a continuous risk factor to a reference
+#' Plot hazard ratios, odds ratios or risk ratios comparing differing values of a continuous exposure to a reference level
 #' @param model A fitted model (either glm, clogit or coxph)
 #' @param riskfactor The string name of a continuous exposure or risk factor represented in the data and model
 #' @param data Data frame used to fit the model

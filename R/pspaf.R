@@ -21,7 +21,7 @@ ps_paf_sim <- function(response_model, mediator_models,riskfactor,refval,data,pr
   return(extract_ci(res=res,model_type='glm',t_vector=c("Direct",mediator_names),ci_level=ci_level,ci_type=ci_type,continuous=TRUE))
 }
 
-#' Estimate Pathway specific population attributable fractions
+#' Estimate pathway specific population attributable fractions
 #'
 #' @param response_model A R model object for a binary outcome that involves a risk factor, confounders and mediators of the risk factor outcome relationship.  Note that a weighted model should be used for case control data.  Non-linear effects should be specified via ns(x, df=y), where ns is the natural spline function from the splines library.
 #' @param mediator_models A list of fitted  models describing the risk factor/mediator relationship (the predictors in the model will be the risk factor and any confounders)  Note a weighted model should be fit when data arise from a case control study.  Models can be specified for linear responses (lm), binary responses (glm) and ordinal factors (through polr).  Non-linear effects should be specified via ns(x, df=y), where ns is the natural spline function from the splines library.

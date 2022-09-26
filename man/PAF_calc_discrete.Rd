@@ -2,7 +2,7 @@
 % Please edit documentation in R/PAF_calc_discrete.R
 \name{PAF_calc_discrete}
 \alias{PAF_calc_discrete}
-\title{Calculation of attributable fraction using a categorized risk factor}
+\title{Calculation of attributable fractions using a categorized risk factor}
 \usage{
 PAF_calc_discrete(
   model,
@@ -45,7 +45,7 @@ PAF_calc_discrete(
 An estimated PAF if ci=FALSE, or for survival data a vector of estimated PAF corresponding to event times in the data.  If ci=TRUE, a vector with elements corresponding to the raw estimate, estimated bias, bias corrected estimate and lower and upper elements of any confidence procedures requested.  If ci=TRUE, and a coxph model is fit, a matrix will be returned, with rows corresponding to differing times at which the PAF might be calculated.
 }
 \description{
-Calculation of attributable fraction using a categorized risk factor
+Calculation of attributable fractions using a categorized risk factor
 }
 \examples{
 library(splines)

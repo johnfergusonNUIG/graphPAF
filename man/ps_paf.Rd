@@ -2,7 +2,7 @@
 % Please edit documentation in R/pspaf.R
 \name{ps_paf}
 \alias{ps_paf}
-\title{Estimate Pathway specific population attributable fractions}
+\title{Estimate pathway specific population attributable fractions}
 \usage{
 ps_paf(
   response_model,
@@ -42,7 +42,7 @@ ps_paf(
 A numeric vector (if ci=FALSE), or data frame (if CI=TRUE) containing estimated PS-PAF for each mediator referred to in mediator_models, together with estimated direct PS-PAF and possibly confidence intervals.
 }
 \description{
-Estimate Pathway specific population attributable fractions
+Estimate pathway specific population attributable fractions
 }
 \examples{
 library(splines)

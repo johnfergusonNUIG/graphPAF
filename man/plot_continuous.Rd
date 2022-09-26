@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot_PAF_continuous.R
 \name{plot_continuous}
 \alias{plot_continuous}
-\title{Plot hazard ratios, odds ratios or risk ratios comparing differing values of a continuous risk factor to a reference}
+\title{Plot hazard ratios, odds ratios or risk ratios comparing differing values of a continuous exposure to a reference level}
 \usage{
 plot_continuous(
   model,
@@ -51,7 +51,7 @@ plot_continuous(
 A ggplot2 plotting object
 }
 \description{
-Plot hazard ratios, odds ratios or risk ratios comparing differing values of a continuous risk factor to a reference
+Plot hazard ratios, odds ratios or risk ratios comparing differing values of a continuous exposure to a reference level
 }
 \examples{
 library(survival)

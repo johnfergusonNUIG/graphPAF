@@ -1,4 +1,4 @@
-#' Calculation of attributable fraction with a continuous risk factor
+#' Calculation of attributable fractions with a continuous exposure
 #'
 #' @param model Either a clogit, glm or coxph R model object.  Non-linear effects should be specified via ns(x, df=y), where ns is the natural spline function from the splines library.
 #' @param riskfactor_vec A character vector of names for continuous exposures/riskfactors that are predictors the model.

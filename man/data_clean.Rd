@@ -2,7 +2,7 @@
 % Please edit documentation in R/data_clean.R
 \name{data_clean}
 \alias{data_clean}
-\title{Clean a dataset to make modeling fitting more efficient}
+\title{Clean a dataset to make model fitting more efficient}
 \usage{
 data_clean(data, model = NULL, vars = NULL, response = "case", prev = NULL)
 }

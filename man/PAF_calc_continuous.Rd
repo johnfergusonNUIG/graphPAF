@@ -2,7 +2,7 @@
 % Please edit documentation in R/PAF_calc_continuous.R
 \name{PAF_calc_continuous}
 \alias{PAF_calc_continuous}
-\title{Calculation of attributable fraction with a continuous risk factor}
+\title{Calculation of attributable fractions with a continuous exposure}
 \usage{
 PAF_calc_continuous(
   model,
@@ -48,7 +48,7 @@ PAF_calc_continuous(
 A PAF_q object.  When ci=FALSE, this will essentially be a vector of estimated PAF corresponding to the quantiles specified in q_vec.  If ci=TRUE, a data frame with columns corresponding to the raw estimate, estimated bias, bias corrected estimate and lower and upper elements of any confidence procedures requested, and rows corresponding to the quantiles in q_vec.
 }
 \description{
-Calculation of attributable fraction with a continuous risk factor
+Calculation of attributable fractions with a continuous exposure
 }
 \examples{
 library(splines)

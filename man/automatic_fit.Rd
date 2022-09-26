@@ -2,7 +2,7 @@
 % Please edit documentation in R/joint_PAF.R
 \name{automatic_fit}
 \alias{automatic_fit}
-\title{Automatic fitting models for Bayesian network.}
+\title{Automatic fitting of probability models in a pre-specified Bayesian network.}
 \usage{
 automatic_fit(
   data,

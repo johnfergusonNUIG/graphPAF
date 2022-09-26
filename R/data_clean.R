@@ -1,4 +1,4 @@
-#' Clean a dataset to make modeling fitting more efficient
+#' Clean a dataset to make model fitting more efficient
 #'
 #' Strip out unneeded variables from original data (based on fitted model, or alternatively based on specifying a list of variables), and remove rows with NA values.  The function works for logistic, survival and conditional logistic regressions.  The function also creates a column of weights, which will be just a vector of 1s if prevalence is unspecified.
 #'

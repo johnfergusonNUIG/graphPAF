@@ -390,7 +390,7 @@ average_paf <- function(data, model_list, parent_list, node_vec, prev=.09, exact
 
 }
 
-#' Print out SAF_summary object
+#' Print out a SAF_summary object
 #'
 #' @param x A SAF_summary object.  This is a special dataframe that is created by running the function average_PAF.
 #' @param ... Other arguments to be passed to print
@@ -422,6 +422,7 @@ average_paf <- function(data, model_list, parent_list, node_vec, prev=.09, exact
 #' out <- average_paf(data=Hordaland_data, model_list=model_list,
 #' parent_list=parent_list, node_vec=node_vec, prev=.09, nperm=10,
 #' vars = c("urban.rural","occupational.exposure"),ci=FALSE)
+#' print(out)
 print.SAF_summary <- function(x,...){
 
   data_frame <- structure(as.list(x),class="data.frame", row.names=attr(x,"row.names"))
@@ -880,7 +881,7 @@ make_formula <- function(parents,outcome_node,common='',spline_nodes=c(),df_spli
   }
   result
 }
-#' Automatic fitting models for Bayesian network.
+#' Automatic fitting of probability models in a pre-specified Bayesian network.
 #'
 #' Main effects models are fit by default.  For continuous variables, lm is used, for binary (numeric 0/1 variables), glm is used and for factor valued variables polr is used.  For factors, ensure that the factor levels are ordered by increasing levels of risk.  If interactions are required for certain models, it is advisable to populate the elements of model_list separately.
 #'
@@ -998,7 +999,7 @@ order_fun <- function(x){
 
 ##################################  the same functions as above are replicated here - but only return joint_PAF
 
-#' Calculation of joint paf taking into account risk factor sequencing
+#' Calculation of joint attributable fractions over several risk factors taking into account risk factor sequencing
 #'
 #' @param data Data frame. A dataframe containing variables used for fitting the models.  Must contain all variables used in fitting
 #' @param model_list List.  A list of fitted models corresponding for the outcome variables in node_vec, with parents as described in parent_vec.  This list must be in the same order as node_vec and parent_list. Non-linear effects should be specified via ns(x, df=y), where ns is the natural spline function from the splines library.  Linear (lm), logistic (glm) and ordinal logistic (polr) models are permitted
@@ -1300,7 +1301,7 @@ current_mat <- data
 
 }
 
-#' Calculation of Sequential paf taking into account risk factor sequencing
+#' Calculation of sequential paf taking into account risk factor sequencing
 #'
 #' @param data Data frame. A dataframe containing variables used for fitting the models.  Must contain all variables used in fitting
 #' @param model_list List.  A list of fitted model objects corresponding for the outcome variables in node_vec, with parents as described in parent_vec. Linear (lm), logistic (glm) and ordinal (polr) objects are allowed. This list must be in the same order as node_vec and parent_list.  Non-linear effects should be specified via ns(x, df=y), where ns is the natural spline function from the splines library.

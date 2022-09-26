@@ -1,4 +1,4 @@
-#' Calculation of attributable fraction using a categorized risk factor
+#' Calculation of attributable fractions using a categorized risk factor
 #'
 #' @param model Either a clogit, glm or coxph fitted regression object.  Non-linear effects can be specified in these models if necessary via ns(x, df=y), where ns is the natural spline function from the splines library.
 #' @param riskfactor The name of the risk factor of interest in the dataset.  The risk factor values can be 0/1 numeric, categorical or factor valued.

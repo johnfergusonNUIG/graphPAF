@@ -1,4 +1,4 @@
-#' Create a summary data frame for risk factors
+#' Create a rf.data.frame object
 #'
 #' Create a rf.data.frame object for risk factors, prevalence and risk ratios.  This will be used in fan plots and nomograms (by simply sending the rf.dat.frame object to plot)
 #'

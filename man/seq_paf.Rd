@@ -2,7 +2,7 @@
 % Please edit documentation in R/joint_PAF.R
 \name{seq_paf}
 \alias{seq_paf}
-\title{Calculation of Sequential paf taking into account risk factor sequencing}
+\title{Calculation of sequential paf taking into account risk factor sequencing}
 \usage{
 seq_paf(
   data,
@@ -45,7 +45,7 @@ seq_paf(
 A numeric estimate of sequential PAF (if ci=FALSE), or else a data frame giving estimates and confidence limits of sequential PAF (if ci=TRUE)
 }
 \description{
-Calculation of Sequential paf taking into account risk factor sequencing
+Calculation of sequential paf taking into account risk factor sequencing
 }
 \examples{
 library(splines)

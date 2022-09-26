@@ -2,7 +2,7 @@
 % Please edit documentation in R/fanplot.R
 \name{rf_summary}
 \alias{rf_summary}
-\title{Create a summary data frame for risk factors}
+\title{Create a rf.data.frame object}
 \usage{
 rf_summary(rf_names, rf_prev, risk, log = FALSE)
 }
