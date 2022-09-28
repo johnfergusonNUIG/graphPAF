@@ -429,7 +429,7 @@ extract_ci <- function(res,model_type,t_vector,ci_level,ci_type,continuous=FALSE
 if(continuous){
 
   d <- data.frame(matrix(ncol=3 + 2*length(ci_type),nrow=length(res$t0)))
-  colnames(d) <- c("raw_estimate", "bias","bias_corrected",rep("",2*length(ci_type)))
+  colnames(d) <- c("est", "bias","debiased_est",rep("",2*length(ci_type)))
   for(i in 1:length(ci_type)) colnames(d)[(2+2*i):(3+2*i)] <- c(paste0(ci_type[i],"_lower"),paste0(ci_type[i],"_upper"))
 
 
@@ -454,7 +454,7 @@ if(continuous){
   if(model_type!="coxph"){
 
     v <- numeric(3 + 2*length(ci_type))
-    names(v) <- c("raw_estimate", "estimated_bias","bias_corrected_estimate",rep("",2*length(ci_type)))
+    names(v) <- c("est", "bias","debiased_est",rep("",2*length(ci_type)))
     for(i in 1:length(ci_type)) names(v)[(2+2*i):(3+2*i)] <- c(paste0(ci_type[i],"_lower"),paste0(ci_type[i],"_upper"))
     v[1] <- res$t0
     v[2] <- mean(res$t)-res$t0
@@ -473,7 +473,7 @@ if(continuous){
   if(model_type=="coxph"){
 
     d <- data.frame(matrix(ncol=3 + 2*length(ci_type),nrow=length(t_vector)))
-    colnames(d) <- c("raw_estimate", "estimated_bias","bias_corrected_estimate",rep("",2*length(ci_type)))
+    colnames(d) <- c("est", "bias","debiased_est",rep("",2*length(ci_type)))
     for(i in 1:length(ci_type)) colnames(d)[(2+2*i):(3+2*i)] <- c(paste0(ci_type[i],"_lower"),paste0(ci_type[i],"_upper"))
 
 
