@@ -10,6 +10,7 @@
 #' @param t_vector Numeric.  A vector of times at which to calculate PAF (only specified if model is coxph)
 #' @param ci_level Numeric.  Default 0.95. A number between 0 and 1 specifying the confidence level
 #' @param ci_type Character.  Defalt norm.  A vector specifying the types of confidence interval desired.  "norm", "basic", "perc" and "bca" are the available methods
+#' @param weights An optional vector of inverse sampling weights for survey data (note that variance will not be calculated correctly if sampling isn't independent).  Note that this vector will be ignored if prev is specified, and the weights will be calibrated so that the weighted sample prevalence of disease equals prev.
 #' @references Bruzzi, P., Green, S.B., Byar, D.P., Brinton, L.A. and Schairer, C., 1985. Estimating the population attributable risk for multiple risk factors using case-control data. American journal of epidemiology, 122(5), pp.904-914
 #' @return A numeric estimated impact fraction if ci=FALSE, or for survival data a vector of estimated impact corresponding to event times in the data.  If ci=TRUE, a vector with elements corresponding to the raw estimated impact fraction, estimated bias, bias corrected estimate and lower and upper elements of any confidence procedures requested.  If ci=TRUE, and a coxph model is fit, a matrix will be returned, with rows corresponding to the times at which the impact fraction is calculated.
 #' @export
@@ -29,8 +30,9 @@
 #' data=stroke_reduced)
 #' impact_fraction(model=model_exercise,stroke_reduced,new_data,
 #' calculation_method = "B")
-impact_fraction <- function(model, data, new_data, calculation_method="B",prev=NULL,ci=FALSE,boot_rep=100,t_vector=NULL, ci_level=0.95, ci_type=c("norm")){
+impact_fraction <- function(model, data, new_data, calculation_method="B",prev=NULL,ci=FALSE,boot_rep=100,t_vector=NULL, ci_level=0.95, ci_type=c("norm"), weights=NULL){
 
+  if(!is.null(weights)) data$weights=weights
 
   if(!is.data.frame(data)){
     stop(
@@ -129,7 +131,8 @@ impact_fraction <- function(model, data, new_data, calculation_method="B",prev=N
     if(ci){
          nc <- options()$boot.ncpus
       cl <- parallel::makeCluster(nc)
-      parallel::clusterExport(cl, c("coxph","clogit","strata","Surv","ns"))
+      if("survival" %in% (.packages())) parallel::clusterExport(cl, c("coxph","clogit","strata","Surv"))
+      if("splines" %in% (.packages())) parallel::clusterExport(cl, c("ns"))
             res <- boot::boot(data=data,statistic=if_bruzzi,R=boot_rep, model=model,model_type=model_type,new_data=new_data,response=response,cl=cl)
             parallel::stopCluster(cl)
            return(extract_ci(res=res,model_type=model_type,t_vector=t_vector,ci_level=ci_level,ci_type=ci_type))
@@ -141,7 +144,8 @@ impact_fraction <- function(model, data, new_data, calculation_method="B",prev=N
     if(ci){
       nc <- options()$boot.ncpus
       cl <- parallel::makeCluster(nc)
-      parallel::clusterExport(cl, c("coxph","clogit","strata","Surv","ns"))
+      if("survival" %in% (.packages())) parallel::clusterExport(cl, c("coxph","clogit","strata","Surv"))
+      if("splines" %in% (.packages())) parallel::clusterExport(cl, c("ns"))
        res <- boot::boot(data=data,statistic=if_direct,R=boot_rep,model=model, model_type=model_type, new_data=new_data, prev=prev,t_vector=t_vector,response=response,cl=cl)
        parallel::stopCluster(cl)
        return(extract_ci(res=res,model_type=model_type,t_vector=t_vector,ci_level=ci_level,ci_type=ci_type))
@@ -153,7 +157,8 @@ impact_fraction <- function(model, data, new_data, calculation_method="B",prev=N
 
 if_bruzzi <- function(data,ind, model,model_type,  new_data,response){
 
-
+  weights = rep(1, nrow(data))
+  if(c("weights") %in% colnames(data))  weights=data$weights
   N <- nrow(data)
 
   if(model_type == "clogit"){
@@ -237,13 +242,14 @@ if_bruzzi <- function(data,ind, model,model_type,  new_data,response){
     newRR <- exp(predict(model,newdata=new_data))
     y <- data[,colnames(data)==response]
   }
-
-  return(1 - mean(newRR[y==1]/oldRR[y==1]))
+  return(1 - sum(weights[y==1]*(newRR[y==1]/oldRR[y==1]))/sum(weights[y==1]))
 
 }
 
 if_direct <- function(data, ind, model,model_type, new_data, prev,t_vector,response){
 
+  weights = rep(1, nrow(data))
+  if(c("weights") %in% colnames(data))  weights=data$weights
 
   N <- nrow(data)
   if(model_type == "coxph"){
@@ -338,7 +344,7 @@ if_direct <- function(data, ind, model,model_type, new_data, prev,t_vector,respo
     lp_new <- predict(model, newdata=new_data)
     y <- data[,colnames(data)==response]
     N <- nrow(data)
-    weights <- rep(1, N)
+    if(is.null(weights)) weights <- rep(1, N)
     if(!is.null(prev)){
 
       data_prev <- mean(as.numeric(y==1))
@@ -386,7 +392,7 @@ if_direct <- function(data, ind, model,model_type, new_data, prev,t_vector,respo
 
     y <- data[,colnames(data)==response]
   N <- nrow(data)
-    weights <- rep(1, N)
+    if(is.null(weights)) weights <- rep(1, N)
     if(!is.null(prev)){
 
       data_prev <- mean(as.numeric(y==1))

@@ -16,7 +16,8 @@ PAF_calc_continuous(
   t_vector = NULL,
   ci_level = 0.95,
   ci_type = c("norm"),
-  S = 1
+  S = 1,
+  weights = NULL
 )
 }
 \arguments{
@@ -42,7 +43,9 @@ PAF_calc_continuous(
 
 \item{ci_type}{Character.  A vector specifying the types of confidence interval desired, as available in the 'Boot' package. The default is c('norm'), which calculates a symmetric confidence interval: (Est-Bias +- 1.96*SE), with the standard error calculated via Bootstrap.  Other choices are 'basic', 'perc' and 'bca'.  Increasing the number of Bootstrap repetitions is recommended for the 'basic', 'perc' and 'bca' methods.}
 
-\item{S}{Integer (default 1).  Only relevant to change if there is an interaction between the continuous exposure and other variables in the model.  In this case, marginal comparisons of disease risk at differing levels of the exposure need to be averaged over many individuals.  S is the number of individuals used in this averaging.  May be slow for large S.}
+\item{S}{Integer (default 1).  Only relevant to change if there is an interaction between the continuous exposure and other variables in the model.  In this case, marginal comparisons of disease risk at differing levels of the exposure need to be averaged over many individuals.  S is the number of individuals used in this averaging.  May be slow for large S}
+
+\item{weights}{An optional vector of inverse sampling weights for survey data (note that variance will not be calculated correctly if sampling isn't independent).  Note that this vector will be ignored if prev is specified, and the weights will be calibrated so that the weighted sample prevalence of disease equals prev.}
 }
 \value{
 A PAF_q object.  When ci=FALSE, this will essentially be a vector of estimated PAF corresponding to the quantiles specified in q_vec.  If ci=TRUE, a data frame with columns corresponding to the raw estimate, estimated bias, bias corrected estimate and lower and upper elements of any confidence procedures requested, and rows corresponding to the quantiles in q_vec.

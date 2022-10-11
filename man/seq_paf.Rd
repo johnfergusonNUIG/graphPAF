@@ -15,7 +15,8 @@ seq_paf(
   boot_rep = 100,
   ci_type = c("norm"),
   ci_level = 0.95,
-  nsim = 1
+  nsim = 1,
+  weights = NULL
 )
 }
 \arguments{
@@ -39,7 +40,9 @@ seq_paf(
 
 \item{ci_level}{Numeric.  Confidence level.  Default 0.95}
 
-\item{nsim}{Numeric.  Number of independent simulations of the dataset.  Default of 1.}
+\item{nsim}{Numeric.  Number of independent simulations of the dataset.  Default of 1}
+
+\item{weights}{An optional vector of inverse sampling weights (note that variance will not be calculated correctly if sampling isn't independent).  Note that this vector will be ignored if prev is specified, and the weights will be calibrated so that the weighted sample prevalence of disease equals prev.  In these Bayesian network functions, this weight vector will be copied into the dataset if specified (and prev isn't specified); and this argument is un-necessary to specify if data already has a column 'weights' with correctly specified weights}
 }
 \value{
 A numeric estimate of sequential PAF (if ci=FALSE), or else a data frame giving estimates and confidence limits of sequential PAF (if ci=TRUE)
