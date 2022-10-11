@@ -18,7 +18,8 @@ average_paf(
   boot_rep = 100,
   ci_type = c("norm"),
   ci_level = 0.95,
-  ci_level_ME = 0.95
+  ci_level_ME = 0.95,
+  weights = NULL
 )
 }
 \arguments{
@@ -49,6 +50,8 @@ average_paf(
 \item{ci_level}{Numeric.  Default 0.95. A number between 0 and 1 specifying the level of the confidence interval (when ci=TRUE)}
 
 \item{ci_level_ME}{Numeric.  Default 0.95. A number between 0 and 1 specifying the level of the margin of error for the point estimate (only revelant when ci=FALSE and exact=FALSE)}
+
+\item{weights}{An optional vector of inverse sampling weights (note with survey data, the variance may not be calculated correctly if sampling isn't independent).  Note that this vector will be ignored if prev is specified, and the weights will be calibrated so that the weighted sample prevalence of disease equals prev.  This argument can be ignored if data has a column weights with correctly calibrated weights}
 }
 \value{
 A SAF_summary object with average joint and sequential PAF for all risk factors in node_vec (or alternatively a subset of those risk factors if specified in vars).
