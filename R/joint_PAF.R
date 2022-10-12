@@ -1062,8 +1062,6 @@ if(!ci) return(joint_paf_inner(data=data,ind=1:nrow(data), model_list=model_list
   cl <- parallel::makeCluster(nc)
   if("splines" %in% (.packages())) parallel::clusterExport(cl, c("ns"))
   parallel::clusterExport(cl, c("refit","sim_outnode","do_sim"))
-  parallel::clusterExport(cl, c("refit","sim_outnode","do_sim","order_fun"))
-
   res <- boot::boot(data=data,statistic=joint_paf_inner,R=boot_rep,model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=prev, vars=vars,nsim=nsim,cl=cl)
   parallel::stopCluster(cl)
   stuff <- extract_ci(res=res,model_type='glm',ci_level=ci_level,ci_type=ci_type,continuous=TRUE,t_vector=c("joint PAF"))
