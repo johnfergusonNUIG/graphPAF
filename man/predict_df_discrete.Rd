@@ -2,7 +2,7 @@
 % Please edit documentation in R/PAF_calc_discrete.R
 \name{predict_df_discrete}
 \alias{predict_df_discrete}
-\title{Create a data frame for predictions (when risk factor is discrete).}
+\title{Internal:  Create a data frame for predictions (when risk factor is discrete).}
 \usage{
 predict_df_discrete(riskfactor, refval, data)
 }
@@ -14,8 +14,8 @@ predict_df_discrete(riskfactor, refval, data)
 \item{data}{A dataframe containing variables used to fit the model}
 }
 \value{
-A data frame where the categorical variable is set to it's reference level
+A data frame where the categorical variable is set to its reference level
 }
 \description{
-Create a data frame for predictions (when risk factor is discrete).
+Internal:  Create a data frame for predictions (when risk factor is discrete).
 }

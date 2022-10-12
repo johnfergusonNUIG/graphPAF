@@ -155,6 +155,17 @@ impact_fraction <- function(model, data, new_data, calculation_method="B",prev=N
 }
 
 
+#' Internal:  Calculation of an impact fraction using the Bruzzi approach
+#'
+#' @param data A dataframe containing variables used for fitting the model (including a possible column for weights)
+#' @param ind  An indicator of which rows will be used from the dataset
+#' @param model Either a clogit or glm fitted model object.  Non-linear effects should be specified via ns(x, df=y), where ns is the natural spline function from the splines library.
+#' @param model_type Either a "clogit", "glm" or "coxph" model object
+#' @param new_data A dataframe (of the same variables and size as data) representing an alternative distribution of risk factors
+#' @param response A string representing the name of the outcome variable in data
+#' @references Bruzzi, P., Green, S.B., Byar, D.P., Brinton, L.A. and Schairer, C., 1985. Estimating the population attributable risk for multiple risk factors using case-control data. American journal of epidemiology, 122(5), pp.904-914
+#' @return A numeric estimated impact fraction.
+#' @export
 if_bruzzi <- function(data,ind, model,model_type,  new_data,response){
 
   weights = rep(1, nrow(data))
@@ -246,6 +257,19 @@ if_bruzzi <- function(data,ind, model,model_type,  new_data,response){
 
 }
 
+
+#' Internal:  Calculation of an impact fraction using the direct approach
+#'
+#' @param data A dataframe containing variables used for fitting the model (including a possible column for weights)
+#' @param ind  An indicator of which rows will be used from the dataset
+#' @param model Either a clogit, glm or coxph fitted model object.  Non-linear effects should be specified via ns(x, df=y), where ns is the natural spline function from the splines library.
+#' @param model_type Either a "clogit", "glm" or "coxph" model object
+#' @param new_data A dataframe (of the same variables and size as data) representing an alternative distribution of risk factors
+#' @param prev Population prevalence of disease (default NULL)
+#' @param t_vector A vector of times at which PAF estimates are desired (for a coxph model)
+#' @param response A string representing the name of the outcome variable in data
+#' @return A numeric estimated impact fraction.
+#' @export
 if_direct <- function(data, ind, model,model_type, new_data, prev,t_vector,response){
 
   weights = rep(1, nrow(data))

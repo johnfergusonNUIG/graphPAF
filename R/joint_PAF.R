@@ -58,6 +58,18 @@ average_paf_no_CI <- function(data, model_list, parent_list, node_vec,  prev=.09
     #print(paste0("doing ", nperm, " permutations"))
   }
 
+
+  order_fun <- function(x){
+
+    N <- length(x)
+    sum <- 0
+    for(i in 1:N){
+      sum <- sum + x[i]*(N+1)^(N-i)
+    }
+    return(sum)
+  }
+
+
   if(exact){
 
     perm_mat <- matrix(ncol=N)
@@ -375,7 +387,7 @@ average_paf <- function(data, model_list, parent_list, node_vec, prev=.09, exact
   nc <- options()$boot.ncpus
   cl <- parallel::makeCluster(nc)
   if("splines" %in% (.packages())) parallel::clusterExport(cl, c("ns"))
-  parallel::clusterExport(cl, c("refit","sim_outnode","do_sim","order_fun"))
+  parallel::clusterExport(cl, c("refit","sim_outnode","do_sim"))
   res <- boot::boot(data=data,statistic=average_paf_inner,R=boot_rep,model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=prev, nperm=nperm, correct_order=correct_order, vars=vars, exact=exact,cl=cl)
   parallel::stopCluster(cl)
   if(is.null(vars)) vars <- node_vec[1:(length(node_vec)-1)]
@@ -432,7 +444,16 @@ print.SAF_summary <- function(x,...){
 
 }
 
-
+#' Internal:  Simulate from the post intervention distribution corresponding to eliminating a risk factor
+#'
+#' @param data Data frame. A dataframe containing the original variables used for fitting the models.  Must contain all variables used in fitting
+#' @param col_num The indicator for the risk factor that is being eliminated
+#' @param current_mat The current value of the data frame
+#' @param parent_list A list.  The ith element is the vector of variable names that are direct causes of ith variable in node_vec (Note that the variable names should be columns in data)
+#' @param col_list Column indicators for the variables in node_vec (note that node_vec is ordered from root to leaves)
+#' @param model_list List.  A list of fitted models corresponding for the outcome variables in node_vec, with parents as described in parent_vec.  This list must be in the same order as node_vec and parent_list.  Models can be linear (lm), logistic (glm) or ordinal logistic (polr). Non-linear effects of variables (if necessary) should be specified via ns(x, df=y), where ns is the natural spline function from the splines library
+#' @return An updated data frame (a new version of current_mat) with new columns simulated for variables that the risk factor causally effects.
+#' @export
 sim_outnode <- function(data,col_num, current_mat, parent_list, col_list,model_list){
 
   if(is.factor(current_mat[,col_num])) current_mat[,col_num] <- levels(data[,col_num])[1]
@@ -451,6 +472,15 @@ sim_outnode <- function(data,col_num, current_mat, parent_list, col_list,model_l
   current_mat
 }
 
+
+
+#' Internal:  refit a model based on new dataframe
+#'
+#' @param model Original model used (either lm, glm, polr, coxph or clogit)
+#' @param data  New data on which to refit the same model
+#' @param with_weights  Logical.  If TRUE fit uses weighted maximum lieklihood, based on a column 'weights' that is assumed to be specified in the data frame
+#' @return An updated fitted model, based on the new dataframe
+#' @export
 refit <- function(model,data,with_weights=FALSE){
   model_type <- NULL
   if(grepl("^glm$",as.character(model$call)[1],perl=TRUE)) model_type <- "glm"
@@ -557,8 +587,15 @@ refit <- function(model,data,with_weights=FALSE){
 
 
 
-
-do_sim <- function(colnum,current_mat, model,SN=FALSE){
+#' Internal:  Simulate a column from the post intervention distribution corresponding to eliminating a risk factor
+#'
+#' @param colnum The column indicator for the variable being simulated
+#' @param current_mat The current value of the data frame
+#' @param model A fitted model for simulating values of the variable, given the parent values
+#' @param SN Logical.  If TRUE (default) simulations are achieved via adding the original model residuals, to the new fitted values based on the updated values of parents in current_mat.
+#' @return An updated data frame (a new version of current_mat) with a new column simulated
+#' @export
+do_sim <- function(colnum,current_mat, model,SN=TRUE){
   ## polr
   if(names(model)[2]=='zeta'){
 
@@ -661,6 +698,18 @@ average_paf_inner <- function(data, ind, model_list, parent_list, node_vec, prev
     rm(perm_mat_temp)
 
   }
+
+
+  order_fun <- function(x){
+
+    N <- length(x)
+    sum <- 0
+    for(i in 1:N){
+      sum <- sum + x[i]*(N+1)^(N-i)
+    }
+    return(sum)
+  }
+
 
   if(exact){
 
@@ -926,16 +975,6 @@ node_order <- function(parent_list, node_vec){
   return(TRUE)
 }
 
-order_fun <- function(x){
-
-  N <- length(x)
-  sum <- 0
-  for(i in 1:N){
-    sum <- sum + x[i]*(N+1)^(N-i)
-  }
-  return(sum)
-}
-
 
 ##################################  Joint PAF
 
@@ -1026,7 +1065,7 @@ if(!ci) return(joint_paf_inner(data=data,ind=1:nrow(data), model_list=model_list
   nc <- options()$boot.ncpus
   cl <- parallel::makeCluster(nc)
   if("splines" %in% (.packages())) parallel::clusterExport(cl, c("ns"))
-  parallel::clusterExport(cl, c("refit","sim_outnode","do_sim","order_fun"))
+  parallel::clusterExport(cl, c("refit","sim_outnode","do_sim"))
 
   res <- boot::boot(data=data,statistic=joint_paf_inner,R=boot_rep,model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=prev, vars=vars,nsim=nsim,cl=cl)
   parallel::stopCluster(cl)
@@ -1174,7 +1213,7 @@ seq_paf <- function(data, model_list, parent_list, node_vec, prev=NULL, vars=NUL
   nc <- options()$boot.ncpus
   cl <- parallel::makeCluster(nc)
   if("splines" %in% (.packages())) parallel::clusterExport(cl, c("ns"))
-  parallel::clusterExport(cl, c("refit","sim_outnode","do_sim","order_fun"))
+  parallel::clusterExport(cl, c("refit","sim_outnode","do_sim"))
   res <- boot::boot(data=data,statistic=seq_paf_inner,R=boot_rep,model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=prev, vars=vars,nsim=nsim,cl=cl)
   parallel::stopCluster(cl)
   stuff <- extract_ci(res=res,model_type='glm',ci_level=ci_level,ci_type=ci_type,continuous=TRUE,t_vector=c("sequential PAF"))

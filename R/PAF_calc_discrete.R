@@ -85,13 +85,14 @@ PAF_calc_discrete <- function(model, riskfactor, refval, data, calculation_metho
 
 
 
-#' Create a data frame for predictions (when risk factor is discrete).
+#' Internal:  Create a data frame for predictions (when risk factor is discrete).
 #'
 #' @param riskfactor The name of the risk factor of interest in the dataset
 #' @param refval The reference value for the risk factor
 #' @param data A dataframe containing variables used to fit the model
 #'
-#' @return A data frame where the categorical variable is set to it's reference level
+#' @return A data frame where the categorical variable is set to its reference level
+#' @export
 predict_df_discrete <- function(riskfactor, refval, data){
 
   if(all(!grepl(paste0("^",riskfactor,"$"),colnames(data),perl=TRUE))){

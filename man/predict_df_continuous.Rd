@@ -2,7 +2,7 @@
 % Please edit documentation in R/PAF_calc_continuous.R
 \name{predict_df_continuous}
 \alias{predict_df_continuous}
-\title{Create a data frame for predictions (when risk factor is continuous).}
+\title{Internal:  Create a data frame for predictions (when risk factor is continuous).}
 \usage{
 predict_df_continuous(riskfactor, q_val, risk_q, data)
 }
@@ -19,5 +19,5 @@ predict_df_continuous(riskfactor, q_val, risk_q, data)
 A data frame where the distribution continuous risk factor so at an individual level, risk is at the q_val-quantile or below
 }
 \description{
-Create a data frame for predictions (when risk factor is continuous).
+Internal:  Create a data frame for predictions (when risk factor is continuous).
 }

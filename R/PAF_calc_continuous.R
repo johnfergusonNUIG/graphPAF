@@ -220,13 +220,14 @@ impact_fraction_qvec <- function(data, ind, model, model_type, riskfactor_vec,  
 
 
 
-#' Create a data frame for predictions (when risk factor is continuous).
+#' Internal:  Create a data frame for predictions (when risk factor is continuous).
 #'
 #' @param riskfactor The name of the risk factor of interest in the dataset
 #' @param q_val The risk quantile to match to
 #' @param risk_q Estimated risk quantiles
 #' @param data A dataframe containing variables used to fit the model
 #' @return A data frame where the distribution continuous risk factor so at an individual level, risk is at the q_val-quantile or below
+#' @export
 predict_df_continuous <- function(riskfactor, q_val,risk_q, data){
 
   if(all(!grepl(paste0("^",riskfactor,"$"),colnames(data),perl=TRUE))){
@@ -266,6 +267,7 @@ predict_df_continuous <- function(riskfactor, q_val,risk_q, data){
 #' @param S The number of randomly selected individuals for which risk is measured (defaults to 1).  Let to perhaps 100 if risk factor involved in interactions in model
 #'
 #' @return A named vector of size S giving the risk factor quantiles
+#' @export
 risk_quantiles <- function(riskfactor, data, model, S=1, q=seq(from=0.01,to=0.99,by=0.01)){
 
   data <- data[row.names(model.frame(model)) %in% row.names(data),]

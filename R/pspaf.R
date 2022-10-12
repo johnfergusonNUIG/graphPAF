@@ -74,6 +74,16 @@ ps_paf <- function(response_model, mediator_models,riskfactor,refval,data,prev=N
   return(extract_ci(res=res,model_type='glm',t_vector=c("Direct",mediator_names),ci_level=ci_level,ci_type=ci_type,continuous=TRUE))
 }
 
+#' Internal, pathway specific PAF when the mediator is discrete
+#'
+#' @param data dataframe. A dataframe (with no missing values) containing the data used to fit the mediator and response models.  You can run data_clean to the input dataset if the data has missing values as a pre-processing step
+#' @param refval For factor valued risk factors, the reference level of the risk factor.  If the risk factor is numeric, the reference level is assumed to be 0
+#' @param riskfactor_col  Integer indicator for the risk factor column in data
+#' @param mediator_col Integer indicator for the discrete mediator column in data
+#' @param response_model A R model object for a binary outcome that involves a risk factor, confounders and mediators of the risk factor outcome relationship.  Note that a weighted model should be used for case control data.  Non-linear effects should be specified via ns(x, df=y), where ns is the natural spline function from the splines library.
+#' @param weights A numeric column of weights
+#' @return A numeric vector (if ci=FALSE), or data frame (if CI=TRUE) containing estimated PS-PAF for each mediator referred to in mediator_models, together with estimated direct PS-PAF and possibly confidence intervals.
+#' @export
 pspaf_discrete <- function(data,refval,riskfactor_col,mediator_col,mediator_model,response_model,weights){
 
   # set up dataframes for prediction (separately for mediator and response)
