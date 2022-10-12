@@ -456,7 +456,7 @@ print.SAF_summary <- function(x,...){
 #' @export
 sim_outnode <- function(data,col_num, current_mat, parent_list, col_list,model_list){
 
-  if(is.factor(current_mat[,col_num])) current_mat[,col_num] <- levels(data[,col_num])[1]
+    if(is.factor(current_mat[,col_num])) current_mat[,col_num] <- levels(data[,col_num])[1]
   if(is.numeric(current_mat[,col_num])) current_mat[,col_num] <- 0
 
   colname <- colnames(current_mat)[col_num]
@@ -471,7 +471,6 @@ sim_outnode <- function(data,col_num, current_mat, parent_list, col_list,model_l
   }
   current_mat
 }
-
 
 
 #' Internal:  refit a model based on new dataframe
@@ -699,7 +698,6 @@ average_paf_inner <- function(data, ind, model_list, parent_list, node_vec, prev
 
   }
 
-
   order_fun <- function(x){
 
     N <- length(x)
@@ -917,8 +915,6 @@ make_formula <- function(parents,outcome_node,common='',spline_nodes=c(),df_spli
 #' sex*ns(age,df=5)", spline_nodes = c("waist_hip_ratio","lipids","diet"))
 #' }
 automatic_fit <- function(data, parent_list, node_vec, prev=.09,common='',spline_nodes=c(),df_spline_nodes=3){
-  #oldw <- getOption("warn")
-  #options(warn = -1)
 
 model_list=list()
 outcome_name <- node_vec[length(node_vec)]
@@ -1066,6 +1062,7 @@ if(!ci) return(joint_paf_inner(data=data,ind=1:nrow(data), model_list=model_list
   cl <- parallel::makeCluster(nc)
   if("splines" %in% (.packages())) parallel::clusterExport(cl, c("ns"))
   parallel::clusterExport(cl, c("refit","sim_outnode","do_sim"))
+  parallel::clusterExport(cl, c("refit","sim_outnode","do_sim","order_fun"))
 
   res <- boot::boot(data=data,statistic=joint_paf_inner,R=boot_rep,model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=prev, vars=vars,nsim=nsim,cl=cl)
   parallel::stopCluster(cl)

@@ -42,7 +42,11 @@ PAF_calc_discrete(
 
 \item{ci_type}{Character.  A vector specifying the types of confidence interval desired, as available in the 'Boot' package. The default is c('norm'), which calculates a symmetric confidence interval: (Est-Bias +- 1.96*SE), with the standard error calculated via Bootstrap.  Other choices are 'basic', 'perc' and 'bca'.  Increasing the number of Bootstrap repetitions is recommended for the 'basic', 'perc' and 'bca' methods.}
 
+<<<<<<< HEAD
 \item{weights}{An optional vector of inverse sampling weights for survey data (note that variance will not be calculated correctly if sampling isn't independent).  Note that this will be ignored if prev is specified and calculation_method="D", in which case the weights will be constructed so the empirical re-weighted prevalence of disease is equal to prev.}
+=======
+\item{weights}{An optional vector of inverse sampling weights for survey data (note that variance will not be calculated correctly if sampling isn't independent).  Note that this will be ignored if prev is specified.}
+>>>>>>> b5ab3a4b108db57a4b9d015592eed24c01361c63
 }
 \value{
 An estimated PAF if ci=FALSE, or for survival data a vector of estimated PAF corresponding to event times in the data.  If ci=TRUE, a vector with elements corresponding to the raw estimate, estimated bias, bias corrected estimate and lower and upper elements of any confidence procedures requested.  If ci=TRUE, and a coxph model is fit, a matrix will be returned, with rows corresponding to differing times at which the PAF might be calculated.

@@ -84,6 +84,7 @@ ps_paf <- function(response_model, mediator_models,riskfactor,refval,data,prev=N
 #' @param weights A numeric column of weights
 #' @return A numeric vector (if ci=FALSE), or data frame (if CI=TRUE) containing estimated PS-PAF for each mediator referred to in mediator_models, together with estimated direct PS-PAF and possibly confidence intervals.
 #' @export
+
 pspaf_discrete <- function(data,refval,riskfactor_col,mediator_col,mediator_model,response_model,weights){
 
   # set up dataframes for prediction (separately for mediator and response)
