@@ -23,6 +23,8 @@ pspaf_discrete(
 
 \item{mediator_col}{Integer indicator for the discrete mediator column in data}
 
+\item{mediator_model}{A glm or polr model for the mediator, depending on the same confounders and risk factor as specified in the response model.}
+
 \item{response_model}{A R model object for a binary outcome that involves a risk factor, confounders and mediators of the risk factor outcome relationship.  Note that a weighted model should be used for case control data.  Non-linear effects should be specified via ns(x, df=y), where ns is the natural spline function from the splines library.}
 
 \item{weights}{A numeric column of weights}

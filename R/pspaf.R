@@ -80,6 +80,7 @@ ps_paf <- function(response_model, mediator_models,riskfactor,refval,data,prev=N
 #' @param refval For factor valued risk factors, the reference level of the risk factor.  If the risk factor is numeric, the reference level is assumed to be 0
 #' @param riskfactor_col  Integer indicator for the risk factor column in data
 #' @param mediator_col Integer indicator for the discrete mediator column in data
+#' @param mediator_model A glm or polr model for the mediator, depending on the same confounders and risk factor as specified in the response model.
 #' @param response_model A R model object for a binary outcome that involves a risk factor, confounders and mediators of the risk factor outcome relationship.  Note that a weighted model should be used for case control data.  Non-linear effects should be specified via ns(x, df=y), where ns is the natural spline function from the splines library.
 #' @param weights A numeric column of weights
 #' @return A numeric vector (if ci=FALSE), or data frame (if CI=TRUE) containing estimated PS-PAF for each mediator referred to in mediator_models, together with estimated direct PS-PAF and possibly confidence intervals.
@@ -92,7 +93,7 @@ pspaf_discrete <- function(data,refval,riskfactor_col,mediator_col,mediator_mode
   data_mediator <- data
   if(is.factor(data_mediator[,riskfactor_col])) data_mediator[,riskfactor_col] <- factor(rep(refval,nrow(data)),levels=levels(data_mediator[,riskfactor_col]))
   if(!is.factor(data_mediator[,riskfactor_col])) data_mediator[,riskfactor_col] <- rep(refval,nrow(data))
-  if(names(mediator_model)[2]=='zeta'){
+  if(class(mediator_model)=='polr'){
 
     mediator_probs <- predict(mediator_model,newdata=data_mediator,type="probs")
   }else{
