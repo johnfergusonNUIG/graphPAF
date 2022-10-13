@@ -77,58 +77,14 @@ plot_continuous_quick <- function(model,riskfactor,data,S = 10,ref_val=NA, ci_le
   riskfactor_col <- grep(paste("^",riskfactor,"$",sep=''),colnames(data),perl=TRUE)
   xvals <- data[,riskfactor_col]
 
-
-  # plot will be made at .001,.002,...,.999 quantiles of risk factor
-  #plot_x_v <- quantile(xvals,qlist,na.rm=T)
-
-  # if sampling make dataframe same size as original by default
-  # newS <- S
-  #  if(S<2) newS <- 2  # model.frame won't work on a dataset of size 1
-  #  data_s <- data[sample(1:nrow(data),newS),,drop=FALSE]
-  #  ind <- rep(1,S)
-  #  for(j in 1:ncol(data_s)){
-
-  #   if(is.factor(data[,j])) data_s[,j] <- factor(data_s[,j],levels=levels(data[,j]))
-  #    if(is.numeric(data[,j])) data_s[,j] <- as.numeric(data_s[,j])
-  # }
-  # newd <- data
   model_frame <- model.matrix(model,data=data)
-  #  for(i in 2:length(qlist)){
-  #    newd <- data_s
-  #    newd[,riskfactor_col] <- plot_x_v[i]
-  #    model_frame <- rbind(model_frame,model.matrix(model,data=newd))
-  #    ind <- c(ind, rep(i,S))
-  #  }
 
-
-  # collapse model_frame now over ind
-  #model_frame <- as.data.frame(model_frame)
-  #model_frame$ind <- ind
-  #model_frame <- model_frame %>% dplyr::(ind) %>% dplyr::summarize_all(dplyr::funs(mean))
-  #model_frame <- model_frame[,colnames(model_frame)!="ind"]
   model_frame <- as.matrix(model_frame)
-  # new predictions (pred- pred at median)
-  #i1 <- length(unique(ind))/2
 
-  #if(i1%%1 == 0) i2 <- i1+1
-  #if(i1%%1 == 0.5){
-  #  i1 <- i1+0.5
-  #  i2 <- i1-11
-  #}
   M <- median(xvals)
   index <- which.min((xvals-M)^2)
-  #median <- (0.5*model_frame[i1,,drop=FALSE] + 0.5*model_frame[i1,,drop=FALSE])
   if(!is.na(ref_val)){
 
-    # if(sum(plot_x_v<ref_val)==0 | sum(plot_x_v<ref_val)>=length(plot_x_v)){
-
-    #stop(paste0("specify reference riskfactor between ", signif(plot_x_v[1],3)," and ", signif(plot_x_v[length(plot_x_v)],3) ))
-
-    #}
-
-    # l <- length(plot_x_v[plot_x_v<ref_val])
-    #  w <- (ref_val-plot_x_v[l])/(plot_x_v[l+1]-plot_x_v[l])
-    #median <- w*model_frame[l+1,,drop=FALSE]+(1-w)*model_frame[l,,drop=FALSE]
     index <- which.min((xvals-ref_val)^2)
   }
 
