@@ -63,7 +63,7 @@ PAF_calc_continuous <- function(model, riskfactor_vec, q_vec=c(0.01), data, calc
     stop(
       "Data must be a dataframe object")
   }
-  data <- as.data.frame(data) # in case a tibble which fails the above test
+  data <- as.data.frame(data) # in case a tibble which passes the above test
 
   # remove data not used to fit model
   data <- data[row.names(model.frame(model)) %in% row.names(data),]
