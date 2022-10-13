@@ -145,49 +145,51 @@ ps_paf_inner <- function(data, ind, response_model, mediator_models,riskfactor,r
   if(!all(ind==(1:N))){
 
     data <- data[ind, ]
-    if(response_model_type== "glm"){
+    response_model <- update(response_model,data=data)
+    #if(response_model_type== "glm"){
       #browser()
-      model_text <- as.character(response_model$call)
-      if(length(model_text)==4) model_text_u <- paste0("glm(",model_text[2],",data=data, family=binomial(link=",as.character(family(response_model)[2]),"))")
-      if(length(model_text)==5) model_text_u <- paste0("glm(",model_text[2],",data=data, family=binomial(link=",as.character(family(response_model)[2]),"),weights=",model_text[5],")")
-      response_model <- eval(parse(text=model_text_u))
-    }
+     # model_text <- as.character(response_model$call)
+    #  if(length(model_text)==4) model_text_u <- paste0("glm(",model_text[2],",data=data, family=binomial(link=",as.character(family(response_model)[2]),"))")
+     # if(length(model_text)==5) model_text_u <- paste0("glm(",model_text[2],",data=data, family=binomial(link=",as.character(family(response_model)[2]),"),weights=",model_text[5],")")
+    #  response_model <- eval(parse(text=model_text_u))
+      #response_model <- update(response_model,data=data)
+   # }
 
-    if(response_model_type == "lm"){
-      model_text <- as.character(response_model$call)
-      if(length(model_text)==3) model_text_u <- paste0("lm(",model_text[2],",data=data)")
-      if(length(model_text)==4) model_text_u <- paste0("lm(",model_text[2],",data=data, weights=",model_text[4],")")
-      response_model <- eval(parse(text=model_text_u))
-    }
+    #if(response_model_type == "lm"){
+     # model_text <- as.character(response_model$call)
+    #  if(length(model_text)==3) model_text_u <- paste0("lm(",model_text[2],",data=data)")
+    #  if(length(model_text)==4) model_text_u <- paste0("lm(",model_text[2],",data=data, weights=",model_text[4],")")
+     # response_model <- eval(parse(text=model_text_u))
+    #}
 
-    if(response_model_type == "polr"){
-      model_text <- as.character(response_model$call)
-      if(length(model_text)==3) model_text_u <- paste0("MASS::polr(",model_text[2],",data=data)")
-      if(length(model_text)==4) model_text_u <- paste0("MASS::polr(",model_text[2],",data=data, weights=",model_text[4],")")
-      response_model <- eval(parse(text=model_text_u))
-    }
+    #if(response_model_type == "polr"){
+     # model_text <- as.character(response_model$call)
+    #  if(length(model_text)==3) model_text_u <- paste0("MASS::polr(",model_text[2],",data=data)")
+     # if(length(model_text)==4) model_text_u <- paste0("MASS::polr(",model_text[2],",data=data, weights=",model_text[4],")")
+    #  response_model <- eval(parse(text=model_text_u))
+    #}
     for(i in 1:M){
+      mediator_models[[i]] <- update(mediator_models[[i]],data=data)
+      #if(mediator_model_type[i]== "glm"){
+      #  model_text <- as.character(mediator_models[[i]]$call)
+      #  if(length(model_text)==4) model_text_u <- paste0("glm(",model_text[2],",data=data, family=binomial(link=",as.character(family(mediator_models[[i]])[2]),"))")
+       # if(length(model_text)==5) model_text_u <- paste0("glm(",model_text[2],",data=data, family=binomial(link=",as.character(family(mediator_models[[i]])[2]),"),weights=",model_text[5],")")
+      #  mediator_models[[i]] <- eval(parse(text=model_text_u))
+    #  }
 
-      if(mediator_model_type[i]== "glm"){
-        model_text <- as.character(mediator_models[[i]]$call)
-        if(length(model_text)==4) model_text_u <- paste0("glm(",model_text[2],",data=data, family=binomial(link=",as.character(family(mediator_models[[i]])[2]),"))")
-        if(length(model_text)==5) model_text_u <- paste0("glm(",model_text[2],",data=data, family=binomial(link=",as.character(family(mediator_models[[i]])[2]),"),weights=",model_text[5],")")
-        mediator_models[[i]] <- eval(parse(text=model_text_u))
-      }
+     # if(mediator_model_type[i] == "lm"){
+    #    model_text <- as.character(mediator_models[[i]]$call)
+    #    if(length(model_text)==3) model_text_u <- paste0("lm(",model_text[2],",data=data)")
+    #    if(length(model_text)==4) model_text_u <- paste0("lm(",model_text[2],",data=data, weights=",model_text[4],")")
+    #    mediator_models[[i]] <- eval(parse(text=model_text_u))
+    #  }
 
-      if(mediator_model_type[i] == "lm"){
-        model_text <- as.character(mediator_models[[i]]$call)
-        if(length(model_text)==3) model_text_u <- paste0("lm(",model_text[2],",data=data)")
-        if(length(model_text)==4) model_text_u <- paste0("lm(",model_text[2],",data=data, weights=",model_text[4],")")
-        mediator_models[[i]] <- eval(parse(text=model_text_u))
-      }
-
-      if(mediator_model_type[i] == "polr"){
-        model_text <- as.character(mediator_models[[i]]$call)
-        if(length(model_text)==3) model_text_u <- paste0("MASS::polr(",model_text[2],",data=data)")
-        if(length(model_text)==4) model_text_u <- paste0("MASS::polr(",model_text[2],",data=data, weights=",model_text[4],")")
-        mediator_models[[i]] <- eval(parse(text=model_text_u))
-      }
+     # if(mediator_model_type[i] == "polr"){
+    #    model_text <- as.character(mediator_models[[i]]$call)
+    #    if(length(model_text)==3) model_text_u <- paste0("MASS::polr(",model_text[2],",data=data)")
+    #    if(length(model_text)==4) model_text_u <- paste0("MASS::polr(",model_text[2],",data=data, weights=",model_text[4],")")
+    #    mediator_models[[i]] <- eval(parse(text=model_text_u))
+    #  }
     }
 
 

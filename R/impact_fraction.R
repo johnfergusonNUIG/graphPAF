@@ -203,24 +203,13 @@ if_bruzzi <- function(data,ind, model,model_type,  new_data,response){
         model_text <- gsub(pattern='^(.*)ns\\((.*)$',replacement='\\1splines::ns\\(\\2',x=model_text)
         stuff <- strsplit(model_text,split="splines::ns(",fixed=TRUE)
         model_text <- stuff[[1]][1]
-        thesplit <- paste0("splines::ns(",stuff[[1]][2],thesplit)
+              thesplit <- paste0("splines::ns(",stuff[[1]][2],thesplit)
       }
       model_text <- paste0(model_text,thesplit)
           model <- eval(parse(text=model_text))
 
     }
 
-    # clogit inherits predictions from coxph.  They seem strange at first but are equivalent to predictions from the following code which takes longer to run and so is commented out
-    #model$coefficients[is.na(model$coefficients)] <- 0
-    #them <- model.matrix(model)
-    #them[is.na(model.matrix(model))] <- 0
-    #eta1 <- them%*%model$coefficients
-    #the.mat <- model.matrix(as.formula(paste("~",gsub(paste('+ strata(',strataname,')',sep=''),'',x=as.character(model$formula[3]),fixed=TRUE),sep="")),data=new_data)
-    #the.mat <- the.mat[,-1,drop=FALSE]
-    #the.mat[is.na(the.mat)] <- 0
-    #eta2 <- the.mat%*%model$coefficients
-     #oldRR <- exp(eta1)
-    #newRR <- exp(eta2)
     oldRR <- predict(model,type="risk")
     newRR <- predict(model,type="risk",newdata=new_data)
     y <- data[,colnames(data)==response]
@@ -233,19 +222,7 @@ if_bruzzi <- function(data,ind, model,model_type,  new_data,response){
 
       data <- data[ind, ]
       new_data <- new_data[ind, ]
-      model_text <- as.character(model$call)
-      model_text <- paste0("glm(",model_text[2],",data=data, family=binomial(link=",as.character(family(model)[2]),"))")
-      thesplit <- ""
-      while(length(grep(pattern='^.*ns\\(.*$',x=model_text))>0){
-        model_text <- gsub(pattern='^(.*)ns\\((.*)$',replacement='\\1splines::ns\\(\\2',x=model_text)
-        stuff <- strsplit(model_text,split="splines::ns(",fixed=TRUE)
-        model_text <- stuff[[1]][1]
-        thesplit <- paste0("splines::ns(",stuff[[1]][2],thesplit)
-      }
-      model_text <- paste0(model_text,thesplit)
-
-      model <- eval(parse(text=model_text))
-
+      model <- update(model,data=data)
     }
 
     # predict on linear predictor scale
@@ -281,18 +258,7 @@ if_direct <- function(data, ind, model,model_type, new_data, prev,t_vector,respo
     if(!all(ind==(1:N))){
          data <- data[ind, ]
       new_data <- new_data[ind, ]
-      model_text <- as.character(model$call)
-      model_text <- paste0("survival::coxph(",model_text[2],",data=data)")
-     thesplit <- ""
-      while(length(grep(pattern='^.*ns\\(.*$',x=model_text))>0){
-        model_text <- gsub(pattern='^(.*)ns\\((.*)$',replacement='\\1splines::ns\\(\\2',x=model_text)
-        stuff <- strsplit(model_text,split="splines::ns(",fixed=TRUE)
-        model_text <- stuff[[1]][1]
-        thesplit <- paste0("splines::ns(",stuff[[1]][2],thesplit)
-      }
-      model_text <- paste0(model_text,thesplit)
-      model <- eval(parse(text=model_text))
-
+      model <- update(model,data=data)
     }
        cum_haz <- survival::basehaz(model, centered=FALSE)
     t_indices <- integer(length(t_vector))
@@ -312,8 +278,6 @@ if_direct <- function(data, ind, model,model_type, new_data, prev,t_vector,respo
     return(PAF_vec)
 
   }
-
-
 
   add_term <- 0
 
@@ -340,9 +304,7 @@ if_direct <- function(data, ind, model,model_type, new_data, prev,t_vector,respo
       new_data <- new_data[resamples,]
       # avoid duplication of strata names
       new_data[,colnames(data)==strataname] <- c(1:length(totake),1:length(totake))
-
       #refit model
-
       model_text <- paste0("survival::clogit(",model_text,",data=data)")
       thesplit=""
       while(length(grep(pattern='^.*ns\\(.*$',x=model_text))>0){
@@ -353,22 +315,12 @@ if_direct <- function(data, ind, model,model_type, new_data, prev,t_vector,respo
       }
       model_text <- paste0(model_text,thesplit)
       model <- eval(parse(text=model_text))
-
+      #model <- update(model,data=data)
     }
-    # clogit inherits predictions from coxph.  They seem strange at first but are equivalent to predictions from the following code which takes longer to run and so is commented out
-    #model$coefficients[is.na(model$coefficients)] <- 0
-    #them <- model.matrix(model)
-    #them[is.na(model.matrix(model))] <- 0
-    #lp_old <- them%*%model$coefficients
-    #the.mat <- model.matrix(as.formula(paste("~",gsub(paste('+ strata(',strataname,')',sep=''),'',x=as.character(model$formula[3]),fixed=TRUE),sep="")),data=new_data)
-    #the.mat <- the.mat[,-1,drop=FALSE]
-    #the.mat[is.na(the.mat)] <- 0
-    #lp_new <- the.mat%*%model$coefficients
-    lp_old <- predict(model,newdata=data)
+       lp_old <- predict(model,newdata=data)
     lp_new <- predict(model, newdata=new_data)
     y <- data[,colnames(data)==response]
     N <- nrow(data)
-    if(is.null(weights)) weights <- rep(1, N)
     if(!is.null(prev)){
 
       data_prev <- mean(as.numeric(y==1))
@@ -394,21 +346,7 @@ if_direct <- function(data, ind, model,model_type, new_data, prev,t_vector,respo
     if(!all(ind==(1:N))){
       data <- data[ind, ]
       new_data <- new_data[ind, ]
-      model_text <- as.character(model$call)
-      if(length(model_text)==4) model_text_u <- paste0("glm(",model_text[2],",data=data, family=binomial(link=",as.character(family(model)[2]),"))")
-      if(length(model_text)==5) model_text_u <- paste0("glm(",model_text[2],",data=data, family=binomial(link=",as.character(family(model)[2]),"),weights=",model_text[5],")")
-      model_text <- model_text_u
-      thesplit <- ""
-      while(length(grep(pattern='^.*ns\\(.*$',x=model_text))>0){
-        model_text <- gsub(pattern='^(.*)ns\\((.*)$',replacement='\\1splines::ns\\(\\2',x=model_text)
-        stuff <- strsplit(model_text,split="splines::ns(",fixed=TRUE)
-        model_text <- stuff[[1]][1]
-        thesplit <- paste0("splines::ns(",stuff[[1]][2],thesplit)
-      }
-      model_text <- paste0(model_text,thesplit)
-
-      model <- eval(parse(text=model_text))
-
+      model <- update(model,data=data)
     }
 
     lp_old <- predict(model,newdata=data)
@@ -416,7 +354,6 @@ if_direct <- function(data, ind, model,model_type, new_data, prev,t_vector,respo
 
     y <- data[,colnames(data)==response]
   N <- nrow(data)
-    if(is.null(weights)) weights <- rep(1, N)
     if(!is.null(prev)){
 
       data_prev <- mean(as.numeric(y==1))
@@ -424,7 +361,6 @@ if_direct <- function(data, ind, model,model_type, new_data, prev,t_vector,respo
       weights[y==1] <- prev/data_prev
 
     }
-
 
     if(as.character(model$family[2])=="logit"){
 

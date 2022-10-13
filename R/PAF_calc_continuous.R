@@ -167,17 +167,17 @@ impact_fraction_qvec <- function(data, ind, model, model_type, riskfactor_vec,  
     if(!all(ind==(1:N))){
 
       data <- data[ind, ]
-      model_text <- as.character(model$call)
-      model_text <- paste0("survival::coxph(",model_text[2],",data=data)")
-      thesplit <- ""
-      while(length(grep(pattern='^.*ns\\(.*$',x=model_text))>0){
-        model_text <- gsub(pattern='^(.*)ns\\((.*)$',replacement='\\1splines::ns\\(\\2',x=model_text)
-        stuff <- strsplit(model_text,split="splines::ns(",fixed=TRUE)
-        model_text <- stuff[[1]][1]
-        thesplit <- paste0("splines::ns(",stuff[[1]][2],thesplit)
-      }
-      model <- eval(parse(text=model_text))
-
+      #model_text <- as.character(model$call)
+      #model_text <- paste0("survival::coxph(",model_text[2],",data=data)")
+      #thesplit <- ""
+      #while(length(grep(pattern='^.*ns\\(.*$',x=model_text))>0){
+      #  model_text <- gsub(pattern='^(.*)ns\\((.*)$',replacement='\\1splines::ns\\(\\2',x=model_text)
+      #  stuff <- strsplit(model_text,split="splines::ns(",fixed=TRUE)
+      #  model_text <- stuff[[1]][1]
+      #  thesplit <- paste0("splines::ns(",stuff[[1]][2],thesplit)
+      #}
+      #model <- eval(parse(text=model_text))
+      model <- update(model,data=data)
     }
   }
   if(model_type == "glm"){
@@ -185,20 +185,20 @@ impact_fraction_qvec <- function(data, ind, model, model_type, riskfactor_vec,  
     if(!all(ind==(1:N))){
 
       data <- data[ind, ]
-        model_text <- as.character(model$call)
-      model_text <- paste0("glm(",model_text[2],",data=data, family=binomial(link=",as.character(family(model)[2]),"))")
+     #   model_text <- as.character(model$call)
+    #  model_text <- paste0("glm(",model_text[2],",data=data, family=binomial(link=",as.character(family(model)[2]),"))")
 
-      thesplit <- ""
-      while(length(grep(pattern='^.*ns\\(.*$',x=model_text))>0){
-        model_text <- gsub(pattern='^(.*)ns\\((.*)$',replacement='\\1splines::ns\\(\\2',x=model_text)
-        stuff <- strsplit(model_text,split="splines::ns(",fixed=TRUE)
-        model_text <- stuff[[1]][1]
-        thesplit <- paste0("splines::ns(",stuff[[1]][2],thesplit)
-      }
-      model_text <- paste0(model_text,thesplit)
+     # thesplit <- ""
+    #  while(length(grep(pattern='^.*ns\\(.*$',x=model_text))>0){
+     #   model_text <- gsub(pattern='^(.*)ns\\((.*)$',replacement='\\1splines::ns\\(\\2',x=model_text)
+    #    stuff <- strsplit(model_text,split="splines::ns(",fixed=TRUE)
+    #    model_text <- stuff[[1]][1]
+    #    thesplit <- paste0("splines::ns(",stuff[[1]][2],thesplit)
+    #  }
+    #  model_text <- paste0(model_text,thesplit)
 
-      model <- eval(parse(text=model_text))
-
+     # model <- eval(parse(text=model_text))
+    model <- update(model,data=data)
     }
   }
     risk_q <- list()
