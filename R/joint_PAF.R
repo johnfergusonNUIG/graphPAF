@@ -482,21 +482,21 @@ sim_outnode <- function(data,col_num, current_mat, parent_list, col_list,model_l
 #' @export
 do_sim <- function(colnum,current_mat, model,SN=TRUE){
   ## polr
-  if(names(model)[2]=='zeta'){
+  if(class(model)[1]=="polr"){
 
     probs <- predict(model,newdata=current_mat,type="probs")
     mynames <- colnames(probs)
     return(apply(probs,1,function(x){base::sample(mynames,size=1,prob=x)}))
   }
   # glm
-  if(length(grep("glm",model$call))>0){
+  if(class(model)[1]=="glm"){
 
     probs <- predict(model,newdata=current_mat,type="response")
     if(is.null(levels(current_mat[,colnum]))) return(apply(cbind(1-probs,probs),1,function(x){base::sample(c(0,1),size=1,prob=x)}))
     return(apply(cbind(1-probs,probs),1,function(x){base::sample(levels(current_mat[,colnum]),size=1,prob=x)}))
   }
   # regression
-  if(length(grep("lm",model$call))>0){
+  if(class(model)[1]=="lm"){
 
     pred <- predict(model,newdata=current_mat,type="response")
     resids <- model$residuals
@@ -505,10 +505,6 @@ do_sim <- function(colnum,current_mat, model,SN=TRUE){
       return(pred+resids)
 
     }
-
-    #browser()
-    #return(pred + sample(summary(model)$residuals,length(resids),replace=TRUE))
-    #return(pred + rnorm(length(resids),mean=0,sd=.1*sd(resids)))
     return(pred + sample(resids,length(resids),replace=TRUE, prob=model$weights/sum(model$weights)))
   }
 }

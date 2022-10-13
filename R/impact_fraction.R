@@ -64,29 +64,18 @@ impact_fraction <- function(model, data, new_data, calculation_method="B",prev=N
   }
   response <- as.character(model$formula)[2]
 
-  model_type <- NULL
-  if(grepl("^glm$",as.character(model$call)[1],perl=TRUE)){
-    model_type <- "glm"
-       if (!as.character(model$family[1])=="binomial" & ! as.character(model$family[2]) %in% c("logit","log")) {
-      stop(
-        "The family must be binomial and link must be either log or logistic"
-      )
-    }
-  }
-  if(grepl("^coxph$",as.character(model$call)[1],perl=TRUE)){
-    if("userCall" %in% names(model)){
-      model_type <- "clogit"
+  model_type <- class(model)[1]
+
+  if(model_type=="clogit"){
       vars <- gsub(pattern=' ',replacement='',x=unlist(strsplit(as.character(model$call)[2],split="[~*+]")))
       vars <- gsub(pattern='^ns\\((.*),df=.*\\)$',replacement='\\1',x=vars)
       vars <- gsub(pattern='^ns\\((.*),knots=.*\\)$',replacement='\\1',x=vars)
       vars <- gsub(pattern='^strata\\((.*)\\)$',replacement='\\1',x=vars)
       vars <- gsub(pattern='^Surv\\(rep\\([0-9]*,[0-9]*\\),(.*)\\)$',replacement='\\1',x=vars)
       response <- vars[1]
-    }else{
-      model_type <- "coxph"
-    }
   }
-  if (is.null(model_type)) {
+
+  if (!model_type %in% c("glm","coxph","clogit")) {
     stop(
       "Model must be either a glm, conditional logistic regression or Cox-proportional hazards regression"
     )

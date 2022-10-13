@@ -67,26 +67,16 @@ PAF_calc_continuous <- function(model, riskfactor_vec, q_vec=c(0.01), data, calc
   # remove data not used to fit model
   data <- data[row.names(model.frame(model)) %in% row.names(data),]
 
-  model_type <- NULL
-  if(grepl("^glm$",as.character(model$call)[1],perl=TRUE)){
-    model_type <- "glm"
-    if (!as.character(model$family[1])=="binomial" & ! as.character(model$family[2]) %in% c("logit","log")) {
+  model_type <- class(model)[1]
+  if(model_type=="glm"){
+      if (!as.character(model$family[1])=="binomial" & ! as.character(model$family[2]) %in% c("logit","log")) {
       stop(
         "The family must be binomial and link must be either log or logistic"
       )
     }
   }
-  if(grepl("^coxph$",as.character(model$call)[1],perl=TRUE)){
-    if("userCall" %in% names(model)){
-      model_type <- "clogit"
-    }else{
-      model_type <- "coxph"
-    }
-  }
-
 
   N <- nrow(data)
-     # impact fraction function
 
   if(model_type=="coxph" && length(t_vector)>1){
 
@@ -95,13 +85,12 @@ PAF_calc_continuous <- function(model, riskfactor_vec, q_vec=c(0.01), data, calc
     )
 
   }
-  #oldw <- getOption("warn")
-  #options(warn = -1)
+
 
    if(!ci) {
       res <- impact_fraction_qvec(data, ind=(1:N), model=model, model_type=model_type, riskfactor_vec=riskfactor_vec,  q_vec=q_vec,calculation_method=calculation_method,S=S,prev=prev,t_vector=t_vector)
       q_vec_obj <- structure(data.frame("riskfactor"=rep(riskfactor_vec,times=rep(length(q_vec),length(riskfactor_vec))),"q_val"=rep(q_vec,length(riskfactor_vec)),paf_q=res),class="PAF_q")
-      #options(warn = oldw)
+
          return(q_vec_obj)
 
    }
@@ -114,8 +103,7 @@ PAF_calc_continuous <- function(model, riskfactor_vec, q_vec=c(0.01), data, calc
       res <- boot::boot(data, impact_fraction_qvec,model=model,  model_type=model_type, riskfactor_vec=riskfactor_vec, q_vec=q_vec,calculation_method=calculation_method,S=S, prev=prev,t_vector=t_vector, R=boot_rep,cl=cl)
       parallel::stopCluster(cl)
       q_vec_obj <- structure(cbind("riskfactor"=rep(riskfactor_vec,times=rep(length(q_vec),length(riskfactor_vec))),"q_val"=rep(q_vec,length(riskfactor_vec)),extract_ci(res,model_type=model_type,t_vector=t_vector,ci_level=ci_level,ci_type=ci_type,continuous=TRUE)),class="PAF_q")
-      #options(warn = oldw)
-      return(q_vec_obj)
+            return(q_vec_obj)
     }
 
 }
@@ -167,16 +155,6 @@ impact_fraction_qvec <- function(data, ind, model, model_type, riskfactor_vec,  
     if(!all(ind==(1:N))){
 
       data <- data[ind, ]
-      #model_text <- as.character(model$call)
-      #model_text <- paste0("survival::coxph(",model_text[2],",data=data)")
-      #thesplit <- ""
-      #while(length(grep(pattern='^.*ns\\(.*$',x=model_text))>0){
-      #  model_text <- gsub(pattern='^(.*)ns\\((.*)$',replacement='\\1splines::ns\\(\\2',x=model_text)
-      #  stuff <- strsplit(model_text,split="splines::ns(",fixed=TRUE)
-      #  model_text <- stuff[[1]][1]
-      #  thesplit <- paste0("splines::ns(",stuff[[1]][2],thesplit)
-      #}
-      #model <- eval(parse(text=model_text))
       model <- update(model,data=data)
     }
   }
@@ -185,20 +163,7 @@ impact_fraction_qvec <- function(data, ind, model, model_type, riskfactor_vec,  
     if(!all(ind==(1:N))){
 
       data <- data[ind, ]
-     #   model_text <- as.character(model$call)
-    #  model_text <- paste0("glm(",model_text[2],",data=data, family=binomial(link=",as.character(family(model)[2]),"))")
-
-     # thesplit <- ""
-    #  while(length(grep(pattern='^.*ns\\(.*$',x=model_text))>0){
-     #   model_text <- gsub(pattern='^(.*)ns\\((.*)$',replacement='\\1splines::ns\\(\\2',x=model_text)
-    #    stuff <- strsplit(model_text,split="splines::ns(",fixed=TRUE)
-    #    model_text <- stuff[[1]][1]
-    #    thesplit <- paste0("splines::ns(",stuff[[1]][2],thesplit)
-    #  }
-    #  model_text <- paste0(model_text,thesplit)
-
-     # model <- eval(parse(text=model_text))
-    model <- update(model,data=data)
+      model <- update(model,data=data)
     }
   }
     risk_q <- list()
