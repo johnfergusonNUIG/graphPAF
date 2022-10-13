@@ -363,6 +363,7 @@ average_paf <- function(data, model_list, parent_list, node_vec, prev=.09, exact
     stop("please specify either correct_order and nperm")
 
   }
+  data <- as.data.frame(data)
   ## how many risk factors are under scrutiny?
   col_list <- numeric(length(node_vec))
   N <- length(col_list)-1
@@ -798,6 +799,8 @@ make_formula <- function(parents,outcome_node,common='',spline_nodes=c(),df_spli
 #' }
 automatic_fit <- function(data, parent_list, node_vec, prev=.09,common='',spline_nodes=c(),df_spline_nodes=3){
 
+
+data <- as.data.frame(data)
 model_list=list()
 outcome_name <- node_vec[length(node_vec)]
 outcome_bin <- data[,colnames(data) %in% outcome_name]
@@ -938,7 +941,10 @@ joint_paf <- function(data, model_list, parent_list, node_vec, prev=NULL, vars=N
   if(!is.null(vars) & !all(vars %in% node_vec)){
     stop("Not all requested variables are in node_vec.  Check spelling")
   }
+  data <- as.data.frame(data)
   if(!is.null(weights)) data$weights = weights
+
+
 if(!ci) return(joint_paf_inner(data=data,ind=1:nrow(data), model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=prev,vars=vars,nsim=nsim))
   nc <- options()$boot.ncpus
   cl <- parallel::makeCluster(nc)
@@ -1085,6 +1091,8 @@ seq_paf <- function(data, model_list, parent_list, node_vec, prev=NULL, vars=NUL
   if(!is.null(vars) & length(vars)<2){
     stop("Enter at least 2 risk factors.  SAF is calculated for the last risk factor conditional on the others in list")
   }
+
+  data <- as.data.frame(data)
   if(!is.null(weights)) data$weights = weights
   if(!ci) return(seq_paf_inner(data=data,ind=1:nrow(data), model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=prev,vars=vars,nsim=nsim))
   nc <- options()$boot.ncpus

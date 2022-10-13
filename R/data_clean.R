@@ -24,6 +24,7 @@
 #' dim(stroke_reduced_2)
 #' dim(stroke_reduced_3)
 data_clean <- function(data,model=NULL,vars=NULL,response="case", prev=NULL){
+data <- as.data.frame(data)
 if(is.null(vars)){
   model_type <- NULL
   vars <- c()

@@ -52,6 +52,7 @@
 ps_paf <- function(response_model, mediator_models,riskfactor,refval,data,prev=NULL,ci=FALSE,boot_rep=100,ci_level=0.95,ci_type=c("norm")){
   #defaultW <- getOption("warn")
   #options(warn = -1)
+  data <- as.data.frame(data)
   N <- nrow(data)
   mediator_names <- c()
   for(i in 1:length(mediator_models)) mediator_names[i] <- as.character(formula(mediator_models[[i]]))[2]
@@ -93,7 +94,7 @@ pspaf_discrete <- function(data,refval,riskfactor_col,mediator_col,mediator_mode
   data_mediator <- data
   if(is.factor(data_mediator[,riskfactor_col])) data_mediator[,riskfactor_col] <- factor(rep(refval,nrow(data)),levels=levels(data_mediator[,riskfactor_col]))
   if(!is.factor(data_mediator[,riskfactor_col])) data_mediator[,riskfactor_col] <- rep(refval,nrow(data))
-  if(class(mediator_model)=='polr'){
+  if(class(mediator_model)[1]=='polr'){
 
     mediator_probs <- predict(mediator_model,newdata=data_mediator,type="probs")
   }else{

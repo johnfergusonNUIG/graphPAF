@@ -64,6 +64,7 @@ PAF_calc_discrete <- function(model, riskfactor, refval, data, calculation_metho
       stop(
         "Data must be a dataframe object")
   }
+  data <- as.data.frame(data)
 
   # remove data not used to fit model
   data <- data[row.names(data) %in% row.names(model.frame(model)),]
