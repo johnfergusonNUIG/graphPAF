@@ -76,7 +76,7 @@ model_list=automatic_fit(data=Hordaland_data, parent_list=parent_list,
 node_vec=node_vec, prev=.09)
 # update column of weights in Hordaland so
 # Bootstrap will work
-Hordaland_data <- data_clean(Hordaland_data,prev=0.09)
+Hordaland_data <- data_clean(Hordaland_data,prev=0.09,vars=colnames(Hordaland_data),response="y")
 # sequential paf for occupational exposure conditional on elimination of urban.rural
 seq_paf(data=Hordaland_data, model_list=model_list, parent_list=parent_list,
  node_vec=node_vec, prev=.09, vars = c("urban.rural",
