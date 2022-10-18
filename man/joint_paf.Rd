@@ -73,6 +73,9 @@ node_vec <- c("urban.rural","smoking.category","occupational.exposure", "y")
 # here we use the auxillary function 'automatic fit'
 model_list=automatic_fit(data=Hordaland_data, parent_list=parent_list,
 node_vec=node_vec, prev=.09)
+# update column of weights in Hordaland so
+# Bootstrap will work
+Hordaland_data <- data_clean(Hordaland_data,prev=0.09)
 joint_paf(data=Hordaland_data, model_list=model_list, parent_list=parent_list,
  node_vec=node_vec, prev=.09, vars = c("urban.rural",
  "occupational.exposure"),ci=FALSE)

@@ -80,6 +80,9 @@ node_vec <- c("urban.rural","smoking.category","occupational.exposure", "y")
 # here we use the auxillary function 'automatic fit'
 model_list=automatic_fit(data=Hordaland_data, parent_list=parent_list,
  node_vec=node_vec, prev=.09)
+# update column of weights in Hordaland
+# Bootstrap will work
+Hordaland_data <- data_clean(Hordaland_data,prev=0.09)
 # By default the function works by stratified simulation of permutations and
 # subsequent simulation of the incremental interventions on the distribution of risk
 # factors.  The permutations are stratified so each factor appears equally often in
