@@ -4,10 +4,20 @@
 \alias{if_direct}
 \title{Internal:  Calculation of an impact fraction using the direct approach}
 \usage{
-if_direct(data, ind, model, model_type, new_data, prev, t_vector, response)
+if_direct(
+  data,
+  ind,
+  model,
+  model_type,
+  new_data,
+  prev,
+  t_vector,
+  response,
+  weight_vec
+)
 }
 \arguments{
-\item{data}{A dataframe containing variables used for fitting the model (including a possible column for weights)}
+\item{data}{A dataframe containing variables used for fitting the model}
 
 \item{ind}{An indicator of which rows will be used from the dataset}
 
@@ -22,6 +32,8 @@ if_direct(data, ind, model, model_type, new_data, prev, t_vector, response)
 \item{t_vector}{A vector of times at which PAF estimates are desired (for a coxph model)}
 
 \item{response}{A string representing the name of the outcome variable in data}
+
+\item{weight_vec}{An optional vector of inverse sampling weights}
 }
 \value{
 A numeric estimated impact fraction.

@@ -11,7 +11,7 @@ pspaf_discrete(
   mediator_col,
   mediator_model,
   response_model,
-  weights
+  weight_vec
 )
 }
 \arguments{
@@ -27,7 +27,7 @@ pspaf_discrete(
 
 \item{response_model}{A R model object for a binary outcome that involves a risk factor, confounders and mediators of the risk factor outcome relationship.  Note that a weighted model should be used for case control data.  Non-linear effects should be specified via ns(x, df=y), where ns is the natural spline function from the splines library.}
 
-\item{weights}{A numeric column of weights}
+\item{weight_vec}{A numeric column of weights}
 }
 \value{
 A numeric vector (if ci=FALSE), or data frame (if CI=TRUE) containing estimated PS-PAF for each mediator referred to in mediator_models, together with estimated direct PS-PAF and possibly confidence intervals.

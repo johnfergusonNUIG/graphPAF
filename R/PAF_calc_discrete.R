@@ -11,7 +11,7 @@
 #' @param t_vector Numeric.  A vector of times at which to calculate PAF (only specified if model is coxph)
 #' @param ci_level Numeric.  A number between 0 and 1 specifying the confidence level
 #' @param ci_type Character.  A vector specifying the types of confidence interval desired, as available in the 'Boot' package. The default is c('norm'), which calculates a symmetric confidence interval: (Est-Bias +- 1.96*SE), with the standard error calculated via Bootstrap.  Other choices are 'basic', 'perc' and 'bca'.  Increasing the number of Bootstrap repetitions is recommended for the 'basic', 'perc' and 'bca' methods.
-#' @param weights An optional vector of inverse sampling weights for survey data (note that variance will not be calculated correctly if sampling isn't independent).  Note that this will be ignored if prev is specified and calculation_method="D", in which case the weights will be constructed so the empirical re-weighted prevalence of disease is equal to prev.
+#' @param weight_vec An optional vector of inverse sampling weights for survey data (note that variance will not be calculated correctly if sampling isn't independent).  Note that this will be ignored if prev is specified and calculation_method="D", in which case the weights will be constructed so the empirical re-weighted prevalence of disease is equal to prev.
 #' @references Bruzzi, P., Green, S.B., Byar, D.P., Brinton, L.A. and Schairer, C., 1985. Estimating the population attributable risk for multiple risk factors using case-control data. American journal of epidemiology, 122(5), pp.904-914
 #' @return An estimated PAF if ci=FALSE, or for survival data a vector of estimated PAF corresponding to event times in the data.  If ci=TRUE, a vector with elements corresponding to the raw estimate, estimated bias, bias corrected estimate and lower and upper elements of any confidence procedures requested.  If ci=TRUE, and a coxph model is fit, a matrix will be returned, with rows corresponding to differing times at which the PAF might be calculated.
 #' @export
@@ -32,8 +32,6 @@
 #' data=stroke_reduced, calculation_method="B",ci=FALSE)
 #' \donttest{
 #' # calculate discrete PAF using Direct method
-#' # PAF_calc_discrete(model_exercise, "exercise", refval=0,
-#' # data=stroke_reduced, calculation_method="D", prev=0.0035)
 #' # Use bootstrap resampling to calculate a confidence interval
 #' PAF_calc_discrete(model_exercise, "exercise", refval=0,
 #' data=stroke_reduced, calculation_method="D", prev=0.005, ci=TRUE, boot_rep=10)
@@ -58,7 +56,7 @@
 #' refval=0, data=stroke_reduced, calculation_method="D", ci=TRUE,
 #' boot_rep=10, ci_type=c('norm'),t_vector=c(1,2,3,4,5,6,7,8,9))
 #' }
-PAF_calc_discrete <- function(model, riskfactor, refval, data, calculation_method="B", prev=NULL,ci=FALSE,boot_rep=100, t_vector=NULL, ci_level=.95, ci_type=c("norm"), weights=NULL){
+PAF_calc_discrete <- function(model, riskfactor, refval, data, calculation_method="B", prev=NULL,ci=FALSE,boot_rep=100, t_vector=NULL, ci_level=.95, ci_type=c("norm"), weight_vec=NULL){
 
   if(!is.data.frame(data)){
       stop(
@@ -79,7 +77,7 @@ PAF_calc_discrete <- function(model, riskfactor, refval, data, calculation_metho
   if(is.integer(riskfactor_vals)) data[,which_col] <- as.numeric(data[,which_col])
 
   # call the impact fraction function using the predicted data frame
-  impact_fraction(model=model, data=data, new_data=new_data,calculation_method=calculation_method, prev=prev,ci=ci,boot_rep=boot_rep,t_vector=t_vector, ci_level= ci_level, ci_type=ci_type, weights=weights)
+  impact_fraction(model=model, data=data, new_data=new_data,calculation_method=calculation_method, prev=prev,ci=ci,boot_rep=boot_rep,t_vector=t_vector, ci_level= ci_level, ci_type=ci_type, weight_vec=weight_vec)
 }
 
 

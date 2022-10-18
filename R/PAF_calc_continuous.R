@@ -12,7 +12,7 @@
 #' @param ci_level Numeric.  A number between 0 and 1 specifying the confidence level
 #' @param ci_type Character.  A vector specifying the types of confidence interval desired, as available in the 'Boot' package. The default is c('norm'), which calculates a symmetric confidence interval: (Est-Bias +- 1.96*SE), with the standard error calculated via Bootstrap.  Other choices are 'basic', 'perc' and 'bca'.  Increasing the number of Bootstrap repetitions is recommended for the 'basic', 'perc' and 'bca' methods.
 #' @param S Integer (default 1).  Only relevant to change if there is an interaction between the continuous exposure and other variables in the model.  In this case, marginal comparisons of disease risk at differing levels of the exposure need to be averaged over many individuals.  S is the number of individuals used in this averaging.  May be slow for large S
-#' @param weights An optional vector of inverse sampling weights for survey data (note that variance will not be calculated correctly if sampling isn't independent).  Note that this vector will be ignored if prev is specified, and the weights will be calibrated so that the weighted sample prevalence of disease equals prev.
+#' @param weight_vec An optional vector of inverse sampling weights for survey data (note that variance will not be calculated correctly if sampling isn't independent).  Note that this vector will be ignored if prev is specified, and the weights will be calibrated so that the weighted sample prevalence of disease equals prev.
 #' @return A PAF_q object.  When ci=FALSE, this will essentially be a vector of estimated PAF corresponding to the quantiles specified in q_vec.  If ci=TRUE, a data frame with columns corresponding to the raw estimate, estimated bias, bias corrected estimate and lower and upper elements of any confidence procedures requested, and rows corresponding to the quantiles in q_vec.
 #' @export
 #'
@@ -55,10 +55,9 @@
 #' print(out)
 #' plot(out)
 #' }
-PAF_calc_continuous <- function(model, riskfactor_vec, q_vec=c(0.01), data, calculation_method="B", prev=NULL,ci=FALSE,boot_rep=10, t_vector=NULL, ci_level=.95, ci_type=c("norm"), S=1, weights=NULL){
+PAF_calc_continuous <- function(model, riskfactor_vec, q_vec=c(0.01), data, calculation_method="B", prev=NULL,ci=FALSE,boot_rep=10, t_vector=NULL, ci_level=.95, ci_type=c("norm"), S=1, weight_vec=NULL){
 
-  if(!is.null(weights)) data$weights=weights
-
+  if(is.null(weight_vec)) weight_vec <- rep(1,nrow(data))
   if(!is.data.frame(data)){
     stop(
       "Data must be a dataframe object")
@@ -89,7 +88,7 @@ PAF_calc_continuous <- function(model, riskfactor_vec, q_vec=c(0.01), data, calc
 
 
    if(!ci) {
-      res <- impact_fraction_qvec(data, ind=(1:N), model=model, model_type=model_type, riskfactor_vec=riskfactor_vec,  q_vec=q_vec,calculation_method=calculation_method,S=S,prev=prev,t_vector=t_vector)
+      res <- impact_fraction_qvec(data, ind=(1:N), model=model, model_type=model_type, riskfactor_vec=riskfactor_vec,  q_vec=q_vec,calculation_method=calculation_method,S=S,prev=prev,t_vector=t_vector, weight_vec=weight_vec)
       q_vec_obj <- structure(data.frame("riskfactor"=rep(riskfactor_vec,times=rep(length(q_vec),length(riskfactor_vec))),"q_val"=rep(q_vec,length(riskfactor_vec)),paf_q=res),class="PAF_q")
 
          return(q_vec_obj)
@@ -101,7 +100,7 @@ PAF_calc_continuous <- function(model, riskfactor_vec, q_vec=c(0.01), data, calc
       parallel::clusterExport(cl, c("coxph","clogit","strata","Surv"))
       parallel::clusterExport(cl, c("ns"))
       parallel::clusterExport(cl, c("predict_df_continuous","risk_quantiles","impact_fraction","if_bruzzi","if_direct"))
-      res <- boot::boot(data, impact_fraction_qvec,model=model,  model_type=model_type, riskfactor_vec=riskfactor_vec, q_vec=q_vec,calculation_method=calculation_method,S=S, prev=prev,t_vector=t_vector, R=boot_rep,cl=cl)
+      res <- boot::boot(data, statistic=impact_fraction_qvec,model=model,  model_type=model_type, riskfactor_vec=riskfactor_vec, q_vec=q_vec,calculation_method=calculation_method,S=S, prev=prev,t_vector=t_vector, R=boot_rep,cl=cl, weight_vec=weight_vec)
       parallel::stopCluster(cl)
       q_vec_obj <- structure(cbind("riskfactor"=rep(riskfactor_vec,times=rep(length(q_vec),length(riskfactor_vec))),"q_val"=rep(q_vec,length(riskfactor_vec)),extract_ci(res,model_type=model_type,t_vector=t_vector,ci_level=ci_level,ci_type=ci_type,continuous=TRUE)),class="PAF_q")
             return(q_vec_obj)
@@ -111,7 +110,7 @@ PAF_calc_continuous <- function(model, riskfactor_vec, q_vec=c(0.01), data, calc
 
 
 ##  write functions that that risk_factor vectors and q_vec and risk_q lists and give corresponding impact fractions
-impact_fraction_qvec <- function(data, ind, model, model_type, riskfactor_vec,  q_vec, calculation_method, S=1, prev=NULL,t_vector=NULL, weights=weights){
+impact_fraction_qvec <- function(data, ind, model, model_type, riskfactor_vec,  q_vec, calculation_method, S=1, prev=NULL,t_vector=NULL, weight_vec=NULL){
 
   N <- nrow(data)
 
@@ -119,6 +118,7 @@ impact_fraction_qvec <- function(data, ind, model, model_type, riskfactor_vec,  
   if(model_type == "clogit"){
 
     if(!all(ind==(1:N))){
+
       model_text <- as.character(eval(parse(text=as.character(model$userCall)[2])))
       model_text <- paste0(model_text[2],model_text[1],model_text[3])
       strataname <- gsub(".*strata\\((.*)\\).*",replacement="\\1",x=model_text,perl=TRUE)
@@ -156,6 +156,7 @@ impact_fraction_qvec <- function(data, ind, model, model_type, riskfactor_vec,  
     if(!all(ind==(1:N))){
 
       data <- data[ind, ]
+      if(!is.null(weight_vec)) weight_vec <- weight_vec[ind]
       model <- update(model,data=data)
     }
   }
@@ -164,6 +165,7 @@ impact_fraction_qvec <- function(data, ind, model, model_type, riskfactor_vec,  
     if(!all(ind==(1:N))){
 
       data <- data[ind, ]
+      if(!is.null(weight_vec)) weight_vec <- weight_vec[ind]
       model <- update(model,data=data)
     }
   }
@@ -177,8 +179,8 @@ impact_fraction_qvec <- function(data, ind, model, model_type, riskfactor_vec,  
         for(j in 1:length(q_vec)){
 
           new_data <- predict_df_continuous(riskfactor=riskfactor_vec[i], q_val=q_vec[j],risk_q=risk_q[[i]], data=data)
-          if(i==1 & j==1) return_vec <- impact_fraction(model=model, data=data, new_data=new_data, calculation_method=calculation_method,prev=prev,ci=FALSE,t_vector=t_vector)
-          if(i!=1 || j!=1) return_vec <- c(return_vec,impact_fraction(model=model, data=data, new_data=new_data, calculation_method=calculation_method,prev=prev,ci=FALSE,t_vector=t_vector))
+          if(i==1 & j==1) return_vec <- impact_fraction(model=model, data=data, new_data=new_data, calculation_method=calculation_method,prev=prev,ci=FALSE,t_vector=t_vector, weight_vec = weight_vec)
+          if(i!=1 || j!=1) return_vec <- c(return_vec,impact_fraction(model=model, data=data, new_data=new_data, calculation_method=calculation_method,prev=prev,ci=FALSE,t_vector=t_vector, weight_vec=weight_vec))
         }
     }
   return(return_vec)

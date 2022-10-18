@@ -10,6 +10,7 @@
 #' @param ci logical.  If TRUE a confidence interval is calculated using Bootstrap
 #' @param ci_level Numeric.  Default 0.95. A number between 0 and 1 specifying the confidence level (only necessary to specify when ci=TRUE)
 #' @param ci_type Character.  Defalt norm.  A vector specifying the types of confidence interval desired.  "norm", "basic", "perc" and "bca" are the available methods
+#' @param weight_vec An optional vector of inverse sampling weights for survey data (note that variance will not be calculated correctly if sampling isn't independent).  Note that this will be ignored if prev is specified and calculation_method="D", in which case the weights will be constructed so the empirical re-weighted prevalence of disease is equal to prev
 #' @return A numeric vector (if ci=FALSE), or data frame (if CI=TRUE) containing estimated PS-PAF for each mediator referred to in mediator_models, together with estimated direct PS-PAF and possibly confidence intervals.
 #' @export
 #'
@@ -49,18 +50,16 @@
 #' riskfactor="exercise",refval=0,data=stroke_reduced,prev=0.0035, ci=TRUE,
 #' boot_rep=100,ci_type="norm")
 #'}
-ps_paf <- function(response_model, mediator_models,riskfactor,refval,data,prev=NULL,ci=FALSE,boot_rep=100,ci_level=0.95,ci_type=c("norm")){
-  #defaultW <- getOption("warn")
-  #options(warn = -1)
+ps_paf <- function(response_model, mediator_models,riskfactor,refval,data,prev=NULL,ci=FALSE,boot_rep=100,ci_level=0.95,ci_type=c("norm"), weight_vec=NULL){
+
   data <- as.data.frame(data)
   N <- nrow(data)
-  mediator_names <- c()
+   mediator_names <- c()
   for(i in 1:length(mediator_models)) mediator_names[i] <- as.character(formula(mediator_models[[i]]))[2]
     if(!ci){
-      return_vec <- ps_paf_inner(data=data,ind=1:N,response_model=response_model, mediator_models=mediator_models,riskfactor=riskfactor,refval=refval,prev=prev)
+      return_vec <- ps_paf_inner(data=data,ind=1:N,response_model=response_model, mediator_models=mediator_models,riskfactor=riskfactor,refval=refval,prev=prev,weight_vec=weight_vec)
       return_vec_names <- c("Direct",mediator_names)
       names(return_vec) <- return_vec_names
-      #options(warn = defaultW)
       return(return_vec)
     }
   if(ci){
@@ -68,7 +67,7 @@ ps_paf <- function(response_model, mediator_models,riskfactor,refval,data,prev=N
     cl <- parallel::makeCluster(nc)
     parallel::clusterExport(cl, c("ns"))
     parallel::clusterExport(cl, c("impact_fraction","if_bruzzi","if_direct","predict_df_discrete","pspaf_discrete"))
-    res <- boot::boot(data=data,statistic=ps_paf_inner,R=boot_rep,response_model=response_model, mediator_models=mediator_models,riskfactor=riskfactor,refval=refval,prev=prev,cl=cl)
+    res <- boot::boot(data=data,statistic=ps_paf_inner,R=boot_rep,response_model=response_model, mediator_models=mediator_models,riskfactor=riskfactor,refval=refval,prev=prev,weight_vec=weight_vec,cl=cl)
     parallel::stopCluster(cl)
   }
   #options(warn = defaultW)
@@ -83,11 +82,11 @@ ps_paf <- function(response_model, mediator_models,riskfactor,refval,data,prev=N
 #' @param mediator_col Integer indicator for the discrete mediator column in data
 #' @param mediator_model A glm or polr model for the mediator, depending on the same confounders and risk factor as specified in the response model.
 #' @param response_model A R model object for a binary outcome that involves a risk factor, confounders and mediators of the risk factor outcome relationship.  Note that a weighted model should be used for case control data.  Non-linear effects should be specified via ns(x, df=y), where ns is the natural spline function from the splines library.
-#' @param weights A numeric column of weights
+#' @param weight_vec A numeric column of weights
 #' @return A numeric vector (if ci=FALSE), or data frame (if CI=TRUE) containing estimated PS-PAF for each mediator referred to in mediator_models, together with estimated direct PS-PAF and possibly confidence intervals.
 #' @export
 
-pspaf_discrete <- function(data,refval,riskfactor_col,mediator_col,mediator_model,response_model,weights){
+pspaf_discrete <- function(data,refval,riskfactor_col,mediator_col,mediator_model,response_model,weight_vec){
 
   # set up dataframes for prediction (separately for mediator and response)
   inner_bracket <- numeric(nrow(data))
@@ -116,16 +115,26 @@ pspaf_discrete <- function(data,refval,riskfactor_col,mediator_col,mediator_mode
 
   }
 
-  sum(weights*(predict(response_model,type="response")-inner_bracket))/sum(weights*predict(response_model,type="response"))
+  sum(weight_vec*(predict(response_model,type="response")-inner_bracket))/sum(weight_vec*predict(response_model,type="response"))
 
 }
 
 
-ps_paf_inner <- function(data, ind, response_model, mediator_models,riskfactor,refval,nsims=1,prev=NULL){
+ps_paf_inner <- function(data, ind, response_model, mediator_models,riskfactor,refval,nsims=1,prev=NULL, weight_vec){
 
 
   ###############################
+  if(is.null(weight_vec)) weight_vec <- rep(1,nrow(data))
+  response <-  as.character(formula(response_model))[2]
+  y <- data[,colnames(data)==response]
+  N <- nrow(data)
+  if(!is.null(prev)){
 
+    data_prev <- mean(as.numeric(y==1))
+    weight_vec[y==0] <- (1-prev)/(1-data_prev)
+    weight_vec[y==1] <- prev/data_prev
+
+  }
   N <- nrow(data)
   riskfactor_col <- grep(paste0('^',riskfactor,'$'),colnames(data),perl=TRUE)
   M <- length(mediator_models)
@@ -138,10 +147,19 @@ ps_paf_inner <- function(data, ind, response_model, mediator_models,riskfactor,r
   for(i in 1:M){
     mediator_model_type[i] <- class(mediator_models[[i]])[1]
   }
-
   if(!all(ind==(1:N))){
 
+    weight_vec <- weight_vec[ind]
     data <- data[ind, ]
+    y <- data[,colnames(data)==response]
+    N <- nrow(data)
+    if(!is.null(prev)){
+
+      data_prev <- mean(as.numeric(y==1))
+      weight_vec[y==0] <- (1-prev)/(1-data_prev)
+      weight_vec[y==1] <- prev/data_prev
+
+    }
     response_model <- update(response_model,data=data)
 
     for(i in 1:M){
@@ -154,18 +172,18 @@ ps_paf_inner <- function(data, ind, response_model, mediator_models,riskfactor,r
 
 
     new_data_direct <- predict_df_discrete(riskfactor=riskfactor, refval=refval, data=data)
-    out_vec[1] <- impact_fraction(model=response_model, data=data, new_data=new_data_direct,calculation_method="D", prev=prev,ci=FALSE)
+    out_vec[1] <- impact_fraction(model=response_model, data=data, new_data=new_data_direct,calculation_method="D", ci=FALSE, weight_vec=weight_vec)
 
     for(j in 1:M){
 
-   if(mediator_model_type[j]=='glm' || mediator_model_type[j]=='polr') out_vec[1+j]  <- pspaf_discrete(data=data,refval=refval,riskfactor_col=riskfactor_col,mediator_col=mediator_col[j],mediator_models[[j]],response_model,weights=mediator_models[[j]]$weights)
+   if(mediator_model_type[j]=='glm' || mediator_model_type[j]=='polr') out_vec[1+j]  <- pspaf_discrete(data=data,refval=refval,riskfactor_col=riskfactor_col,mediator_col=mediator_col[j],mediator_models[[j]],response_model,weight_vec=weight_vec)
 
    if(mediator_model_type[j]=='lm'){
 
       mediator_effects <- predict(mediator_models[[j]]) - predict(mediator_models[[j]],new_data_direct)
       new_mediator_data <- data
       new_mediator_data[,mediator_col[j]] <- new_mediator_data[,mediator_col[j]] - mediator_effects
-     out_vec[j+1] <- impact_fraction(model=response_model, data=data, new_data=new_mediator_data,calculation_method="D", prev=prev,ci=FALSE)
+     out_vec[j+1] <- impact_fraction(model=response_model, data=data, new_data=new_mediator_data,calculation_method="D", ci=FALSE, weight_vec=weight_vec)
 
        }
     }

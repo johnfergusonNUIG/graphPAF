@@ -14,7 +14,8 @@ ps_paf(
   ci = FALSE,
   boot_rep = 100,
   ci_level = 0.95,
-  ci_type = c("norm")
+  ci_type = c("norm"),
+  weight_vec = NULL
 )
 }
 \arguments{
@@ -37,6 +38,8 @@ ps_paf(
 \item{ci_level}{Numeric.  Default 0.95. A number between 0 and 1 specifying the confidence level (only necessary to specify when ci=TRUE)}
 
 \item{ci_type}{Character.  Defalt norm.  A vector specifying the types of confidence interval desired.  "norm", "basic", "perc" and "bca" are the available methods}
+
+\item{weight_vec}{An optional vector of inverse sampling weights for survey data (note that variance will not be calculated correctly if sampling isn't independent).  Note that this will be ignored if prev is specified and calculation_method="D", in which case the weights will be constructed so the empirical re-weighted prevalence of disease is equal to prev}
 }
 \value{
 A numeric vector (if ci=FALSE), or data frame (if CI=TRUE) containing estimated PS-PAF for each mediator referred to in mediator_models, together with estimated direct PS-PAF and possibly confidence intervals.

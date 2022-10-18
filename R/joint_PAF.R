@@ -1,13 +1,11 @@
-average_paf_no_CI <- function(data, model_list, parent_list, node_vec,  prev=.09, nperm=NULL, correct_order=3, alpha=0.05,vars=NULL, exact=TRUE){
-  #oldw <- getOption("warn")
-  #options(warn = -1)
+average_paf_no_CI <- function(data, model_list, parent_list, node_vec,  prev=.09, nperm=NULL, correct_order=3, alpha=0.05,vars=NULL, exact=TRUE, weight_vec=NULL){
+
   response_col <- (1:length(colnames(data)))[colnames(data) %in% node_vec[length(node_vec)]]
-  if(!c("weights") %in% colnames(data)) data$weights = rep(1, nrow(data))
+  w <- weight_vec
+  if(is.null(weight_vec)) w <- rep(1,nrow(data))
   if(!is.null(prev)){
     w = prev*as.numeric(data[,response_col]==1) + (1-prev)*as.numeric(data[,response_col]==0)
-    data$weights=w
   }
-  w <- data$weights
   col_list <- numeric(length(node_vec))
   N <- length(col_list)-1
   sim_disease_current_population <- predict(model_list[[N+1]],type="response")
@@ -15,7 +13,6 @@ average_paf_no_CI <- function(data, model_list, parent_list, node_vec,  prev=.09
   for(i in 1:(N+1)) col_list[i] <- (1:ncol(data))[colnames(data)==node_vec[i]]
   col_list_orig <- col_list
   if(!is.null(vars)){
-    #browser()
     indexes <- c((1:(N+1))[node_vec %in% vars],N+1)
     col_list <- col_list[indexes]
     N <- length(col_list)-1
@@ -54,7 +51,6 @@ average_paf_no_CI <- function(data, model_list, parent_list, node_vec,  prev=.09
     }
     perm_mat <- perm_mat_temp
     rm(perm_mat_temp)
-    #print(paste0("doing ", nperm, " permutations"))
   }
 
 
@@ -265,7 +261,7 @@ if(!exact){
 #' @param ci_type Character.  Default norm.  A vector specifying the types of confidence interval desired.  "norm", "basic", "perc" and "bca" are the available methods
 #' @param ci_level Numeric.  Default 0.95. A number between 0 and 1 specifying the level of the confidence interval (when ci=TRUE)
 #' @param ci_level_ME Numeric.  Default 0.95. A number between 0 and 1 specifying the level of the margin of error for the point estimate (only revelant when ci=FALSE and exact=FALSE)
-#' @param weights An optional vector of inverse sampling weights (note with survey data, the variance may not be calculated correctly if sampling isn't independent).  Note that this vector will be ignored if prev is specified, and the weights will be calibrated so that the weighted sample prevalence of disease equals prev.  This argument can be ignored if data has a column weights with correctly calibrated weights
+#' @param weight_vec An optional vector of inverse sampling weights (note with survey data, the variance may not be calculated correctly if sampling isn't independent).  Note that this vector will be ignored if prev is specified, and the weights will be calibrated so that the weighted sample prevalence of disease equals prev.  This argument can be ignored if data has a column weights with correctly calibrated weights
 #' @return A SAF_summary object with average joint and sequential PAF for all risk factors in node_vec (or alternatively a subset of those risk factors if specified in vars).
 #' @export
 #'
@@ -348,7 +344,7 @@ if(!exact){
 #'  print(out)
 #'  plot(out,max_PAF=0.5,min_PAF=-0.1,number_rows=3)
 #' }
-average_paf <- function(data, model_list, parent_list, node_vec, prev=.09, exact=TRUE, nperm=NULL, correct_order=2, vars=NULL,ci=FALSE,boot_rep=100, ci_type=c("norm"),ci_level=0.95, ci_level_ME=0.95,weights=NULL){
+average_paf <- function(data, model_list, parent_list, node_vec, prev=.09, exact=TRUE, nperm=NULL, correct_order=2, vars=NULL,ci=FALSE,boot_rep=100, ci_type=c("norm"),ci_level=0.95, ci_level_ME=0.95,weight_vec=NULL){
 
   if(!node_order(parent_list=parent_list,node_vec=node_vec)){
     stop("ancestors must be specified before descendants in node_vec")
@@ -376,19 +372,18 @@ average_paf <- function(data, model_list, parent_list, node_vec, prev=.09, exact
     N <- length(col_list)-1
 
   }
-  if(!is.null(weights)) data$weights = weights
+  if(is.null(weight_vec)) weight_vec = rep(1,nrow(data))
 
   if(!ci){
-    res <- average_paf_no_CI(data=data, model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=prev, nperm=nperm, correct_order=correct_order, alpha=1-ci_level_ME,vars=vars,exact=exact)
+    res <- average_paf_no_CI(data=data, model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=prev, nperm=nperm, correct_order=correct_order, alpha=1-ci_level_ME,vars=vars,exact=exact, weight_vec=weight_vec)
     return(res)
   }
-  #oldw <- getOption("warn")
-  #options(warn = -1)
+
   nc <- options()$boot.ncpus
   cl <- parallel::makeCluster(nc)
   if("splines" %in% (.packages())) parallel::clusterExport(cl, c("ns"))
   parallel::clusterExport(cl, c("sim_outnode","do_sim"))
-  res <- boot::boot(data=data,statistic=average_paf_inner,R=boot_rep,model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=prev, nperm=nperm, correct_order=correct_order, vars=vars, exact=exact,cl=cl)
+  res <- boot::boot(data=data,statistic=average_paf_inner,R=boot_rep,model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=prev, nperm=nperm, correct_order=correct_order, vars=vars, exact=exact,cl=cl,weight_vec=weight_vec)
   parallel::stopCluster(cl)
   if(is.null(vars)) vars <- node_vec[1:(length(node_vec)-1)]
   res <- extract_ci(res=res,model_type='glm',t_vector=c(paste0(rep(node_vec[node_vec %in% vars],times=rep(length(vars),length(vars))),'_',rep(1:length(vars),length(vars))),paste0("Average PAF ", node_vec[node_vec %in% vars]),'JointPAF'),ci_level=ci_level,ci_type=ci_type,continuous=TRUE)
@@ -506,14 +501,14 @@ do_sim <- function(colnum,current_mat, model,SN=TRUE){
       return(pred+resids)
 
     }
-    return(pred + sample(resids,length(resids),replace=TRUE, prob=model$weights/sum(model$weights)))
+    return(pred + sample(resids,length(resids),replace=TRUE, prob=model$weight_vec/sum(model$weight_vec)))
   }
 }
 
 
 
 
-average_paf_inner <- function(data, ind, model_list, parent_list, node_vec, prev=.09, nperm=100, correct_order=3, vars=NULL, exact=TRUE){
+average_paf_inner <- function(data, ind, model_list, parent_list, node_vec, prev=.09, nperm=100, correct_order=3, vars=NULL, exact=TRUE, weight_vec=NULL){
 
   ##################################
 
@@ -521,13 +516,12 @@ average_paf_inner <- function(data, ind, model_list, parent_list, node_vec, prev
   data <- data[ind,]
   n_data <- nrow(data)
   response_col <- (1:length(colnames(data)))[colnames(data) %in% node_vec[length(node_vec)]]
-  if(!c("weights") %in% colnames(data)) data$weights = rep(1, nrow(data))
+  w <- weight_vec
+  if(is.null(weight_vec)) w <- rep(1,nrow(data))
+  w <- w[ind]
    if(!is.null(prev)){
     w = prev*as.numeric(data[,response_col]==1) + (1-prev)*as.numeric(data[,response_col]==0)
-    data$weights=w
   }
-  w <- data$weights
-  #  if(!all(ind==1:n_data)) browser()
   if(!all(ind==1:n_data)) for(i in 1:length(model_list)) model_list[[i]] <- update(model_list[[i]],data=data)
 
 
@@ -650,9 +644,7 @@ average_paf_inner <- function(data, ind, model_list, parent_list, node_vec, prev
     reverse_order_mat[i,] <- reverse_order
   }
    if(exact){
-     # calculations are for joint PAFs rather than sequential PAFs
-     # First check permutation to see if it's the same as previous permutation
-     no_intervention <- sim_disease_current_population
+          no_intervention <- sim_disease_current_population
 
      start_again=TRUE
      if(i==1){
@@ -839,7 +831,6 @@ for(i in 1:length(node_vec)){
   to_execute <- paste("model_list[[i]] <-", theform,sep='')
   eval(parse(text=to_execute))
 }
-#options(warn = oldw)
 
 model_list
 }
@@ -872,7 +863,7 @@ node_order <- function(parent_list, node_vec){
 #' @param ci_type Character.  Default norm.  A vector specifying the types of confidence interval desired.  "norm", "basic", "perc" and "bca" are the available method
 #' @param ci_level Numeric.  Confidence level.  Default 0.95
 #' @param nsim Numeric.  Number of independent simulations of the dataset.  Default of 1
-#' @param weights An optional vector of inverse sampling weights (note with survey data, the variance may not be calculated correctly if sampling isn't independent).  Note that this vector will be ignored if prev is specified, and the weights will be calibrated so that the weighted sample prevalence of disease equals prev.  This argument can be ignored if data has a column weights with correctly calibrated weights
+#' @param weight_vec An optional vector of inverse sampling weights (note with survey data, the variance may not be calculated correctly if sampling isn't independent).  Note that this vector will be ignored if prev is specified, and the weights will be calibrated so that the weighted sample prevalence of disease equals prev.  This argument can be ignored if data has a column weights with correctly calibrated weights
 #' @return A numeric estimate of the joint PAF for all risk factors (if ci=FALSE), or a data frame giving joint PAF and confidence intervals (if ci=TRUE)
 #' @export
 #'
@@ -934,7 +925,7 @@ node_order <- function(parent_list, node_vec){
 #' vars = c("high_blood_pressure","smoking","stress","exercise","alcohol",
 #' "diabetes","early_stage_heart_disease"),ci=TRUE,boot_rep=10)
 #' }
-joint_paf <- function(data, model_list, parent_list, node_vec, prev=NULL, vars=NULL,ci=FALSE,boot_rep=100, ci_type=c("norm"),ci_level=0.95,nsim=1,weights=NULL){
+joint_paf <- function(data, model_list, parent_list, node_vec, prev=NULL, vars=NULL,ci=FALSE,boot_rep=100, ci_type=c("norm"),ci_level=0.95,nsim=1,weight_vec=NULL){
   if(!node_order(parent_list=parent_list,node_vec=node_vec)){
     stop("ancestors must be specified before descendants in node_vec")
   }
@@ -942,15 +933,14 @@ joint_paf <- function(data, model_list, parent_list, node_vec, prev=NULL, vars=N
     stop("Not all requested variables are in node_vec.  Check spelling")
   }
   data <- as.data.frame(data)
-  if(!is.null(weights)) data$weights = weights
 
 
-if(!ci) return(joint_paf_inner(data=data,ind=1:nrow(data), model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=prev,vars=vars,nsim=nsim))
+if(!ci) return(joint_paf_inner(data=data,ind=1:nrow(data), model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=prev,vars=vars,nsim=nsim,weight_vec=weight_vec))
   nc <- options()$boot.ncpus
   cl <- parallel::makeCluster(nc)
   if("splines" %in% (.packages())) parallel::clusterExport(cl, c("ns"))
   parallel::clusterExport(cl, c("sim_outnode","do_sim"))
-  res <- boot::boot(data=data,statistic=joint_paf_inner,R=boot_rep,model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=prev, vars=vars,nsim=nsim,cl=cl)
+  res <- boot::boot(data=data,statistic=joint_paf_inner,R=boot_rep,model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=prev, vars=vars,nsim=nsim,weight_vec=weight_vec,cl=cl)
   parallel::stopCluster(cl)
   stuff <- extract_ci(res=res,model_type='glm',ci_level=ci_level,ci_type=ci_type,continuous=TRUE,t_vector=c("joint PAF"))
   return(stuff)
@@ -958,18 +948,17 @@ if(!ci) return(joint_paf_inner(data=data,ind=1:nrow(data), model_list=model_list
 }
 
 
-joint_paf_inner <- function(data, ind, model_list, parent_list, node_vec, prev=.09,vars=NULL,nsim=1){
+joint_paf_inner <- function(data, ind, model_list, parent_list, node_vec, prev=.09,vars=NULL,nsim=1,weight_vec=NULL){
 
   data <- data[ind,]
   n_data <- nrow(data)
   response_col <- (1:length(colnames(data)))[colnames(data) %in% node_vec[length(node_vec)]]
-  if(!c("weights") %in% colnames(data)) data$weights = rep(1, nrow(data))
+  w <- weight_vec
+  if(is.null(weight_vec)) w <- rep(1,nrow(data))
+  w <- w[ind]
   if(!is.null(prev)){
     w = prev*as.numeric(data[,response_col]==1) + (1-prev)*as.numeric(data[,response_col]==0)
-    data$weights=w
-  }
-  w <- data$weights
-  #  if(!all(ind==1:n_data)) browser()
+     }
   if(!all(ind==1:n_data)) for(i in 1:length(model_list)) model_list[[i]] <- update(model_list[[i]],data=data)
 
 
@@ -1014,7 +1003,7 @@ current_mat <- data
 #' @param ci_type Character.  Default norm.  A vector specifying the types of confidence interval desired.  "norm", "basic", "perc" and "bca" are the available methods
 #' @param ci_level Numeric.  Confidence level.  Default 0.95
 #' @param nsim Numeric.  Number of independent simulations of the dataset.  Default of 1
-#' @param weights An optional vector of inverse sampling weights (note with survey data, the variance may not be calculated correctly if sampling isn't independent).  Note that this vector will be ignored if prev is specified, and the weights will be calibrated so that the weighted sample prevalence of disease equals prev.  This argument can be ignored if data has a column weights with correctly calibrated weights
+#' @param weight_vec An optional vector of inverse sampling weights (note with survey data, the variance may not be calculated correctly if sampling isn't independent).  Note that this vector will be ignored if prev is specified, and the weights will be calibrated so that the weighted sample prevalence of disease equals prev.  This argument can be ignored if data has a column weights with correctly calibrated weights
 #' @return A numeric estimate of sequential PAF (if ci=FALSE), or else a data frame giving estimates and confidence limits of sequential PAF (if ci=TRUE)
 #' @export
 #'
@@ -1081,7 +1070,7 @@ current_mat <- data
 #' parent_list, node_vec=node_vec, prev=.0035, vars = c("high_blood_pressure",
 #' "smoking","stress"),ci=TRUE,boot_rep=10)
 #' }
-seq_paf <- function(data, model_list, parent_list, node_vec, prev=NULL, vars=NULL,ci=FALSE,boot_rep=100, ci_type=c("norm"),ci_level=0.95,nsim=1,weights=NULL){
+seq_paf <- function(data, model_list, parent_list, node_vec, prev=NULL, vars=NULL,ci=FALSE,boot_rep=100, ci_type=c("norm"),ci_level=0.95,nsim=1,weight_vec=NULL){
   if(!node_order(parent_list=parent_list,node_vec=node_vec)){
     stop("ancestors must be specified before descendants in node_vec")
   }
@@ -1093,13 +1082,12 @@ seq_paf <- function(data, model_list, parent_list, node_vec, prev=NULL, vars=NUL
   }
 
   data <- as.data.frame(data)
-  if(!is.null(weights)) data$weights = weights
-  if(!ci) return(seq_paf_inner(data=data,ind=1:nrow(data), model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=prev,vars=vars,nsim=nsim))
+  if(!ci) return(seq_paf_inner(data=data,ind=1:nrow(data), model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=prev,vars=vars,nsim=nsim,weight_vec=weight_vec))
   nc <- options()$boot.ncpus
   cl <- parallel::makeCluster(nc)
   if("splines" %in% (.packages())) parallel::clusterExport(cl, c("ns"))
   parallel::clusterExport(cl, c("sim_outnode","do_sim"))
-  res <- boot::boot(data=data,statistic=seq_paf_inner,R=boot_rep,model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=prev, vars=vars,nsim=nsim,cl=cl)
+  res <- boot::boot(data=data,statistic=seq_paf_inner,R=boot_rep,model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=prev, vars=vars,nsim=nsim,weight_vec=weight_vec,cl=cl)
   parallel::stopCluster(cl)
   stuff <- extract_ci(res=res,model_type='glm',ci_level=ci_level,ci_type=ci_type,continuous=TRUE,t_vector=c("sequential PAF"))
   return(stuff)
@@ -1107,18 +1095,17 @@ seq_paf <- function(data, model_list, parent_list, node_vec, prev=NULL, vars=NUL
 }
 
 
-seq_paf_inner <- function(data, ind, model_list, parent_list, node_vec, prev=.09,vars=NULL,nsim=1){
+seq_paf_inner <- function(data, ind, model_list, parent_list, node_vec, prev=.09,vars=NULL,nsim=1,weight_vec=NULL){
 
   data <- data[ind,]
   n_data <- nrow(data)
   response_col <- (1:length(colnames(data)))[colnames(data) %in% node_vec[length(node_vec)]]
-  if(!c("weights") %in% colnames(data)) data$weights = rep(1, nrow(data))
+  w <- weight_vec
+  if(is.null(weight_vec)) w <- rep(1,nrow(data))
+  w <- w[ind]
   if(!is.null(prev)){
     w = prev*as.numeric(data[,response_col]==1) + (1-prev)*as.numeric(data[,response_col]==0)
-    data$weights=w
   }
-  w <- data$weights
-  #  if(!all(ind==1:n_data)) browser()
   if(!all(ind==1:n_data)) for(i in 1:length(model_list)) model_list[[i]] <- update(model_list[[i]],data=data)
 
 
@@ -1131,7 +1118,6 @@ seq_paf_inner <- function(data, ind, model_list, parent_list, node_vec, prev=.09
     for(i in 1:(N+1)) col_list[i] <- (1:ncol(data))[colnames(data)==node_vec[i]]
     col_list_orig <- col_list
     if(!is.null(vars)){
-      #browser()
       indexes <- numeric(length(vars))
       for(i in 1:length(vars))  indexes[i] <- (1:(N+1))[node_vec %in% vars[i]]
       indexes <- c(indexes,N+1)

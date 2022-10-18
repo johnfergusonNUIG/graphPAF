@@ -16,7 +16,7 @@ PAF_calc_discrete(
   t_vector = NULL,
   ci_level = 0.95,
   ci_type = c("norm"),
-  weights = NULL
+  weight_vec = NULL
 )
 }
 \arguments{
@@ -42,7 +42,7 @@ PAF_calc_discrete(
 
 \item{ci_type}{Character.  A vector specifying the types of confidence interval desired, as available in the 'Boot' package. The default is c('norm'), which calculates a symmetric confidence interval: (Est-Bias +- 1.96*SE), with the standard error calculated via Bootstrap.  Other choices are 'basic', 'perc' and 'bca'.  Increasing the number of Bootstrap repetitions is recommended for the 'basic', 'perc' and 'bca' methods.}
 
-\item{weights}{An optional vector of inverse sampling weights for survey data (note that variance will not be calculated correctly if sampling isn't independent).  Note that this will be ignored if prev is specified and calculation_method="D", in which case the weights will be constructed so the empirical re-weighted prevalence of disease is equal to prev.}
+\item{weight_vec}{An optional vector of inverse sampling weights for survey data (note that variance will not be calculated correctly if sampling isn't independent).  Note that this will be ignored if prev is specified and calculation_method="D", in which case the weights will be constructed so the empirical re-weighted prevalence of disease is equal to prev.}
 }
 \value{
 An estimated PAF if ci=FALSE, or for survival data a vector of estimated PAF corresponding to event times in the data.  If ci=TRUE, a vector with elements corresponding to the raw estimate, estimated bias, bias corrected estimate and lower and upper elements of any confidence procedures requested.  If ci=TRUE, and a coxph model is fit, a matrix will be returned, with rows corresponding to differing times at which the PAF might be calculated.
@@ -66,8 +66,6 @@ PAF_calc_discrete(model_exercise, "exercise", refval=0,
 data=stroke_reduced, calculation_method="B",ci=FALSE)
 \donttest{
 # calculate discrete PAF using Direct method
-# PAF_calc_discrete(model_exercise, "exercise", refval=0,
-# data=stroke_reduced, calculation_method="D", prev=0.0035)
 # Use bootstrap resampling to calculate a confidence interval
 PAF_calc_discrete(model_exercise, "exercise", refval=0,
 data=stroke_reduced, calculation_method="D", prev=0.005, ci=TRUE, boot_rep=10)
