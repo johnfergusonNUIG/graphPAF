@@ -84,7 +84,12 @@ model_list=automatic_fit(data=Hordaland_data, parent_list=parent_list,
 # subsequent simulation of the incremental interventions on the distribution of risk
 # factors.  The permutations are stratified so each factor appears equally often in
 # the first correct_order positions.  correct_order has a default of 2.
-out <- average_paf(data=Hordaland_data,
+
+# model_list$data objects have fitting weights included
+# Including weight column in data
+# necessary if Bootstrapping CIs
+
+out <- average_paf(data=model_list[[length(model_list)]]$data,
  model_list=model_list, parent_list=parent_list,
  node_vec=node_vec, prev=.09, nperm=10,vars = c("urban.rural",
  "occupational.exposure"),ci=FALSE)

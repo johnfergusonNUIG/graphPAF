@@ -35,6 +35,8 @@ parent_occupational.exposure, parent_y)
 node_vec <- c("urban.rural","smoking.category","occupational.exposure", "y")
 model_list=automatic_fit(data=Hordaland_data, parent_list=parent_list,
  node_vec=node_vec, prev=.09)
+# model_list$data objects have fitting weights
+# included in data frame
 # Including weight column in data
 # necessary if Bootstrapping CIs
 out <- average_paf(data=model_list[[length(model_list)]]$data,
