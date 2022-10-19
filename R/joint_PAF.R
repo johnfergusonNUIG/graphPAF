@@ -288,14 +288,12 @@ if(!exact){
 #' # here we use the auxillary function 'automatic fit'
 #' model_list=automatic_fit(data=Hordaland_data, parent_list=parent_list,
 #'  node_vec=node_vec, prev=.09)
-#' # update column of weights in Hordaland so
-#' # Bootstrap will work
-#' Hordaland_data <- data_clean(Hordaland_data,prev=0.09,vars=colnames(Hordaland_data),response="y")
 #' # By default the function works by stratified simulation of permutations and
 #' # subsequent simulation of the incremental interventions on the distribution of risk
 #' # factors.  The permutations are stratified so each factor appears equally often in
 #' # the first correct_order positions.  correct_order has a default of 2.
-#' out <- average_paf(data=Hordaland_data, model_list=model_list, parent_list=parent_list,
+#' out <- average_paf(data=Hordaland_data,
+#'  model_list=model_list, parent_list=parent_list,
 #'  node_vec=node_vec, prev=.09, nperm=10,vars = c("urban.rural",
 #'  "occupational.exposure"),ci=FALSE)
 #'  print(out)
@@ -431,7 +429,10 @@ average_paf <- function(data, model_list, parent_list, node_vec, prev=.09, exact
 # # here we use the auxillary function 'automatic fit'
 #' model_list=automatic_fit(data=Hordaland_data, parent_list=parent_list,
 #'  node_vec=node_vec, prev=.09)
-#' out <- average_paf(data=Hordaland_data, model_list=model_list,
+#' # Including weight column in data
+#' # necessary if Bootstrapping CIs
+#' out <- average_paf(data=model_list[[length(model_list)]]$data,
+#' model_list=model_list,
 #' parent_list=parent_list, node_vec=node_vec, prev=.09, nperm=10,
 #' vars = c("urban.rural","occupational.exposure"),ci=FALSE)
 #' print(out)
@@ -895,10 +896,11 @@ node_order <- function(parent_list, node_vec){
 #' # here we use the auxillary function 'automatic fit'
 #' model_list=automatic_fit(data=Hordaland_data, parent_list=parent_list,
 #' node_vec=node_vec, prev=.09)
-#' # update column of weights in Hordaland so
-#' # Bootstrap will work
-#' Hordaland_data <- data_clean(Hordaland_data,prev=0.09,vars=colnames(Hordaland_data),response="y")
-#' joint_paf(data=Hordaland_data, model_list=model_list, parent_list=parent_list,
+#' # model_list$data objects have fitting weights included
+#' # Including weight column in data
+#' # necessary if Bootstrapping CIs
+#' joint_paf(data=model_list[[length(model_list)]]$data,
+#'  model_list=model_list, parent_list=parent_list,
 #'  node_vec=node_vec, prev=.09, vars = c("urban.rural",
 #'  "occupational.exposure"),ci=FALSE)
 #' \donttest{
@@ -1039,11 +1041,11 @@ current_mat <- data
 #' # here we use the auxillary function 'automatic fit'
 #' model_list=automatic_fit(data=Hordaland_data, parent_list=parent_list,
 #' node_vec=node_vec, prev=.09)
-#' # update column of weights in Hordaland so
-#' # Bootstrap will work
-#' Hordaland_data <- data_clean(Hordaland_data,prev=0.09,vars=colnames(Hordaland_data),response="y")
 #' # sequential paf for occupational exposure conditional on elimination of urban.rural
-#' seq_paf(data=Hordaland_data, model_list=model_list, parent_list=parent_list,
+#' # Including weight column in data
+#' # necessary if Bootstrapping CIs
+#' seq_paf(data=model_list[[length(model_list)]]$data,
+#' model_list=model_list, parent_list=parent_list,
 #'  node_vec=node_vec, prev=.09, vars = c("urban.rural",
 #'  "occupational.exposure"),ci=FALSE)
 #' \donttest{

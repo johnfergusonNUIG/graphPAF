@@ -74,11 +74,11 @@ node_vec <- c("urban.rural","smoking.category","occupational.exposure", "y")
 # here we use the auxillary function 'automatic fit'
 model_list=automatic_fit(data=Hordaland_data, parent_list=parent_list,
 node_vec=node_vec, prev=.09)
-# update column of weights in Hordaland so
-# Bootstrap will work
-Hordaland_data <- data_clean(Hordaland_data,prev=0.09,vars=colnames(Hordaland_data),response="y")
 # sequential paf for occupational exposure conditional on elimination of urban.rural
-seq_paf(data=Hordaland_data, model_list=model_list, parent_list=parent_list,
+# Including weight column in data
+# necessary if Bootstrapping CIs
+seq_paf(data=model_list[[length(model_list)]]$data,
+model_list=model_list, parent_list=parent_list,
  node_vec=node_vec, prev=.09, vars = c("urban.rural",
  "occupational.exposure"),ci=FALSE)
 \donttest{
