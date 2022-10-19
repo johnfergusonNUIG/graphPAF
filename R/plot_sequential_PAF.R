@@ -29,9 +29,9 @@
 #' parent_occupational.exposure, parent_y)
 #' # also specify nodes of graph, in order from root to leaves
 #' node_vec <- c("urban.rural","smoking.category","occupational.exposure", "y")
-#' model_list=automatic_fit(data=model_list[[length(model_list)]]$data,
+#' model_list=automatic_fit(Hordaland_data,
 #' parent_list=parent_list, node_vec=node_vec, prev=.09)
-#' out <- average_paf(data=data=model_list[[length(model_list)]]$data,
+#' out <- average_paf(data=model_list[[length(model_list)]]$data,
 #'  model_list=model_list,
 #' parent_list=parent_list, node_vec=node_vec, prev=.09, nperm=10,
 #' vars = c("urban.rural","occupational.exposure"),ci=FALSE)
@@ -40,7 +40,8 @@
 #' # plot with confidence intervals for average and sequential PAF
 #' # (This is probably more useful for more than 2 risk factors).
 #' # Separate axes for each risk factor so confidence intervals can be clearly displayed
-#' out <- average_paf(data=Hordaland_data, model_list=model_list,
+#' out <- average_paf(data=model_list[[length(model_list)]]$data,
+#'  model_list=model_list,
 #' parent_list=parent_list, node_vec=node_vec, prev=.09, nperm=10,
 #' vars = c("urban.rural","occupational.exposure"),ci=TRUE,boot_rep=8)
 #' plot(out)
