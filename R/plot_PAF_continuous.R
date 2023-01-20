@@ -141,7 +141,7 @@ plot_continuous_quick <- function(model,riskfactor,data,S = 10,ref_val=NA, ci_le
 #' @param min_risk_q Default .1.  A number between 0 and 1 representing the desired risk quantile for the continuous risk factor
 #' @param plot_region Default TRUE.  Logical specifying whether the targeted region corresponding to an intervention setting the continuous risk factor at a quantile min_risk_q or lower is to be plotted
 #' @param plot_density  Default TRUE.  Logical specifying whether density of distribution of risk factor is to be added to the plot
-#' @param n_x  Default 1000.  How many values of riskfactor will be used to plot spline (when interact=FALSE)
+#' @param n_x  Default 10000.  How many values of riskfactor will be used to plot spline (when interact=FALSE)
 #' @param theylab  Default "OR".  Y-axis label of the plot
 #' @param qlist Vector of quantile values for q, corresponding to the plotted values of PAF_q for each risk factor/exposure
 #' @param interact  Default "FALSE".  Set to TRUE spline models enter as interactions.
@@ -158,7 +158,7 @@ plot_continuous_quick <- function(model,riskfactor,data,S = 10,ref_val=NA, ci_le
 #'  alcohol + stress + ns(lipids,df = 3) + ns(waist_hip_ratio, df = 3) +
 #'   high_blood_pressure, family = "binomial", data = stroke_reduced)
 #' plot_continuous(model_continuous,riskfactor="diet",data=stroke_reduced)
-plot_continuous <- function(model,riskfactor,data,S = 10,ref_val=NA, ci_level=0.95,min_risk_q=.1,plot_region=TRUE, plot_density=TRUE,n_x=1000,theylab="OR",  qlist=seq(from=0.001,to=0.999,by=0.001), interact=FALSE){
+plot_continuous <- function(model,riskfactor,data,S = 10,ref_val=NA, ci_level=0.95,min_risk_q=.1,plot_region=TRUE, plot_density=TRUE,n_x=10000,theylab="OR",  qlist=seq(from=0.001,to=0.999,by=0.001), interact=FALSE){
 
   if(!interact){
         return(plot_continuous_quick(model=model,riskfactor=riskfactor,data=data,ci_level=ci_level,min_risk_q=min_risk_q,n_x=n_x,plot_region=plot_region,plot_density=plot_density,theylab=theylab,qlist=qlist))

@@ -39,7 +39,7 @@ plot_continuous(
 
 \item{plot_density}{Default TRUE.  Logical specifying whether density of distribution of risk factor is to be added to the plot}
 
-\item{n_x}{Default 1000.  How many values of riskfactor will be used to plot spline (when interact=FALSE)}
+\item{n_x}{Default 10000.  How many values of riskfactor will be used to plot spline (when interact=FALSE)}
 
 \item{theylab}{Default "OR".  Y-axis label of the plot}
 
