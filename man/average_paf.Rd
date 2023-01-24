@@ -15,7 +15,7 @@ average_paf(
   correct_order = 2,
   vars = NULL,
   ci = FALSE,
-  boot_rep = 100,
+  boot_rep = 50,
   ci_type = c("norm"),
   ci_level = 0.95,
   ci_level_ME = 0.95,

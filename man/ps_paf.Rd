@@ -12,7 +12,7 @@ ps_paf(
   data,
   prev = NULL,
   ci = FALSE,
-  boot_rep = 100,
+  boot_rep = 50,
   ci_level = 0.95,
   ci_type = c("norm"),
   weight_vec = NULL

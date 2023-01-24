@@ -30,7 +30,7 @@
 #' data=stroke_reduced)
 #' impact_fraction(model=model_exercise,stroke_reduced,new_data,
 #' calculation_method = "B")
-impact_fraction <- function(model, data, new_data, calculation_method="B",prev=NULL,ci=FALSE,boot_rep=100,t_vector=NULL, ci_level=0.95, ci_type=c("norm"), weight_vec=NULL){
+impact_fraction <- function(model, data, new_data, calculation_method="B",prev=NULL,ci=FALSE,boot_rep=50,t_vector=NULL, ci_level=0.95, ci_type=c("norm"), weight_vec=NULL){
 
   if(!is.data.frame(data)){
     stop(

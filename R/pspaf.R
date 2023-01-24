@@ -50,7 +50,7 @@
 #' riskfactor="exercise",refval=0,data=stroke_reduced,prev=0.0035, ci=TRUE,
 #' boot_rep=100,ci_type="norm")
 #'}
-ps_paf <- function(response_model, mediator_models,riskfactor,refval,data,prev=NULL,ci=FALSE,boot_rep=100,ci_level=0.95,ci_type=c("norm"), weight_vec=NULL){
+ps_paf <- function(response_model, mediator_models,riskfactor,refval,data,prev=NULL,ci=FALSE,boot_rep=50,ci_level=0.95,ci_type=c("norm"), weight_vec=NULL){
 
   data <- as.data.frame(data)
   N <- nrow(data)

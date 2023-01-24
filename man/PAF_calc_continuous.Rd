@@ -12,7 +12,7 @@ PAF_calc_continuous(
   calculation_method = "B",
   prev = NULL,
   ci = FALSE,
-  boot_rep = 10,
+  boot_rep = 50,
   t_vector = NULL,
   ci_level = 0.95,
   ci_type = c("norm"),

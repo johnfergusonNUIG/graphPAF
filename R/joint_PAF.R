@@ -350,7 +350,7 @@ if(!exact){
 #'  print(out)
 #'  plot(out,max_PAF=0.5,min_PAF=-0.1,number_rows=3)
 #' }
-average_paf <- function(data, model_list, parent_list, node_vec, prev=.09, exact=TRUE, nperm=NULL, correct_order=2, vars=NULL,ci=FALSE,boot_rep=100, ci_type=c("norm"),ci_level=0.95, ci_level_ME=0.95,weight_vec=NULL){
+average_paf <- function(data, model_list, parent_list, node_vec, prev=.09, exact=TRUE, nperm=NULL, correct_order=2, vars=NULL,ci=FALSE,boot_rep=50, ci_type=c("norm"),ci_level=0.95, ci_level_ME=0.95,weight_vec=NULL){
 
   if(!node_order(parent_list=parent_list,node_vec=node_vec)){
     stop("ancestors must be specified before descendants in node_vec")
@@ -940,7 +940,7 @@ node_order <- function(parent_list, node_vec){
 #' vars = c("high_blood_pressure","smoking","stress","exercise","alcohol",
 #' "diabetes","early_stage_heart_disease"),ci=TRUE,boot_rep=10)
 #' }
-joint_paf <- function(data, model_list, parent_list, node_vec, prev=NULL, vars=NULL,ci=FALSE,boot_rep=100, ci_type=c("norm"),ci_level=0.95,nsim=1,weight_vec=NULL){
+joint_paf <- function(data, model_list, parent_list, node_vec, prev=NULL, vars=NULL,ci=FALSE,boot_rep=50, ci_type=c("norm"),ci_level=0.95,nsim=1,weight_vec=NULL){
   if(!node_order(parent_list=parent_list,node_vec=node_vec)){
     stop("ancestors must be specified before descendants in node_vec")
   }
@@ -1088,7 +1088,7 @@ current_mat <- data
 #' parent_list, node_vec=node_vec, prev=.0035, vars = c("high_blood_pressure",
 #' "smoking","stress"),ci=TRUE,boot_rep=10)
 #' }
-seq_paf <- function(data, model_list, parent_list, node_vec, prev=NULL, vars=NULL,ci=FALSE,boot_rep=100, ci_type=c("norm"),ci_level=0.95,nsim=1,weight_vec=NULL){
+seq_paf <- function(data, model_list, parent_list, node_vec, prev=NULL, vars=NULL,ci=FALSE,boot_rep=50, ci_type=c("norm"),ci_level=0.95,nsim=1,weight_vec=NULL){
   if(!node_order(parent_list=parent_list,node_vec=node_vec)){
     stop("ancestors must be specified before descendants in node_vec")
   }

@@ -55,7 +55,7 @@
 #' print(out)
 #' plot(out)
 #' }
-PAF_calc_continuous <- function(model, riskfactor_vec, q_vec=c(0.01), data, calculation_method="B", prev=NULL,ci=FALSE,boot_rep=10, t_vector=NULL, ci_level=.95, ci_type=c("norm"), S=1, weight_vec=NULL){
+PAF_calc_continuous <- function(model, riskfactor_vec, q_vec=c(0.01), data, calculation_method="B", prev=NULL,ci=FALSE,boot_rep=50, t_vector=NULL, ci_level=.95, ci_type=c("norm"), S=1, weight_vec=NULL){
 
   if(is.null(weight_vec)) weight_vec <- rep(1,nrow(data))
   if(!is.data.frame(data)){

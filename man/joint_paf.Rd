@@ -12,7 +12,7 @@ joint_paf(
   prev = NULL,
   vars = NULL,
   ci = FALSE,
-  boot_rep = 100,
+  boot_rep = 50,
   ci_type = c("norm"),
   ci_level = 0.95,
   nsim = 1,
