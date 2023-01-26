@@ -13,7 +13,7 @@ average_paf(
   exact = TRUE,
   nperm = NULL,
   correct_order = 2,
-  vars = NULL,
+  riskfactor_vec = NULL,
   ci = FALSE,
   boot_rep = 50,
   ci_type = c("norm"),
@@ -39,7 +39,7 @@ average_paf(
 
 \item{correct_order}{Default 3.  This enforces stratified sampling of permutations where the first correct_order positions of the sampled permutations are evenly distributed over the integers 1 ... N, N being the number of risk factors of interest, over the sampled permutations.  The other positions are randomly sampled.  This automatically sets the number of simulations when nperm=NULL.  For interest, if N=10 and correct_order=3, nperm is set to factorial(10)/factorial(10-3) = 720.  This special resampling reduces Monte Carlo variation in estimated average and sequential PAFs.}
 
-\item{vars}{A subset of risk factors for which we want to calculate average, sequential and joint PAF}
+\item{riskfactor_vec}{A subset of risk factors for which we want to calculate average, sequential and joint PAF}
 
 \item{ci}{Logical. If TRUE, a bootstrap confidence interval is computed along with a point estimate (default FALSE).  If ci=FALSE, only a point estimate is produced.  A simulation procedure (sampling permutations and also simulating the effects of eliminating risk factors over the descendant nodes in a Bayesian network) is required to produce the point estimates.  The point estimate will change on repeated runs of the function.  The margin of error of the point estimate is given when ci=FALSE}
 
@@ -54,7 +54,7 @@ average_paf(
 \item{weight_vec}{An optional vector of inverse sampling weights (note with survey data, the variance may not be calculated correctly if sampling isn't independent).  Note that this vector will be ignored if prev is specified, and the weights will be calibrated so that the weighted sample prevalence of disease equals prev.  This argument can be ignored if data has a column weights with correctly calibrated weights}
 }
 \value{
-A SAF_summary object with average joint and sequential PAF for all risk factors in node_vec (or alternatively a subset of those risk factors if specified in vars).
+A SAF_summary object with average joint and sequential PAF for all risk factors in node_vec (or alternatively a subset of those risk factors if specified in riskfactor_vec).
 }
 \description{
 Calculation of average and sequential paf taking into account risk factor sequencing
@@ -91,7 +91,7 @@ model_list=automatic_fit(data=Hordaland_data, parent_list=parent_list,
 
 out <- average_paf(data=model_list[[length(model_list)]]$data,
  model_list=model_list, parent_list=parent_list,
- node_vec=node_vec, prev=.09, nperm=10,vars = c("urban.rural",
+ node_vec=node_vec, prev=.09, nperm=10,riskfactor_vec = c("urban.rural",
  "occupational.exposure"),ci=FALSE)
  print(out)
 
@@ -127,7 +127,7 @@ model_list=automatic_fit(data=stroke_reduced, parent_list=parent_list,
   spline_nodes = c("waist_hip_ratio","lipids","diet"))
 out <- average_paf(data=stroke_reduced, model_list=model_list,
 parent_list=parent_list, node_vec=node_vec, prev=.0035,
-vars = c("high_blood_pressure","smoking","stress","exercise","alcohol",
+riskfactor_vec = c("high_blood_pressure","smoking","stress","exercise","alcohol",
 "diabetes","early_stage_heart_disease"),ci=TRUE,boot_rep=10)
 print(out)
 plot(out,max_PAF=0.5,min_PAF=-0.1,number_rows=3)
@@ -136,7 +136,7 @@ plot(out,max_PAF=0.5,min_PAF=-0.1,number_rows=3)
 # that each risk factor will appear equally often in the first correct_order positions)
 out <- average_paf(data=stroke_reduced, model_list=model_list,
 parent_list=parent_list, node_vec=node_vec, prev=.0035, exact=FALSE,
- correct_order=2, vars = c("high_blood_pressure","smoking","stress",
+ correct_order=2, riskfactor_vec = c("high_blood_pressure","smoking","stress",
  "exercise","alcohol","diabetes","early_stage_heart_disease"),ci=TRUE,
  boot_rep=10)
  print(out)

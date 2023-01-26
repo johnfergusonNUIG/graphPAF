@@ -10,7 +10,7 @@ joint_paf(
   parent_list,
   node_vec,
   prev = NULL,
-  vars = NULL,
+  riskfactor_vec = NULL,
   ci = FALSE,
   boot_rep = 50,
   ci_type = c("norm"),
@@ -30,7 +30,7 @@ joint_paf(
 
 \item{prev}{prevalence of the disease (default is NULL)}
 
-\item{vars}{A subset of risk factors for which we want to calculate joint PAF}
+\item{riskfactor_vec}{A subset of risk factors for which we want to calculate joint PAF}
 
 \item{ci}{Logical. If TRUE, a bootstrap confidence interval is computed along with a point estimate (default FALSE).  If ci=FALSE, only a point estimate is produced.  A simulation procedure (sampling permutations and also simulating the effects of eliminating risk factors over the descendant nodes in a Bayesian network) is required to produce the point estimates.  The point estimate will change on repeated runs of the function.  The margin of error of the point estimate is given when ci=FALSE}
 
@@ -78,7 +78,7 @@ node_vec=node_vec, prev=.09)
 # necessary if Bootstrapping CIs
 joint_paf(data=model_list[[length(model_list)]]$data,
  model_list=model_list, parent_list=parent_list,
- node_vec=node_vec, prev=.09, vars = c("urban.rural",
+ node_vec=node_vec, prev=.09, riskfactor_vec = c("urban.rural",
  "occupational.exposure"),ci=FALSE)
 \donttest{
 # More complicated example (slower to run)
@@ -107,7 +107,7 @@ node_vec=node_vec, prev=.0035,common="region*ns(age,df=5)+sex*ns(age,df=5)",
  spline_nodes = c("waist_hip_ratio","lipids","diet"))
 jointpaf <- joint_paf(data=stroke_reduced, model_list=model_list,
 parent_list=parent_list, node_vec=node_vec, prev=.0035,
-vars = c("high_blood_pressure","smoking","stress","exercise","alcohol",
+riskfactor_vec = c("high_blood_pressure","smoking","stress","exercise","alcohol",
 "diabetes","early_stage_heart_disease"),ci=TRUE,boot_rep=10)
 }
 }

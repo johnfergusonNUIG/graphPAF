@@ -10,7 +10,7 @@ seq_paf(
   parent_list,
   node_vec,
   prev = NULL,
-  vars = NULL,
+  riskfactor_vec = NULL,
   ci = FALSE,
   boot_rep = 50,
   ci_type = c("norm"),
@@ -30,7 +30,7 @@ seq_paf(
 
 \item{prev}{prevalence of the disease (default is NULL)}
 
-\item{vars}{A character vector of riskfactors.  Sequential PAF is calculated for the risk factor specified in the last position of the vector, conditional on the other risk factors}
+\item{riskfactor_vec}{A character vector of riskfactors.  Sequential PAF is calculated for the risk factor specified in the last position of the vector, conditional on the other risk factors}
 
 \item{ci}{Logical. If TRUE, a bootstrap confidence interval is computed along with a point estimate (default FALSE).  If ci=FALSE, only a point estimate is produced.  A simulation procedure (sampling permutations and also simulating the effects of eliminating risk factors over the descendant nodes in a Bayesian network) is required to produce the point estimates.  The point estimate will change on repeated runs of the function.  The margin of error of the point estimate is given when ci=FALSE}
 
@@ -79,7 +79,7 @@ node_vec=node_vec, prev=.09)
 # necessary if Bootstrapping CIs
 seq_paf(data=model_list[[length(model_list)]]$data,
 model_list=model_list, parent_list=parent_list,
- node_vec=node_vec, prev=.09, vars = c("urban.rural",
+ node_vec=node_vec, prev=.09, riskfactor_vec = c("urban.rural",
  "occupational.exposure"),ci=FALSE)
 \donttest{
 # More complicated example (slower to run)
@@ -111,7 +111,7 @@ node_vec=node_vec, prev=.0035,common="region*ns(age,df=5)+sex*ns(age,df=5)",
 # calculate sequential PAF for stress, conditional on smoking
 # and blood pressure being eliminated from the population
 seqpaf <- seq_paf(data=stroke_reduced, model_list=model_list, parent_list=
-parent_list, node_vec=node_vec, prev=.0035, vars = c("high_blood_pressure",
+parent_list, node_vec=node_vec, prev=.0035, riskfactor_vec = c("high_blood_pressure",
 "smoking","stress"),ci=TRUE,boot_rep=10)
 }
 }

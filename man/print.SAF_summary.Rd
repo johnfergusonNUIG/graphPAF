@@ -42,6 +42,6 @@ model_list=automatic_fit(data=Hordaland_data, parent_list=parent_list,
 out <- average_paf(data=model_list[[length(model_list)]]$data,
 model_list=model_list,
 parent_list=parent_list, node_vec=node_vec, prev=.09, nperm=10,
-vars = c("urban.rural","occupational.exposure"),ci=FALSE)
+riskfactor_vec = c("urban.rural","occupational.exposure"),ci=FALSE)
 print(out)
 }

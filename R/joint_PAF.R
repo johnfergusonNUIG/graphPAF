@@ -1,4 +1,4 @@
-average_paf_no_CI <- function(data, model_list, parent_list, node_vec,  prev=.09, nperm=NULL, correct_order=3, alpha=0.05,vars=NULL, exact=TRUE, weight_vec=NULL){
+average_paf_no_CI <- function(data, model_list, parent_list, node_vec,  prev=.09, nperm=NULL, correct_order=3, alpha=0.05,riskfactor_vec=NULL, exact=TRUE, weight_vec=NULL){
 
   response_col <- (1:length(colnames(data)))[colnames(data) %in% node_vec[length(node_vec)]]
   w <- weight_vec
@@ -12,8 +12,8 @@ average_paf_no_CI <- function(data, model_list, parent_list, node_vec,  prev=.09
 
   for(i in 1:(N+1)) col_list[i] <- (1:ncol(data))[colnames(data)==node_vec[i]]
   col_list_orig <- col_list
-  if(!is.null(vars)){
-    indexes <- c((1:(N+1))[node_vec %in% vars],N+1)
+  if(!is.null(riskfactor_vec)){
+    indexes <- c((1:(N+1))[node_vec %in% riskfactor_vec],N+1)
     col_list <- col_list[indexes]
     N <- length(col_list)-1
   }
@@ -255,14 +255,14 @@ if(!exact){
 #' @param exact logical.  Default TRUE. If TRUE, an efficient calculation is used to calculate average PAF, which enables the average PAF from N! permutations, over all N risk factors to be calculated with only 2^N-1 operations.  If FALSE, permutations are sampled
 #' @param nperm  Default NULL Number of random permutations used to calculate average and sequential PAF.  If correct_order is set to an integer value, nperm is reset to an integer multiple of factorial(N)/factorial(N-correct_order) depending on the size of nperm.  If nperm is NULL or less than factorial(N)/factorial(N-correct_order), factorial(N)/factorial(N-correct_order) permutations will be sampled.  If nperm is larger than factorial(N)/factorial(N-correct_order), nperm will be reset to the smallest integer multiple of factorial(N)/factorial(N-correct_order) less than the input value of nperm
 #' @param correct_order Default 3.  This enforces stratified sampling of permutations where the first correct_order positions of the sampled permutations are evenly distributed over the integers 1 ... N, N being the number of risk factors of interest, over the sampled permutations.  The other positions are randomly sampled.  This automatically sets the number of simulations when nperm=NULL.  For interest, if N=10 and correct_order=3, nperm is set to factorial(10)/factorial(10-3) = 720.  This special resampling reduces Monte Carlo variation in estimated average and sequential PAFs.
-#' @param vars A subset of risk factors for which we want to calculate average, sequential and joint PAF
+#' @param riskfactor_vec A subset of risk factors for which we want to calculate average, sequential and joint PAF
 #' @param ci Logical. If TRUE, a bootstrap confidence interval is computed along with a point estimate (default FALSE).  If ci=FALSE, only a point estimate is produced.  A simulation procedure (sampling permutations and also simulating the effects of eliminating risk factors over the descendant nodes in a Bayesian network) is required to produce the point estimates.  The point estimate will change on repeated runs of the function.  The margin of error of the point estimate is given when ci=FALSE
 #' @param boot_rep Integer.  Number of bootstrap replications (Only necessary to specify if ci=TRUE).  Note that at least 50 replicates are recommended to achieve stable estimates of standard error.  In the examples below, values of boot_rep less than 50 are sometimes used to limit run time.
 #' @param ci_type Character.  Default norm.  A vector specifying the types of confidence interval desired.  "norm", "basic", "perc" and "bca" are the available methods
 #' @param ci_level Numeric.  Default 0.95. A number between 0 and 1 specifying the level of the confidence interval (when ci=TRUE)
 #' @param ci_level_ME Numeric.  Default 0.95. A number between 0 and 1 specifying the level of the margin of error for the point estimate (only revelant when ci=FALSE and exact=FALSE)
 #' @param weight_vec An optional vector of inverse sampling weights (note with survey data, the variance may not be calculated correctly if sampling isn't independent).  Note that this vector will be ignored if prev is specified, and the weights will be calibrated so that the weighted sample prevalence of disease equals prev.  This argument can be ignored if data has a column weights with correctly calibrated weights
-#' @return A SAF_summary object with average joint and sequential PAF for all risk factors in node_vec (or alternatively a subset of those risk factors if specified in vars).
+#' @return A SAF_summary object with average joint and sequential PAF for all risk factors in node_vec (or alternatively a subset of those risk factors if specified in riskfactor_vec).
 #' @export
 #'
 #' @references Ferguson, J., O’Connell, M. and O’Donnell, M., 2020. Revisiting sequential attributable fractions. Archives of Public Health, 78(1), pp.1-9.
@@ -299,7 +299,7 @@ if(!exact){
 #'
 #' out <- average_paf(data=model_list[[length(model_list)]]$data,
 #'  model_list=model_list, parent_list=parent_list,
-#'  node_vec=node_vec, prev=.09, nperm=10,vars = c("urban.rural",
+#'  node_vec=node_vec, prev=.09, nperm=10,riskfactor_vec = c("urban.rural",
 #'  "occupational.exposure"),ci=FALSE)
 #'  print(out)
 #'
@@ -335,7 +335,7 @@ if(!exact){
 #'   spline_nodes = c("waist_hip_ratio","lipids","diet"))
 #' out <- average_paf(data=stroke_reduced, model_list=model_list,
 #' parent_list=parent_list, node_vec=node_vec, prev=.0035,
-#' vars = c("high_blood_pressure","smoking","stress","exercise","alcohol",
+#' riskfactor_vec = c("high_blood_pressure","smoking","stress","exercise","alcohol",
 #' "diabetes","early_stage_heart_disease"),ci=TRUE,boot_rep=10)
 #' print(out)
 #' plot(out,max_PAF=0.5,min_PAF=-0.1,number_rows=3)
@@ -344,22 +344,22 @@ if(!exact){
 #' # that each risk factor will appear equally often in the first correct_order positions)
 #' out <- average_paf(data=stroke_reduced, model_list=model_list,
 #' parent_list=parent_list, node_vec=node_vec, prev=.0035, exact=FALSE,
-#'  correct_order=2, vars = c("high_blood_pressure","smoking","stress",
+#'  correct_order=2, riskfactor_vec = c("high_blood_pressure","smoking","stress",
 #'  "exercise","alcohol","diabetes","early_stage_heart_disease"),ci=TRUE,
 #'  boot_rep=10)
 #'  print(out)
 #'  plot(out,max_PAF=0.5,min_PAF=-0.1,number_rows=3)
 #' }
-average_paf <- function(data, model_list, parent_list, node_vec, prev=.09, exact=TRUE, nperm=NULL, correct_order=2, vars=NULL,ci=FALSE,boot_rep=50, ci_type=c("norm"),ci_level=0.95, ci_level_ME=0.95,weight_vec=NULL){
+average_paf <- function(data, model_list, parent_list, node_vec, prev=.09, exact=TRUE, nperm=NULL, correct_order=2, riskfactor_vec=NULL,ci=FALSE,boot_rep=50, ci_type=c("norm"),ci_level=0.95, ci_level_ME=0.95,weight_vec=NULL){
 
   if(!node_order(parent_list=parent_list,node_vec=node_vec)){
     stop("ancestors must be specified before descendants in node_vec")
   }
-  if(!is.null(vars) & !all(vars %in% node_vec)){
+  if(!is.null(riskfactor_vec) & !all(riskfactor_vec %in% node_vec)){
     stop("Not all requested variables are in node_vec.  Check spelling")
   }
-  if(!is.null(correct_order) && is.null(vars)) correct_order <- min(correct_order,length(node_vec))
-  if(!is.null(correct_order) && !is.null(vars)) correct_order <- min(correct_order,length(vars))
+  if(!is.null(correct_order) && is.null(riskfactor_vec)) correct_order <- min(correct_order,length(node_vec))
+  if(!is.null(correct_order) && !is.null(riskfactor_vec)) correct_order <- min(correct_order,length(riskfactor_vec))
   if(is.null(correct_order)&&is.null(nperm)){
 
     stop("please specify either correct_order and nperm")
@@ -371,9 +371,9 @@ average_paf <- function(data, model_list, parent_list, node_vec, prev=.09, exact
   N <- length(col_list)-1
   for(i in 1:(N+1)) col_list[i] <- (1:ncol(data))[colnames(data)==node_vec[i]]
   col_list_orig <- col_list
-  if(!is.null(vars)){
+  if(!is.null(riskfactor_vec)){
     #browser()
-    indexes <- c((1:(N+1))[node_vec %in% vars],N+1)
+    indexes <- c((1:(N+1))[node_vec %in% riskfactor_vec],N+1)
     col_list <- col_list[indexes]
     N <- length(col_list)-1
 
@@ -381,7 +381,7 @@ average_paf <- function(data, model_list, parent_list, node_vec, prev=.09, exact
   if(is.null(weight_vec)) weight_vec = rep(1,nrow(data))
 
   if(!ci){
-    res <- average_paf_no_CI(data=data, model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=prev, nperm=nperm, correct_order=correct_order, alpha=1-ci_level_ME,vars=vars,exact=exact, weight_vec=weight_vec)
+    res <- average_paf_no_CI(data=data, model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=prev, nperm=nperm, correct_order=correct_order, alpha=1-ci_level_ME,riskfactor_vec=riskfactor_vec,exact=exact, weight_vec=weight_vec)
     return(res)
   }
 
@@ -389,10 +389,10 @@ average_paf <- function(data, model_list, parent_list, node_vec, prev=.09, exact
   cl <- parallel::makeCluster(nc)
   if("splines" %in% (.packages())) parallel::clusterExport(cl, c("ns"))
   parallel::clusterExport(cl, c("sim_outnode","do_sim"))
-  res <- boot::boot(data=data,statistic=average_paf_inner,R=boot_rep,model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=prev, nperm=nperm, correct_order=correct_order, vars=vars, exact=exact,cl=cl,weight_vec=weight_vec)
+  res <- boot::boot(data=data,statistic=average_paf_inner,R=boot_rep,model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=prev, nperm=nperm, correct_order=correct_order, riskfactor_vec=riskfactor_vec, exact=exact,cl=cl,weight_vec=weight_vec)
   parallel::stopCluster(cl)
-  if(is.null(vars)) vars <- node_vec[1:(length(node_vec)-1)]
-  res <- extract_ci(res=res,model_type='glm',t_vector=c(paste0(rep(node_vec[node_vec %in% vars],times=rep(length(vars),length(vars))),'_',rep(1:length(vars),length(vars))),paste0("Average PAF ", node_vec[node_vec %in% vars]),'JointPAF'),ci_level=ci_level,ci_type=ci_type,continuous=TRUE)
+  if(is.null(riskfactor_vec)) riskfactor_vec <- node_vec[1:(length(node_vec)-1)]
+  res <- extract_ci(res=res,model_type='glm',t_vector=c(paste0(rep(node_vec[node_vec %in% riskfactor_vec],times=rep(length(riskfactor_vec),length(riskfactor_vec))),'_',rep(1:length(riskfactor_vec),length(riskfactor_vec))),paste0("Average PAF ", node_vec[node_vec %in% riskfactor_vec]),'JointPAF'),ci_level=ci_level,ci_type=ci_type,continuous=TRUE)
   res <- cbind(position=c(rep(paste("elimination position",1:N),N),rep("Average",N),"Joint"),'risk factor'=rownames(res),res)
   rownames(res) <- NULL
   res$`risk factor` <- gsub(pattern="(.*)_[0-9]",replacement="\\1",x=res$`risk factor`,perl=TRUE)
@@ -441,7 +441,7 @@ average_paf <- function(data, model_list, parent_list, node_vec, prev=.09, exact
 #' out <- average_paf(data=model_list[[length(model_list)]]$data,
 #' model_list=model_list,
 #' parent_list=parent_list, node_vec=node_vec, prev=.09, nperm=10,
-#' vars = c("urban.rural","occupational.exposure"),ci=FALSE)
+#' riskfactor_vec = c("urban.rural","occupational.exposure"),ci=FALSE)
 #' print(out)
 print.SAF_summary <- function(x,...){
 
@@ -519,7 +519,7 @@ do_sim <- function(colnum,current_mat, model,SN=TRUE){
 
 
 
-average_paf_inner <- function(data, ind, model_list, parent_list, node_vec, prev=.09, nperm=100, correct_order=3, vars=NULL, exact=TRUE, weight_vec=NULL){
+average_paf_inner <- function(data, ind, model_list, parent_list, node_vec, prev=.09, nperm=100, correct_order=3, riskfactor_vec=NULL, exact=TRUE, weight_vec=NULL){
 
   ##################################
 
@@ -542,9 +542,9 @@ average_paf_inner <- function(data, ind, model_list, parent_list, node_vec, prev
 
   for(i in 1:(N+1)) col_list[i] <- (1:ncol(data))[colnames(data)==node_vec[i]]
   col_list_orig <- col_list
-  if(!is.null(vars)){
+  if(!is.null(riskfactor_vec)){
     #browser()
-    indexes <- c((1:(N+1))[node_vec %in% vars],N+1)
+    indexes <- c((1:(N+1))[node_vec %in% riskfactor_vec],N+1)
     col_list <- col_list[indexes]
     N <- length(col_list)-1
 
@@ -868,7 +868,7 @@ node_order <- function(parent_list, node_vec){
 #' @param parent_list A list.  The ith element is the vector of variable names that are direct causes of ith variable in node_vec
 #' @param node_vec A vector corresponding to the nodes in the Bayesian network.  This must be specified from root to leaves - that is ancestors in the causal graph for a particular node are positioned before their descendants.  If this condition is false the function will return an error.
 #' @param prev prevalence of the disease (default is NULL)
-#' @param vars A subset of risk factors for which we want to calculate joint PAF
+#' @param riskfactor_vec A subset of risk factors for which we want to calculate joint PAF
 #' @param ci Logical. If TRUE, a bootstrap confidence interval is computed along with a point estimate (default FALSE).  If ci=FALSE, only a point estimate is produced.  A simulation procedure (sampling permutations and also simulating the effects of eliminating risk factors over the descendant nodes in a Bayesian network) is required to produce the point estimates.  The point estimate will change on repeated runs of the function.  The margin of error of the point estimate is given when ci=FALSE
 #' @param boot_rep Integer.  Number of bootstrap replications (Only necessary to specify if ci=TRUE).  Note that at least 50 replicates are recommended to achieve stable estimates of standard error.  In the examples below, values of boot_rep less than 50 are sometimes used to limit run time.
 #' @param ci_type Character.  Default norm.  A vector specifying the types of confidence interval desired.  "norm", "basic", "perc" and "bca" are the available method
@@ -908,7 +908,7 @@ node_order <- function(parent_list, node_vec){
 #' # necessary if Bootstrapping CIs
 #' joint_paf(data=model_list[[length(model_list)]]$data,
 #'  model_list=model_list, parent_list=parent_list,
-#'  node_vec=node_vec, prev=.09, vars = c("urban.rural",
+#'  node_vec=node_vec, prev=.09, riskfactor_vec = c("urban.rural",
 #'  "occupational.exposure"),ci=FALSE)
 #' \donttest{
 #' # More complicated example (slower to run)
@@ -937,25 +937,25 @@ node_order <- function(parent_list, node_vec){
 #'  spline_nodes = c("waist_hip_ratio","lipids","diet"))
 #' jointpaf <- joint_paf(data=stroke_reduced, model_list=model_list,
 #' parent_list=parent_list, node_vec=node_vec, prev=.0035,
-#' vars = c("high_blood_pressure","smoking","stress","exercise","alcohol",
+#' riskfactor_vec = c("high_blood_pressure","smoking","stress","exercise","alcohol",
 #' "diabetes","early_stage_heart_disease"),ci=TRUE,boot_rep=10)
 #' }
-joint_paf <- function(data, model_list, parent_list, node_vec, prev=NULL, vars=NULL,ci=FALSE,boot_rep=50, ci_type=c("norm"),ci_level=0.95,nsim=1,weight_vec=NULL){
+joint_paf <- function(data, model_list, parent_list, node_vec, prev=NULL, riskfactor_vec=NULL,ci=FALSE,boot_rep=50, ci_type=c("norm"),ci_level=0.95,nsim=1,weight_vec=NULL){
   if(!node_order(parent_list=parent_list,node_vec=node_vec)){
     stop("ancestors must be specified before descendants in node_vec")
   }
-  if(!is.null(vars) & !all(vars %in% node_vec)){
+  if(!is.null(riskfactor_vec) & !all(riskfactor_vec %in% node_vec)){
     stop("Not all requested variables are in node_vec.  Check spelling")
   }
   data <- as.data.frame(data)
 
 
-if(!ci) return(joint_paf_inner(data=data,ind=1:nrow(data), model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=prev,vars=vars,nsim=nsim,weight_vec=weight_vec))
+if(!ci) return(joint_paf_inner(data=data,ind=1:nrow(data), model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=prev,riskfactor_vec=riskfactor_vec,nsim=nsim,weight_vec=weight_vec))
   nc <- options()$boot.ncpus
   cl <- parallel::makeCluster(nc)
   if("splines" %in% (.packages())) parallel::clusterExport(cl, c("ns"))
   parallel::clusterExport(cl, c("sim_outnode","do_sim"))
-  res <- boot::boot(data=data,statistic=joint_paf_inner,R=boot_rep,model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=prev, vars=vars,nsim=nsim,weight_vec=weight_vec,cl=cl)
+  res <- boot::boot(data=data,statistic=joint_paf_inner,R=boot_rep,model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=prev, riskfactor_vec=riskfactor_vec,nsim=nsim,weight_vec=weight_vec,cl=cl)
   parallel::stopCluster(cl)
   stuff <- extract_ci(res=res,model_type='glm',ci_level=ci_level,ci_type=ci_type,continuous=TRUE,t_vector=c("joint PAF"))
   return(stuff)
@@ -963,7 +963,7 @@ if(!ci) return(joint_paf_inner(data=data,ind=1:nrow(data), model_list=model_list
 }
 
 
-joint_paf_inner <- function(data, ind, model_list, parent_list, node_vec, prev=.09,vars=NULL,nsim=1,weight_vec=NULL){
+joint_paf_inner <- function(data, ind, model_list, parent_list, node_vec, prev=.09,riskfactor_vec=NULL,nsim=1,weight_vec=NULL){
 
   data <- data[ind,]
   n_data <- nrow(data)
@@ -985,9 +985,9 @@ joint_paf_inner <- function(data, ind, model_list, parent_list, node_vec, prev=.
     N <- length(col_list)-1
   for(i in 1:(N+1)) col_list[i] <- (1:ncol(data))[colnames(data)==node_vec[i]]
   col_list_orig <- col_list
-  if(!is.null(vars)){
+  if(!is.null(riskfactor_vec)){
     #browser()
-    indexes <- c((1:(N+1))[node_vec %in% vars],N+1)
+    indexes <- c((1:(N+1))[node_vec %in% riskfactor_vec],N+1)
     col_list <- col_list_orig[indexes]
     N <- length(col_list)-1
 
@@ -1012,7 +1012,7 @@ current_mat <- data
 #' @param parent_list A list.  The ith element is the vector of variable names that are direct causes of ith variable in node_vec
 #' @param node_vec A vector corresponding to the nodes in the Bayesian network.  This must be specified from root to leaves - that is ancestors in the causal graph for a particular node are positioned before their descendants.  If this condition is false the function will return an error.
 #' @param prev prevalence of the disease (default is NULL)
-#' @param vars A character vector of riskfactors.  Sequential PAF is calculated for the risk factor specified in the last position of the vector, conditional on the other risk factors
+#' @param riskfactor_vec A character vector of riskfactors.  Sequential PAF is calculated for the risk factor specified in the last position of the vector, conditional on the other risk factors
 #' @param ci Logical. If TRUE, a bootstrap confidence interval is computed along with a point estimate (default FALSE).  If ci=FALSE, only a point estimate is produced.  A simulation procedure (sampling permutations and also simulating the effects of eliminating risk factors over the descendant nodes in a Bayesian network) is required to produce the point estimates.  The point estimate will change on repeated runs of the function.  The margin of error of the point estimate is given when ci=FALSE
 #' @param boot_rep Integer.  Number of bootstrap replications (Only necessary to specify if ci=TRUE).  Note that at least 50 replicates are recommended to achieve stable estimates of standard error.  In the examples below, values of boot_rep less than 50 are sometimes used to limit run time.
 #' @param ci_type Character.  Default norm.  A vector specifying the types of confidence interval desired.  "norm", "basic", "perc" and "bca" are the available methods
@@ -1053,7 +1053,7 @@ current_mat <- data
 #' # necessary if Bootstrapping CIs
 #' seq_paf(data=model_list[[length(model_list)]]$data,
 #' model_list=model_list, parent_list=parent_list,
-#'  node_vec=node_vec, prev=.09, vars = c("urban.rural",
+#'  node_vec=node_vec, prev=.09, riskfactor_vec = c("urban.rural",
 #'  "occupational.exposure"),ci=FALSE)
 #' \donttest{
 #' # More complicated example (slower to run)
@@ -1085,27 +1085,27 @@ current_mat <- data
 #' # calculate sequential PAF for stress, conditional on smoking
 #' # and blood pressure being eliminated from the population
 #' seqpaf <- seq_paf(data=stroke_reduced, model_list=model_list, parent_list=
-#' parent_list, node_vec=node_vec, prev=.0035, vars = c("high_blood_pressure",
+#' parent_list, node_vec=node_vec, prev=.0035, riskfactor_vec = c("high_blood_pressure",
 #' "smoking","stress"),ci=TRUE,boot_rep=10)
 #' }
-seq_paf <- function(data, model_list, parent_list, node_vec, prev=NULL, vars=NULL,ci=FALSE,boot_rep=50, ci_type=c("norm"),ci_level=0.95,nsim=1,weight_vec=NULL){
+seq_paf <- function(data, model_list, parent_list, node_vec, prev=NULL, riskfactor_vec=NULL,ci=FALSE,boot_rep=50, ci_type=c("norm"),ci_level=0.95,nsim=1,weight_vec=NULL){
   if(!node_order(parent_list=parent_list,node_vec=node_vec)){
     stop("ancestors must be specified before descendants in node_vec")
   }
-  if(!is.null(vars) & !all(vars %in% node_vec)){
+  if(!is.null(riskfactor_vec) & !all(riskfactor_vec %in% node_vec)){
     stop("Not all requested variables are in node_vec.  Check spelling")
   }
-  if(!is.null(vars) & length(vars)<2){
+  if(!is.null(riskfactor_vec) & length(riskfactor_vec)<2){
     stop("Enter at least 2 risk factors.  SAF is calculated for the last risk factor conditional on the others in list")
   }
 
   data <- as.data.frame(data)
-  if(!ci) return(seq_paf_inner(data=data,ind=1:nrow(data), model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=prev,vars=vars,nsim=nsim,weight_vec=weight_vec))
+  if(!ci) return(seq_paf_inner(data=data,ind=1:nrow(data), model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=prev,riskfactor_vec=riskfactor_vec,nsim=nsim,weight_vec=weight_vec))
   nc <- options()$boot.ncpus
   cl <- parallel::makeCluster(nc)
   if("splines" %in% (.packages())) parallel::clusterExport(cl, c("ns"))
   parallel::clusterExport(cl, c("sim_outnode","do_sim"))
-  res <- boot::boot(data=data,statistic=seq_paf_inner,R=boot_rep,model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=prev, vars=vars,nsim=nsim,weight_vec=weight_vec,cl=cl)
+  res <- boot::boot(data=data,statistic=seq_paf_inner,R=boot_rep,model_list=model_list, parent_list=parent_list, node_vec=node_vec, prev=prev, riskfactor_vec=riskfactor_vec,nsim=nsim,weight_vec=weight_vec,cl=cl)
   parallel::stopCluster(cl)
   stuff <- extract_ci(res=res,model_type='glm',ci_level=ci_level,ci_type=ci_type,continuous=TRUE,t_vector=c("sequential PAF"))
   return(stuff)
@@ -1113,7 +1113,7 @@ seq_paf <- function(data, model_list, parent_list, node_vec, prev=NULL, vars=NUL
 }
 
 
-seq_paf_inner <- function(data, ind, model_list, parent_list, node_vec, prev=.09,vars=NULL,nsim=1,weight_vec=NULL){
+seq_paf_inner <- function(data, ind, model_list, parent_list, node_vec, prev=.09,riskfactor_vec=NULL,nsim=1,weight_vec=NULL){
 
   data <- data[ind,]
   n_data <- nrow(data)
@@ -1135,9 +1135,9 @@ seq_paf_inner <- function(data, ind, model_list, parent_list, node_vec, prev=.09
     N <- length(col_list)-1
     for(i in 1:(N+1)) col_list[i] <- (1:ncol(data))[colnames(data)==node_vec[i]]
     col_list_orig <- col_list
-    if(!is.null(vars)){
-      indexes <- numeric(length(vars))
-      for(i in 1:length(vars))  indexes[i] <- (1:(N+1))[node_vec %in% vars[i]]
+    if(!is.null(riskfactor_vec)){
+      indexes <- numeric(length(riskfactor_vec))
+      for(i in 1:length(riskfactor_vec))  indexes[i] <- (1:(N+1))[node_vec %in% riskfactor_vec[i]]
       indexes <- c(indexes,N+1)
       col_list <- col_list_orig[indexes]
       N <- length(col_list)-1
