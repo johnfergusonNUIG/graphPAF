@@ -1,4 +1,4 @@
-average_paf_no_CI <- function(data, model_list, parent_list, node_vec,  prev=.09, nperm=NULL, correct_order=3, alpha=0.05,riskfactor_vec=NULL, exact=TRUE, weight_vec=NULL){
+average_paf_no_CI <- function(data, model_list, parent_list, node_vec,  prev=NULL, nperm=NULL, correct_order=3, alpha=0.05,riskfactor_vec=NULL, exact=TRUE, weight_vec=NULL){
 
   response_col <- (1:length(colnames(data)))[colnames(data) %in% node_vec[length(node_vec)]]
   w <- weight_vec
@@ -350,7 +350,7 @@ if(!exact){
 #'  print(out)
 #'  plot(out,max_PAF=0.5,min_PAF=-0.1,number_rows=3)
 #' }
-average_paf <- function(data, model_list, parent_list, node_vec, prev=.09, exact=TRUE, nperm=NULL, correct_order=2, riskfactor_vec=NULL,ci=FALSE,boot_rep=50, ci_type=c("norm"),ci_level=0.95, ci_level_ME=0.95,weight_vec=NULL){
+average_paf <- function(data, model_list, parent_list, node_vec, prev=NULL, exact=TRUE, nperm=NULL, correct_order=2, riskfactor_vec=NULL,ci=FALSE,boot_rep=50, ci_type=c("norm"),ci_level=0.95, ci_level_ME=0.95,weight_vec=NULL){
 
   if(!node_order(parent_list=parent_list,node_vec=node_vec)){
     stop("ancestors must be specified before descendants in node_vec")
@@ -519,7 +519,7 @@ do_sim <- function(colnum,current_mat, model,SN=TRUE){
 
 
 
-average_paf_inner <- function(data, ind, model_list, parent_list, node_vec, prev=.09, nperm=100, correct_order=3, riskfactor_vec=NULL, exact=TRUE, weight_vec=NULL){
+average_paf_inner <- function(data, ind, model_list, parent_list, node_vec, prev=NULL, nperm=100, correct_order=3, riskfactor_vec=NULL, exact=TRUE, weight_vec=NULL){
 
   ##################################
 
@@ -800,7 +800,7 @@ make_formula <- function(parents,outcome_node,common='',spline_nodes=c(),df_spli
 #' node_vec=node_vec, prev=.0035,common="region*ns(age,df=5)+
 #' sex*ns(age,df=5)", spline_nodes = c("waist_hip_ratio","lipids","diet"))
 #' }
-automatic_fit <- function(data, parent_list, node_vec, prev=.09,common='',spline_nodes=c(),df_spline_nodes=3){
+automatic_fit <- function(data, parent_list, node_vec, prev=NULL,common='',spline_nodes=c(),df_spline_nodes=3){
 
 
 data <- as.data.frame(data)
@@ -963,7 +963,7 @@ if(!ci) return(joint_paf_inner(data=data,ind=1:nrow(data), model_list=model_list
 }
 
 
-joint_paf_inner <- function(data, ind, model_list, parent_list, node_vec, prev=.09,riskfactor_vec=NULL,nsim=1,weight_vec=NULL){
+joint_paf_inner <- function(data, ind, model_list, parent_list, node_vec, prev=NULL,riskfactor_vec=NULL,nsim=1,weight_vec=NULL){
 
   data <- data[ind,]
   n_data <- nrow(data)
@@ -1113,7 +1113,7 @@ seq_paf <- function(data, model_list, parent_list, node_vec, prev=NULL, riskfact
 }
 
 
-seq_paf_inner <- function(data, ind, model_list, parent_list, node_vec, prev=.09,riskfactor_vec=NULL,nsim=1,weight_vec=NULL){
+seq_paf_inner <- function(data, ind, model_list, parent_list, node_vec, prev=NULL,riskfactor_vec=NULL,nsim=1,weight_vec=NULL){
 
   data <- data[ind,]
   n_data <- nrow(data)
