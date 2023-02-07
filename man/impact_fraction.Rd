@@ -37,7 +37,7 @@ impact_fraction(
 
 \item{ci_level}{Numeric.  Default 0.95. A number between 0 and 1 specifying the confidence level}
 
-\item{ci_type}{Character.  Defalt norm.  A vector specifying the types of confidence interval desired.  "norm", "basic", "perc" and "bca" are the available methods}
+\item{ci_type}{Character.  Default norm.  A vector specifying the types of confidence interval desired.  "norm", "basic", "perc" and "bca" are the available methods}
 
 \item{weight_vec}{An optional vector of inverse sampling weights for survey data (note that variance will not be calculated correctly if sampling isn't independent).  Note that this vector will be ignored if prev is specified, and the weights will be calibrated so that the weighted sample prevalence of disease equals prev.}
 }

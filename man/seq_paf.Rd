@@ -2,7 +2,7 @@
 % Please edit documentation in R/joint_PAF.R
 \name{seq_paf}
 \alias{seq_paf}
-\title{Calculation of sequential paf taking into account risk factor sequencing}
+\title{Calculation of sequential PAF taking into account risk factor sequencing}
 \usage{
 seq_paf(
   data,
@@ -48,7 +48,7 @@ seq_paf(
 A numeric estimate of sequential PAF (if ci=FALSE), or else a data frame giving estimates and confidence limits of sequential PAF (if ci=TRUE)
 }
 \description{
-Calculation of sequential paf taking into account risk factor sequencing
+Calculation of sequential PAF taking into account risk factor sequencing
 }
 \examples{
 library(splines)
@@ -74,7 +74,7 @@ node_vec <- c("urban.rural","smoking.category","occupational.exposure", "y")
 # here we use the auxillary function 'automatic fit'
 model_list=automatic_fit(data=Hordaland_data, parent_list=parent_list,
 node_vec=node_vec, prev=.09)
-# sequential paf for occupational exposure conditional on elimination of urban.rural
+# sequential PAF for occupational exposure conditional on elimination of urban.rural
 # Including weight column in data
 # necessary if Bootstrapping CIs
 seq_paf(data=model_list[[length(model_list)]]$data,

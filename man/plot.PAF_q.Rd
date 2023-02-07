@@ -12,7 +12,7 @@
 \item{...}{Other global arguments inherited by that might be passed to the ggplot routine}
 }
 \value{
-A ggplot2 ploting object for PAF_q over the differing risk factors in x
+A ggplot2 plotting object for PAF_q over the differing risk factors in x
 }
 \description{
 Plot impact fractions corresponding to risk-quantiles over several risk factors

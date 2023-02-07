@@ -8,7 +8,7 @@ automatic_fit(
   data,
   parent_list,
   node_vec,
-  prev = 0.09,
+  prev = NULL,
   common = "",
   spline_nodes = c(),
   df_spline_nodes = 3
