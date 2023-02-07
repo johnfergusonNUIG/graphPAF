@@ -260,7 +260,7 @@ if(!exact){
 #' @param boot_rep Integer.  Number of bootstrap replications (Only necessary to specify if ci=TRUE).  Note that at least 50 replicates are recommended to achieve stable estimates of standard error.  In the examples below, values of boot_rep less than 50 are sometimes used to limit run time.
 #' @param ci_type Character.  Default norm.  A vector specifying the types of confidence interval desired.  "norm", "basic", "perc" and "bca" are the available methods
 #' @param ci_level Numeric.  Default 0.95. A number between 0 and 1 specifying the level of the confidence interval (when ci=TRUE)
-#' @param ci_level_ME Numeric.  Default 0.95. A number between 0 and 1 specifying the level of the margin of error for the point estimate (only revelant when ci=FALSE and exact=FALSE)
+#' @param ci_level_ME Numeric.  Default 0.95. A number between 0 and 1 specifying the level of the margin of error for the point estimate (only relevant when ci=FALSE and exact=FALSE)
 #' @param weight_vec An optional vector of inverse sampling weights (note with survey data, the variance may not be calculated correctly if sampling isn't independent).  Note that this vector will be ignored if prev is specified, and the weights will be calibrated so that the weighted sample prevalence of disease equals prev.  This argument can be ignored if data has a column weights with correctly calibrated weights
 #' @return A SAF_summary object with average joint and sequential PAF for all risk factors in node_vec (or alternatively a subset of those risk factors if specified in riskfactor_vec).
 #' @export
@@ -1005,7 +1005,7 @@ current_mat <- data
 
 }
 
-#' Calculation of sequential paf taking into account risk factor sequencing
+#' Calculation of sequential PAF taking into account risk factor sequencing
 #'
 #' @param data Data frame. A dataframe containing variables used for fitting the models.  Must contain all variables used in fitting
 #' @param model_list List.  A list of fitted model objects corresponding for the outcome variables in node_vec, with parents as described in parent_vec. Linear (lm), logistic (glm) and ordinal (polr) objects are allowed. This list must be in the same order as node_vec and parent_list.  Non-linear effects should be specified via ns(x, df=y), where ns is the natural spline function from the splines library.
@@ -1048,7 +1048,7 @@ current_mat <- data
 #' # here we use the auxillary function 'automatic fit'
 #' model_list=automatic_fit(data=Hordaland_data, parent_list=parent_list,
 #' node_vec=node_vec, prev=.09)
-#' # sequential paf for occupational exposure conditional on elimination of urban.rural
+#' # sequential PAF for occupational exposure conditional on elimination of urban.rural
 #' # Including weight column in data
 #' # necessary if Bootstrapping CIs
 #' seq_paf(data=model_list[[length(model_list)]]$data,

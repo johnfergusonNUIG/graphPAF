@@ -2,7 +2,7 @@
 #'
 #' @param x A PAF_q object.  This is a dataframe that is created by running the function PAF_calc_continuous.
 #' @param ... Other global arguments inherited by that might be passed to the ggplot routine
-#' @return A ggplot2 ploting object for PAF_q over the differing risk factors in x
+#' @return A ggplot2 plotting object for PAF_q over the differing risk factors in x
 #' @export
 #'
 #' @examples
