@@ -49,7 +49,7 @@ rf_summary <- function(rf_names, rf_prev, risk, log=FALSE){
 #' @param ormarks Axis marks for odds ratios (only used for type="n" and type = "rn") Default c(1.05,1.1,1.4,1.7,2.0,3.0)
 #' @param type A character representing the type of plot.  "f" for a fan_plot, "n" for a PAF nomogram and "rn" for a reverse PAF nomogram.  See Ferguson et al.. "Graphical comparisons of relative disease burden across multiple risk factors." BMC medical research methodology 19, no. 1 (2019): 1-9 for more details
 #' @param ...  Other arguments that can be passed to the plotting routine
-#' @return fanplot or PAF nomogram (each is a ggplotting object)
+#' @return fanplot or PAF nomogram (each is a ggplot2 object)
 #' @export
 #'
 #' @references Ferguson, J., O’Leary, N., Maturo, F., Yusuf, S. and O’Donnell, M., 2019. Graphical comparisons of relative disease burden across multiple risk factors. BMC medical research methodology, 19(1), pp.1-9.
