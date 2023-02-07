@@ -1,4 +1,8 @@
 ## Updates
+
+v1.0.2 
+Vignette in multiple places to enhance readability (including being more prescriptive about arguments to various R functions).  No changes have been made to the R functions.
+
 v1.0.1
 Updates have been made to PAF_calc_continuous, PAF_calc_discrete, impact_fraction, ps_paf, joint_paf, average_paf and seq_paf to allow analysis of survey data. 
 
