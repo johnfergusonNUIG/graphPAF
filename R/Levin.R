@@ -40,7 +40,7 @@ paf_levin_cor_int <- function(x){
 #' @param prev Estimated prevalence.  Can be left unspecified if conf_prev specified.
 #' @param RR Estimated relative risk.  Can be left unspecified if conf_RR specified.
 #' @param conf_prev A numeric vector of length 2 giving confidence limits for prevalence.
-#' @param conf_RR A numeric vector of length 2 giving the confidence limits for relative risk.#'
+#' @param conf_RR A numeric vector of length 2 giving the confidence limits for relative risk.'
 #' @param digits integer.  The number of significant digits for rounding of PAF estimates and confidence intervals.  Default of 3.
 #' @return If confidence intervals for prevalence and relative risk are not specified, the estimated PAF.  If confidence intervals for prevalence and relative risk are specified, confidence intervals for PAF are estimated using approximate propagation of imprecision.  Note that if confidence intervals are supplied as arguments, the algorithm makes assumptions that the point estimate of prevalence is the average of the specified confidence limits for prevalence, the point estimate for relative risk is the geometric mean of the confidence limits for relative risk, and that the 3 estimators are independent.
 #' @export
