@@ -8,7 +8,7 @@ prop_imp_quick <- function(f, CI_list, conf_vec=NULL, conf_final=0.95,...){
   est_vec <- numeric(K)
   for(i in 1:K) est_vec[i] <- mean(CI_list[[i]])
   x <- array(est_vec,dim=c(K,1))
-  deriv <- madness::numderiv(f,x)
+  deriv <- madness::numderiv(function(x){f(x,...)},x)
   abs_deriv <- abs(deriv) # we'll assume function is parameterised so that it is increasing in all arguments
   q_vec <- abs_deriv*SE_vec
   z <- qnorm(1-(1-conf_final)/2)
@@ -19,28 +19,30 @@ prop_imp_quick <- function(f, CI_list, conf_vec=NULL, conf_final=0.95,...){
     CI_upper_new[deriv<0] <- est_vec[deriv<0] - z_star[deriv<0]*SE_vec[deriv<0]
     CI_lower_new[deriv<0] <- est_vec[deriv<0] + z_star[deriv<0]*SE_vec[deriv<0]
   }
-  return(list(est=f(est_vec),lower=f(as.numeric(CI_lower_new)),upper=f(as.numeric(CI_upper_new))))
+  return(list(est=f(est_vec,...),lower=f(as.numeric(CI_lower_new),...),upper=f(as.numeric(CI_upper_new),...)))
 }
 
-paf_levin_int <- function(x){
-  prev <- x[1]
-  lRR <- x[2]
-  prev*(exp(lRR)-1)/(1+prev*(exp(lRR)-1))
+paf_levin_int <- function(x, thedim){
+  prev <- c(1-sum(x[1:thedim]),x[1:thedim])
+  lRR <- c(0,x[(thedim+1):(2*thedim)])
+  (sum(exp(lRR)*prev)-1)/sum(exp(lRR)*prev)
 }
 
-paf_levin_cor_int <- function(x){
-  prev <- x[1]
-  lRR <- x[2]
-  lRRu <- x[3]
-  return(prev*exp(lRRu)/(1+prev*(exp(lRRu)-1))*((exp(lRR)-1)/exp(lRR)))
+paf_levin_cor_int <- function(x, thedim){
+  prev <- c(1-sum(x[1:thedim]),x[1:thedim])
+  lRR <- c(0,x[(thedim+1):(2*thedim)])
+  lRRu <- c(0,x[(2*thedim+1):(3*thedim)])
+  K <- thedim+1
+  return(sum(prev[2:K]*exp(lRRu[2:K])*(exp(lRR[2:K])-1)/exp(lRR[2:K]))/(prev[1]+sum(prev[2:K]*exp(lRRu)[2:K])))
 }
 
 #' Levin's formula based on relative risk and prevalence
 #'
-#' @param prev Estimated prevalence.  Can be left unspecified if conf_prev specified.
-#' @param RR Estimated relative risk.  Can be left unspecified if conf_RR specified.
-#' @param conf_prev A numeric vector of length 2 giving confidence limits for prevalence.
-#' @param conf_RR A numeric vector of length 2 giving the confidence limits for relative risk.'
+#' @param prev A vector of estimated prevalence for each non-reference of risk factor.  Can be left unspecified if conf_prev specified.
+#' @param RR  A vector of estimated relative risk for each non-reference level of risk factor.  Can be left unspecified if conf_RR specified.
+#' @param conf_prev If risk factor has 2 levels, a numeric vector of length 2 giving confidence limits for prevalence.  If risk factor has more than K>2 levels, a K-1 x 2 matrix giving confidence intervals for prevalence of each non-reference level of risk factor.
+#' @param conf_RR If risk factor has 2 levels, a numeric vector of length 2 giving confidence limits for relative risk.  If risk factor has more than K>2 levels, a K-1 x 2 matrix giving confidence intervals for relative risk for
+#' r each non-reference level of risk factor.
 #' @param digits integer.  The number of significant digits for rounding of PAF estimates and confidence intervals.  Default of 3.
 #' @return If confidence intervals for prevalence and relative risk are not specified, the estimated PAF.  If confidence intervals for prevalence and relative risk are specified, confidence intervals for PAF are estimated using approximate propagation of imprecision.  Note that if confidence intervals are supplied as arguments, the algorithm makes assumptions that the point estimate of prevalence is the average of the specified confidence limits for prevalence, the point estimate for relative risk is the geometric mean of the confidence limits for relative risk, and that the 3 estimators are independent.
 #' @export
@@ -53,12 +55,22 @@ paf_levin_cor_int <- function(x){
 #' paf_levin(conf_prev=CI_p,conf_RR=CI_RR)
 paf_levin <- function(prev=NULL, RR=NULL, conf_prev=NULL, conf_RR=NULL, digits=3){
 
-  if(is.null(conf_prev) || is.null(conf_RR)) return(round(prev*(RR-1)/(1+prev*(RR-1)),digits))
+  if(is.null(conf_prev)) prev <- c(1-sum(prev),prev)
+  if(is.null(conf_RR)) RR <- c(1, RR)
 
-  if(!is.numeric(conf_prev) || !length(conf_prev==2) || !is.numeric(conf_RR) || !length(conf_RR==2)) return("Error: confidence intervals should be numeric vectors of length 2")
+  if(is.null(conf_prev) || is.null(conf_RR)) return(round((sum(RR*prev)-1)/sum(RR*prev),digits))
 
-  CI_RR <- log(conf_RR)
-   output <- prop_imp_quick(paf_levin_int, CI_list=list(conf_prev,CI_RR))
+  if(!is.matrix(conf_prev)) conf_prev <- matrix(conf_prev,ncol=2)
+  if(!is.matrix(conf_RR)) conf_RR <- matrix(conf_RR,ncol=2)
+
+  log_conf_RR <- log(conf_RR)
+  mydim <- nrow(conf_prev)
+  thelist <- list()
+  for(i in 1:mydim) thelist[[i]] <- conf_prev[i,]
+  for(i in (mydim+1):(2*mydim)) thelist[[i]] <- log_conf_RR[i-mydim,]
+
+
+   output <- prop_imp_quick(paf_levin_int, CI_list=thelist, thedim=mydim)
   return(paste(round(output$est, digits)," (", round(output$lower,digits),",",round(output$upper,digits),")",sep=""))
 
 
@@ -66,12 +78,12 @@ paf_levin <- function(prev=NULL, RR=NULL, conf_prev=NULL, conf_RR=NULL, digits=3
 
 #' Miettinen's formula based on adjusted relative risk, unadjusted relative risk and prevalence
 #'
-#' @param prev Estimated prevalence.  Can be left unspecified if conf_prev specified.
-#' @param RR Estimated adjusted relative risk.  Can be left unspecified if conf_RR specified.
-#' @param RR_u Estimated unadjusted relative risk.  Can be left unspecified if conf_RRu specified.
-#' @param conf_prev A numeric vector of length 2 giving confidence limits for prevalence.
-#' @param conf_RR A numeric vector of length 2 giving the confidence limits for the adjusted relative risk.
-#' @param conf_RRu A numeric vector of length 2 giving the confidence limits for the unadjusted relative risk.
+#' @param prev A vector of estimated prevalence for each non-reference of risk factor.  Can be left unspecified if conf_prev specified.
+#' @param RR  A vector of estimated causal relative risk of each risk increasing level of risk factor.  Can be left unspecified if conf_RR specified.
+#' @param RRu  A vector of estimated unadjusted relative risk for each non-reference level of the risk factor.  Can be left unspecified if conf_RRu specified.
+#' @param conf_prev If risk factor has 2 levels, a numeric vector of length 2 giving confidence limits for prevalence.  If risk factor has more than K>2 levels, a K-1 x 2 matrix giving confidence intervals for prevalence of each non-refernece level.
+#' @param conf_RR If risk factor has 2 levels, a numeric vector of length 2 giving confidence limits for the causal relative risk.  If risk factor has more than K>2 levels, a K-1 x 2 matrix giving confidence intervals for causal relative risk fror each non-refernece level.
+#' @param conf_RRu If risk factor has 2 levels, a numeric vector of length 2 giving confidence limits for the unadjusted relative risk.  If risk factor has more than K>2 levels, a K-1 x 2 matrix giving confidence intervals for unadjusted relative risk fror each non-refernece level.
 #' @param digits integer.  The number of significant digits for rounding of PAF estimates and confidence intervals.  Default of 3.
 #' @return If confidence intervals for prevalence and adjusted and unadjusted relative risk are not specified, the estimated PAF.  If confidence intervals are specified, confidence intervals for PAF are also estimated using approximate propagation of imprecision.  Note that if confidence intervals are supplied as arguments, the algorithm makes assumptions that the point estimate of prevalence is the average of the specified confidence limits for prevalence, the point estimates for adjusted/unadjusted relative risk are the geometric means of the specified confidence limits for relative risk, and that the 3 estimators are independent.
 #' @export
@@ -80,19 +92,32 @@ paf_levin <- function(prev=NULL, RR=NULL, conf_prev=NULL, conf_RR=NULL, digits=3
 #' CI_RR <- c(1.2, 2)
 #' CI_RRu <- c(1.5, 2.5)
 #' # example without confidence interval
-#' paf_miettinen(prev=0.2,RR=exp(.5*log(1.2)+.5*log(2)), RR_u=exp(.5*log(1.5)+.5*log(2.5)))
+#' paf_miettinen(prev=0.2,RR=exp(.5*log(1.2)+.5*log(2)), RRu=exp(.5*log(1.5)+.5*log(2.5)))
 #' #' # example with confidence interval
 #' paf_miettinen(conf_prev=CI_p,conf_RR=CI_RR, conf_RRu=CI_RRu)
-paf_miettinen  <- function(prev=NULL, RR=NULL, RR_u=NULL, conf_prev=NULL, conf_RR=NULL, conf_RRu=NULL,digits=3){
+paf_miettinen  <- function(prev=NULL, RR=NULL, RRu=NULL, conf_prev=NULL, conf_RR=NULL, conf_RRu=NULL,digits=3){
+
+  if(!is.null(prev)) prev <- c(1-sum(prev),prev)
+  if(!is.null(RR)) lRR <- c(0, log(RR))
+  if(!is.null(RRu)) lRRu <- c(0, log(RRu))
+  K <- length(RR)+1
+
+  if(is.null(conf_prev) || is.null(conf_RR) || is.null(conf_RRu)) return(round(sum(prev[2:K]*exp(lRRu[2:K])*(exp(lRR[2:K])-1)/exp(lRR[2:K]))/(prev[1]+sum(prev[2:K]*exp(lRRu)[2:K])),digits))
+
+  if(!is.matrix(conf_prev)) conf_prev <- matrix(conf_prev,ncol=2)
+  if(!is.matrix(conf_RR)) conf_RR <- matrix(conf_RR,ncol=2)
+  if(!is.matrix(conf_RRu)) conf_RRu <- matrix(conf_RRu,ncol=2)
 
 
-  if(is.null(conf_prev) || is.null(conf_RR) || is.null(conf_RRu)) return(round(prev*RR_u/(1+prev*(RR_u-1))*(RR-1)/RR,digits))
+  log_conf_RR <- log(conf_RR)
+  log_conf_RRu <- log(conf_RRu)
+  mydim <- nrow(conf_prev)
+  thelist <- list()
+  for(i in 1:mydim) thelist[[i]] <- conf_prev[i,]
+  for(i in (mydim+1):(2*mydim)) thelist[[i]] <- log_conf_RR[i-mydim,]
+  for(i in (2*mydim+1):(3*mydim)) thelist[[i]] <- log_conf_RRu[i-2*mydim,]
 
-  if(!is.numeric(conf_prev) || !length(conf_prev==2) || !is.numeric(conf_RRu) || !length(conf_RRu==2) || !is.numeric(conf_RR) || !length(conf_RR==2)) return("Error: confidence intervals should be numeric vectors of length 2")
-
-  CI_lRR <- log(conf_RR)
-  CI_lRRu <- log(conf_RRu)
-  output <- prop_imp_quick(paf_levin_cor_int, CI_list=list(conf_prev,CI_lRR,CI_lRRu))
+  output <- prop_imp_quick(paf_levin_cor_int, CI_list=thelist, thedim=mydim)
   return(paste(round(output$est, digits)," (", round(output$lower,digits),",",round(output$upper,digits),")",sep=""))
 }
 

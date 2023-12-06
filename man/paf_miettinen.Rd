@@ -7,7 +7,7 @@
 paf_miettinen(
   prev = NULL,
   RR = NULL,
-  RR_u = NULL,
+  RRu = NULL,
   conf_prev = NULL,
   conf_RR = NULL,
   conf_RRu = NULL,
@@ -15,17 +15,17 @@ paf_miettinen(
 )
 }
 \arguments{
-\item{prev}{Estimated prevalence.  Can be left unspecified if conf_prev specified.}
+\item{prev}{A vector of estimated prevalence for each non-reference of risk factor.  Can be left unspecified if conf_prev specified.}
 
-\item{RR}{Estimated adjusted relative risk.  Can be left unspecified if conf_RR specified.}
+\item{RR}{A vector of estimated causal relative risk of each risk increasing level of risk factor.  Can be left unspecified if conf_RR specified.}
 
-\item{RR_u}{Estimated unadjusted relative risk.  Can be left unspecified if conf_RRu specified.}
+\item{RRu}{A vector of estimated unadjusted relative risk for each non-reference level of the risk factor.  Can be left unspecified if conf_RRu specified.}
 
-\item{conf_prev}{A numeric vector of length 2 giving confidence limits for prevalence.}
+\item{conf_prev}{If risk factor has 2 levels, a numeric vector of length 2 giving confidence limits for prevalence.  If risk factor has more than K>2 levels, a K-1 x 2 matrix giving confidence intervals for prevalence of each non-refernece level.}
 
-\item{conf_RR}{A numeric vector of length 2 giving the confidence limits for the adjusted relative risk.}
+\item{conf_RR}{If risk factor has 2 levels, a numeric vector of length 2 giving confidence limits for the causal relative risk.  If risk factor has more than K>2 levels, a K-1 x 2 matrix giving confidence intervals for causal relative risk fror each non-refernece level.}
 
-\item{conf_RRu}{A numeric vector of length 2 giving the confidence limits for the unadjusted relative risk.}
+\item{conf_RRu}{If risk factor has 2 levels, a numeric vector of length 2 giving confidence limits for the unadjusted relative risk.  If risk factor has more than K>2 levels, a K-1 x 2 matrix giving confidence intervals for unadjusted relative risk fror each non-refernece level.}
 
 \item{digits}{integer.  The number of significant digits for rounding of PAF estimates and confidence intervals.  Default of 3.}
 }
@@ -40,7 +40,7 @@ CI_p <- c(0.1,0.3)
 CI_RR <- c(1.2, 2)
 CI_RRu <- c(1.5, 2.5)
 # example without confidence interval
-paf_miettinen(prev=0.2,RR=exp(.5*log(1.2)+.5*log(2)), RR_u=exp(.5*log(1.5)+.5*log(2.5)))
+paf_miettinen(prev=0.2,RR=exp(.5*log(1.2)+.5*log(2)), RRu=exp(.5*log(1.5)+.5*log(2.5)))
 #' # example with confidence interval
 paf_miettinen(conf_prev=CI_p,conf_RR=CI_RR, conf_RRu=CI_RRu)
 }

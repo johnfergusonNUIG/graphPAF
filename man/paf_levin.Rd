@@ -7,13 +7,14 @@
 paf_levin(prev = NULL, RR = NULL, conf_prev = NULL, conf_RR = NULL, digits = 3)
 }
 \arguments{
-\item{prev}{Estimated prevalence.  Can be left unspecified if conf_prev specified.}
+\item{prev}{A vector of estimated prevalence for each non-reference of risk factor.  Can be left unspecified if conf_prev specified.}
 
-\item{RR}{Estimated relative risk.  Can be left unspecified if conf_RR specified.}
+\item{RR}{A vector of estimated relative risk for each non-reference level of risk factor.  Can be left unspecified if conf_RR specified.}
 
-\item{conf_prev}{A numeric vector of length 2 giving confidence limits for prevalence.}
+\item{conf_prev}{If risk factor has 2 levels, a numeric vector of length 2 giving confidence limits for prevalence.  If risk factor has more than K>2 levels, a K-1 x 2 matrix giving confidence intervals for prevalence of each non-reference level of risk factor.}
 
-\item{conf_RR}{A numeric vector of length 2 giving the confidence limits for relative risk.#'}
+\item{conf_RR}{If risk factor has 2 levels, a numeric vector of length 2 giving confidence limits for relative risk.  If risk factor has more than K>2 levels, a K-1 x 2 matrix giving confidence intervals for relative risk for
+r each non-reference level of risk factor.}
 
 \item{digits}{integer.  The number of significant digits for rounding of PAF estimates and confidence intervals.  Default of 3.}
 }
