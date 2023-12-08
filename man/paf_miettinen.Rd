@@ -17,20 +17,20 @@ paf_miettinen(
 \arguments{
 \item{prev}{A vector of estimated prevalence for each non-reference of risk factor.  Can be left unspecified if conf_prev specified.}
 
-\item{RR}{A vector of estimated causal relative risk of each risk increasing level of risk factor.  Can be left unspecified if conf_RR specified.}
+\item{RR}{A vector of estimated causal relative risk for each non-reference level of risk factor.  Can be left unspecified if conf_RR specified.}
 
 \item{RRu}{A vector of estimated unadjusted relative risk for each non-reference level of the risk factor.  Can be left unspecified if conf_RRu specified.}
 
-\item{conf_prev}{If risk factor has 2 levels, a numeric vector of length 2 giving confidence limits for prevalence.  If risk factor has more than K>2 levels, a K-1 x 2 matrix giving confidence intervals for prevalence of each non-refernece level.}
+\item{conf_prev}{If risk factor has 2 levels, a numeric vector of length 2 giving confidence limits for prevalence.  If risk factor has K>2 levels, a K-1 x 2 matrix giving confidence intervals for prevalence of each non-refernece level.}
 
-\item{conf_RR}{If risk factor has 2 levels, a numeric vector of length 2 giving confidence limits for the causal relative risk.  If risk factor has more than K>2 levels, a K-1 x 2 matrix giving confidence intervals for causal relative risk fror each non-refernece level.}
+\item{conf_RR}{If risk factor has 2 levels, a numeric vector of length 2 giving confidence limits for the causal relative risk.  If risk factor has K>2 levels, a K-1 x 2 matrix giving confidence intervals for causal relative risk fror each non-reference level of risk factor.}
 
-\item{conf_RRu}{If risk factor has 2 levels, a numeric vector of length 2 giving confidence limits for the unadjusted relative risk.  If risk factor has more than K>2 levels, a K-1 x 2 matrix giving confidence intervals for unadjusted relative risk fror each non-refernece level.}
+\item{conf_RRu}{If risk factor has 2 levels, a numeric vector of length 2 giving confidence limits for the unadjusted relative risk.  If risk factor has K>2 levels, a K-1 x 2 matrix giving confidence intervals for unadjusted relative risk for each non-reference level of risk factor.}
 
 \item{digits}{integer.  The number of significant digits for rounding of PAF estimates and confidence intervals.  Default of 3.}
 }
 \value{
-If confidence intervals for prevalence and adjusted and unadjusted relative risk are not specified, the estimated PAF.  If confidence intervals are specified, confidence intervals for PAF are also estimated using approximate propagation of imprecision.  Note that if confidence intervals are supplied as arguments, the algorithm makes assumptions that the point estimate of prevalence is the average of the specified confidence limits for prevalence, the point estimates for adjusted/unadjusted relative risk are the geometric means of the specified confidence limits for relative risk, and that the 3 estimators are independent.
+If confidence intervals for prevalence, adjusted and unadjusted relative risk are not specified, the estimated PAF.  If confidence intervals are specified, confidence intervals for PAF are also estimated using approximate propagation of imprecision.  Note that if confidence intervals are supplied as arguments, the algorithm makes assumptions that the point estimate of prevalence is the average of the specified confidence limits for prevalence, the point estimates for adjusted/unadjusted relative risk are the geometric means of the specified confidence limits for relative risk, and that the 3 estimators are independent.
 }
 \description{
 Miettinen's formula based on adjusted relative risk, unadjusted relative risk and prevalence
