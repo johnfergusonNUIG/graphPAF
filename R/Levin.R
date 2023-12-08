@@ -38,10 +38,10 @@ paf_levin_cor_int <- function(x, thedim){
 
 #' Levin's formula based on relative risk and prevalence
 #'
-#' @param prev A vector of estimated prevalence for each non-reference of risk factor.  Can be left unspecified if conf_prev specified.
+#' @param prev A vector of estimated prevalence for each non-reference level of risk factor.  Can be left unspecified if conf_prev specified.
 #' @param RR  A vector of estimated relative risk for each non-reference level of risk factor.  Can be left unspecified if conf_RR specified.
-#' @param conf_prev If risk factor has 2 levels, a numeric vector of length 2 giving confidence limits for prevalence.  If risk factor has more than K>2 levels, a K-1 x 2 matrix giving confidence intervals for prevalence of each non-reference level of risk factor.
-#' @param conf_RR If risk factor has 2 levels, a numeric vector of length 2 giving confidence limits for relative risk.  If risk factor has more than K>2 levels, a K-1 x 2 matrix giving confidence intervals for relative risk for
+#' @param conf_prev If risk factor has 2 levels, a numeric vector of length 2 giving confidence limits for prevalence.  If risk factor has K>2 levels, a K-1 x 2 matrix giving confidence intervals for prevalence of each non-reference level of risk factor.
+#' @param conf_RR If risk factor has 2 levels, a numeric vector of length 2 giving confidence limits for relative risk.  If risk factor has K>2 levels, a K-1 x 2 matrix giving confidence intervals for relative risk for each non-reference level of risk factor
 #' r each non-reference level of risk factor.
 #' @param digits integer.  The number of significant digits for rounding of PAF estimates and confidence intervals.  Default of 3.
 #' @return If confidence intervals for prevalence and relative risk are not specified, the estimated PAF.  If confidence intervals for prevalence and relative risk are specified, confidence intervals for PAF are estimated using approximate propagation of imprecision.  Note that if confidence intervals are supplied as arguments, the algorithm makes assumptions that the point estimate of prevalence is the average of the specified confidence limits for prevalence, the point estimate for relative risk is the geometric mean of the confidence limits for relative risk, and that the 3 estimators are independent.
@@ -79,13 +79,13 @@ paf_levin <- function(prev=NULL, RR=NULL, conf_prev=NULL, conf_RR=NULL, digits=3
 #' Miettinen's formula based on adjusted relative risk, unadjusted relative risk and prevalence
 #'
 #' @param prev A vector of estimated prevalence for each non-reference of risk factor.  Can be left unspecified if conf_prev specified.
-#' @param RR  A vector of estimated causal relative risk of each risk increasing level of risk factor.  Can be left unspecified if conf_RR specified.
+#' @param RR  A vector of estimated causal relative risk for each non-reference level of risk factor.  Can be left unspecified if conf_RR specified.
 #' @param RRu  A vector of estimated unadjusted relative risk for each non-reference level of the risk factor.  Can be left unspecified if conf_RRu specified.
-#' @param conf_prev If risk factor has 2 levels, a numeric vector of length 2 giving confidence limits for prevalence.  If risk factor has more than K>2 levels, a K-1 x 2 matrix giving confidence intervals for prevalence of each non-refernece level.
-#' @param conf_RR If risk factor has 2 levels, a numeric vector of length 2 giving confidence limits for the causal relative risk.  If risk factor has more than K>2 levels, a K-1 x 2 matrix giving confidence intervals for causal relative risk fror each non-refernece level.
-#' @param conf_RRu If risk factor has 2 levels, a numeric vector of length 2 giving confidence limits for the unadjusted relative risk.  If risk factor has more than K>2 levels, a K-1 x 2 matrix giving confidence intervals for unadjusted relative risk fror each non-refernece level.
+#' @param conf_prev If risk factor has 2 levels, a numeric vector of length 2 giving confidence limits for prevalence.  If risk factor has K>2 levels, a K-1 x 2 matrix giving confidence intervals for prevalence of each non-refernece level.
+#' @param conf_RR If risk factor has 2 levels, a numeric vector of length 2 giving confidence limits for the causal relative risk.  If risk factor has K>2 levels, a K-1 x 2 matrix giving confidence intervals for causal relative risk fror each non-reference level of risk factor.
+#' @param conf_RRu If risk factor has 2 levels, a numeric vector of length 2 giving confidence limits for the unadjusted relative risk.  If risk factor has K>2 levels, a K-1 x 2 matrix giving confidence intervals for unadjusted relative risk for each non-reference level of risk factor.
 #' @param digits integer.  The number of significant digits for rounding of PAF estimates and confidence intervals.  Default of 3.
-#' @return If confidence intervals for prevalence and adjusted and unadjusted relative risk are not specified, the estimated PAF.  If confidence intervals are specified, confidence intervals for PAF are also estimated using approximate propagation of imprecision.  Note that if confidence intervals are supplied as arguments, the algorithm makes assumptions that the point estimate of prevalence is the average of the specified confidence limits for prevalence, the point estimates for adjusted/unadjusted relative risk are the geometric means of the specified confidence limits for relative risk, and that the 3 estimators are independent.
+#' @return If confidence intervals for prevalence, adjusted and unadjusted relative risk are not specified, the estimated PAF.  If confidence intervals are specified, confidence intervals for PAF are also estimated using approximate propagation of imprecision.  Note that if confidence intervals are supplied as arguments, the algorithm makes assumptions that the point estimate of prevalence is the average of the specified confidence limits for prevalence, the point estimates for adjusted/unadjusted relative risk are the geometric means of the specified confidence limits for relative risk, and that the 3 estimators are independent.
 #' @export
 #' @examples
 #' CI_p <- c(0.1,0.3)
