@@ -36,7 +36,7 @@ paf_levin_cor_int <- function(x, thedim){
   return(sum(prev[2:K]*exp(lRRu[2:K])*(exp(lRR[2:K])-1)/exp(lRR[2:K]))/(prev[1]+sum(prev[2:K]*exp(lRRu)[2:K])))
 }
 
-#' Levin's formula based on relative risk and prevalence
+#' Implementation of Levin's formula for summary data
 #'
 #' @param prev A vector of estimated prevalence for each non-reference level of risk factor.  Can be left unspecified if conf_prev specified.
 #' @param RR  A vector of estimated relative risk for each non-reference level of risk factor.  Can be left unspecified if conf_RR specified.
@@ -75,7 +75,7 @@ paf_levin <- function(prev=NULL, RR=NULL, conf_prev=NULL, conf_RR=NULL, digits=3
 
 }
 
-#' Miettinen's formula based on adjusted relative risk, unadjusted relative risk and prevalence
+#' Implementation of Miettinen's formula for summary data
 #'
 #' @param prev A vector of estimated prevalence for each non-reference of risk factor.  Can be left unspecified if conf_prev specified.
 #' @param RR  A vector of estimated causal relative risk for each non-reference level of risk factor.  Can be left unspecified if conf_RR specified.
