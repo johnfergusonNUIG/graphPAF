@@ -2,7 +2,7 @@
 % Please edit documentation in R/Levin.R
 \name{paf_miettinen}
 \alias{paf_miettinen}
-\title{Miettinen's formula based on adjusted relative risk, unadjusted relative risk and prevalence}
+\title{Implementation of Miettinen's formula for summary data}
 \usage{
 paf_miettinen(
   prev = NULL,
@@ -33,7 +33,7 @@ paf_miettinen(
 If confidence intervals for prevalence, adjusted and unadjusted relative risk are not specified, the estimated PAF.  If confidence intervals are specified, confidence intervals for PAF are also estimated using approximate propagation of imprecision.  Note that if confidence intervals are supplied as arguments, the algorithm makes assumptions that the point estimate of prevalence is the average of the specified confidence limits for prevalence, the point estimates for adjusted/unadjusted relative risk are the geometric means of the specified confidence limits for relative risk, and that the 3 estimators are independent.
 }
 \description{
-Miettinen's formula based on adjusted relative risk, unadjusted relative risk and prevalence
+Implementation of Miettinen's formula for summary data
 }
 \examples{
 CI_p <- c(0.1,0.3)

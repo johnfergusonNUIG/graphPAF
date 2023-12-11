@@ -2,7 +2,7 @@
 % Please edit documentation in R/Levin.R
 \name{paf_levin}
 \alias{paf_levin}
-\title{Levin's formula based on relative risk and prevalence}
+\title{Implementation of Levin's formula for summary data}
 \usage{
 paf_levin(prev = NULL, RR = NULL, conf_prev = NULL, conf_RR = NULL, digits = 3)
 }
@@ -13,16 +13,15 @@ paf_levin(prev = NULL, RR = NULL, conf_prev = NULL, conf_RR = NULL, digits = 3)
 
 \item{conf_prev}{If risk factor has 2 levels, a numeric vector of length 2 giving confidence limits for prevalence.  If risk factor has K>2 levels, a K-1 x 2 matrix giving confidence intervals for prevalence of each non-reference level of risk factor.}
 
-\item{conf_RR}{If risk factor has 2 levels, a numeric vector of length 2 giving confidence limits for relative risk.  If risk factor has K>2 levels, a K-1 x 2 matrix giving confidence intervals for relative risk for each non-reference level of risk factor
-r each non-reference level of risk factor.}
+\item{conf_RR}{If risk factor has 2 levels, a numeric vector of length 2 giving confidence limits for relative risk.  If risk factor has K>2 levels, a K-1 x 2 matrix giving confidence intervals for relative risk for each non-reference level of risk factor}
 
 \item{digits}{integer.  The number of significant digits for rounding of PAF estimates and confidence intervals.  Default of 3.}
 }
 \value{
-If confidence intervals for prevalence and relative risk are not specified, the estimated PAF.  If confidence intervals for prevalence and relative risk are specified, confidence intervals for PAF are estimated using approximate propagation of imprecision.  Note that if confidence intervals are supplied as arguments, the algorithm makes assumptions that the point estimate of prevalence is the average of the specified confidence limits for prevalence, the point estimate for relative risk is the geometric mean of the confidence limits for relative risk, and that the 3 estimators are independent.
+If confidence intervals for prevalence and relative risk are not specified, the estimated PAF.  If confidence intervals for prevalence and relative risk are specified, confidence intervals for PAF are estimated using approximate propagation of imprecision.  Note that if confidence intervals are supplied as arguments, the algorithm makes assumptions that the point estimate of prevalence is the average of the specified confidence limits for prevalence, that the point estimate for relative risk is the geometric mean of the confidence limits for relative risk, and that the 3 estimators are independent.
 }
 \description{
-Levin's formula based on relative risk and prevalence
+Implementation of Levin's formula for summary data
 }
 \examples{
 CI_p <- c(0.1,0.3)
