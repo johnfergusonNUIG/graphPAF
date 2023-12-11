@@ -67,6 +67,8 @@ data=stroke_reduced, calculation_method="B",ci=FALSE)
 \donttest{
 # calculate discrete PAF using Direct method
 # Use bootstrap resampling to calculate a confidence interval
+# 10 Bootstrap reps used here for speed.
+#  In real examples, use at least 50 repetitions.
 PAF_calc_discrete(model_exercise, "exercise", refval=0,
 data=stroke_reduced, calculation_method="D", prev=0.005, ci=TRUE, boot_rep=10)
 ### use the Bruzzi method derived by Bruzzi, 1985, instead
@@ -79,7 +81,7 @@ education +exercise + ns(diet, df = 3) + smoking + alcohol + stress +
  ns(lipids,df = 3) + ns(waist_hip_ratio, df = 3) + high_blood_pressure +
  strata(strata),data=stroke_reduced)
 PAF_calc_discrete(model_high_blood_pressure_clogit, "high_blood_pressure",
-refval=0, data=stroke_reduced, calculation_method="B",ci=TRUE, boot_rep=100,
+refval=0, data=stroke_reduced, calculation_method="B",ci=TRUE, boot_rep=10,
  ci_type=c('norm'))
 
 model_high_blood_pressure_coxph <- coxph(formula = Surv(time,event) ~
