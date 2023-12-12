@@ -453,6 +453,7 @@ if(continuous){
   }
 }
 
+#' @export
 print.IF_summary <- function(x,...){
 
   if(!("time_vec" %in% names(x))){

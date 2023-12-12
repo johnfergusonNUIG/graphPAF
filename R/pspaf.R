@@ -76,6 +76,7 @@ ps_paf <- function(response_model, mediator_models,riskfactor,refval,data,prev=N
   out
 }
 
+#' @export
 print.pspaf <- function(x,...){
 
   d_frame_new <- x$pspaf[,1,drop=FALSE]

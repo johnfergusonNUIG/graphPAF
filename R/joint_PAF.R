@@ -983,6 +983,7 @@ if(!ci) return(joint_paf_inner(data=data,ind=1:nrow(data), model_list=model_list
   out
 }
 
+#' @export
 print.jointpaf <- function(x,...){
 
   d_frame_new <- x$jointpaf[,1,drop=FALSE]
@@ -1152,6 +1153,7 @@ seq_paf <- function(data, model_list, parent_list, node_vec, prev=NULL, riskfact
   out
 }
 
+#' @export
 print.saf <- function(x,...){
 
   d_frame_new <- x$saf[,1,drop=FALSE]
