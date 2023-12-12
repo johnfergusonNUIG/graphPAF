@@ -7,7 +7,7 @@
 \method{print}{PAF_q}(x, ...)
 }
 \arguments{
-\item{x}{A PAF_q object.  This is a dataframe that is created by running the function PAF_calc_continuous. The final 3 columns of the data frame are assumed to be (in order), PAF and lower and upper confidence bounds.}
+\item{x}{A PAF_q object.}
 
 \item{...}{Other arguments to be passed to print}
 }
