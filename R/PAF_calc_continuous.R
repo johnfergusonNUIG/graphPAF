@@ -89,7 +89,7 @@ PAF_calc_continuous <- function(model, riskfactor_vec, q_vec=c(0.01), data, calc
 
    if(!ci) {
       res <- impact_fraction_qvec(data, ind=(1:N), model=model, model_type=model_type, riskfactor_vec=riskfactor_vec,  q_vec=q_vec,calculation_method=calculation_method,S=S,prev=prev,t_vector=t_vector, weight_vec=weight_vec)
-      q_vec_obj <- structure(data.frame("riskfactor"=rep(riskfactor_vec,times=rep(length(q_vec),length(riskfactor_vec))),"q_val"=rep(q_vec,length(riskfactor_vec)),paf_q=res),class="PAF_q")
+      q_vec_obj <- structure(list(calculation_method=calculation_method,prev=prev,model_type=model_type, ci_level=ci_level, ci_type=ci_type,boot_rep=boot_rep,riskfactor=rep(riskfactor_vec,times=rep(length(q_vec),length(riskfactor_vec))),q_val=rep(q_vec,length(riskfactor_vec)),paf_q=res),class="PAF_q")
 
          return(q_vec_obj)
 
@@ -102,7 +102,7 @@ PAF_calc_continuous <- function(model, riskfactor_vec, q_vec=c(0.01), data, calc
       parallel::clusterExport(cl, c("predict_df_continuous","risk_quantiles","impact_fraction","if_bruzzi","if_direct"))
       res <- boot::boot(data, statistic=impact_fraction_qvec,model=model,  model_type=model_type, riskfactor_vec=riskfactor_vec, q_vec=q_vec,calculation_method=calculation_method,S=S, prev=prev,t_vector=t_vector, R=boot_rep,cl=cl, weight_vec=weight_vec)
       parallel::stopCluster(cl)
-      q_vec_obj <- structure(cbind("riskfactor"=rep(riskfactor_vec,times=rep(length(q_vec),length(riskfactor_vec))),"q_val"=rep(q_vec,length(riskfactor_vec)),extract_ci(res,model_type=model_type,t_vector=t_vector,ci_level=ci_level,ci_type=ci_type,continuous=TRUE)),class="PAF_q")
+      q_vec_obj <- structure(list(calculation_method=calculation_method,prev=prev,model_type=model_type, ci_level=ci_level, ci_type=ci_type,boot_rep=boot_rep,riskfactor=rep(riskfactor_vec,times=rep(length(q_vec),length(riskfactor_vec))),q_val=rep(q_vec,length(riskfactor_vec)),paf_q=extract_ci(res,model_type=model_type,t_vector=t_vector,ci_level=ci_level,ci_type=ci_type,continuous=TRUE)),class="PAF_q")
             return(q_vec_obj)
     }
 
@@ -280,7 +280,7 @@ risk_quantiles <- function(riskfactor, data, model, S=1, q=seq(from=0.01,to=0.99
 
 #' Print out PAF_q for differing risk factors
 #'
-#' @param x A PAF_q object.  This is a dataframe that is created by running the function PAF_calc_continuous. The final 3 columns of the data frame are assumed to be (in order), PAF and lower and upper confidence bounds.
+#' @param x A PAF_q object.
 #' @param ...  Other arguments to be passed to print
 #' @return No return value, prints the PAF_q object to the console.
 #' @export
@@ -303,9 +303,35 @@ risk_quantiles <- function(riskfactor, data, model, S=1, q=seq(from=0.01,to=0.99
 #' print(out)
 print.PAF_q <- function(x,...){
 
-  data_frame <- structure(as.list(x),class="data.frame", row.names=attr(x,"row.names"))
-  print(data_frame)
+  data_frame <- data.frame(riskfactor=x$riskfactor,q = x$q_val, paf_q=signif(x$paf_q,3))
 
+  if(ncol(data_frame)==3){
+  print(data_frame)
+  }
+  if(ncol(data_frame)>3){
+
+  d_frame_new <- data_frame[,1:3]
+  d_frame_new$CI <- paste("(",data_frame[,6],",",data_frame[,7],")",sep="")
+    print(d_frame_new)
+    cat("\n")
+
+  cat(paste("Type of statistical model originally fit: ", x$model_type, "\n",sep=""))
+
+  if(x$calculation_method=="B") x$calculation_method="Bruzzi formula"
+  if(x$calculation_method=="D") x$calculation_method="Weighted Standardisation"
+
+
+  cat(paste("Method used to produce estimate: ", x$calculation_method, "\n",sep=""))
+
+  if(is.null(x$prev)) x$prev=0.5
+  if(x$calculation_method=="Weighted Standardisation") cat(paste("Assumed prevalence: ", unique(x$prev), "\n",sep=""))
+
+  cat(paste("Type of Bootstrap confidence interval used: ", x$ci_type, "\n",sep=""))
+
+  cat(paste("Confidence level: ", x$ci_level, "\n",sep=""))
+
+  cat(paste("Number of bootstrap draws: ", x$boot_rep, "\n",sep=""))
+  }
 }
 
 

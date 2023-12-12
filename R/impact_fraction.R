@@ -122,7 +122,7 @@ impact_fraction <- function(model, data, new_data, calculation_method="B",prev=N
       if("splines" %in% (.packages())) parallel::clusterExport(cl, c("ns"))
             res <- boot::boot(data=data,statistic=if_bruzzi,R=boot_rep, model=model,model_type=model_type,new_data=new_data,response=response,cl=cl, weight_vec=weight_vec)
             parallel::stopCluster(cl)
-           return(extract_ci(res=res,model_type=model_type,t_vector=t_vector,ci_level=ci_level,ci_type=ci_type))
+           return(extract_ci(res=res,model_type=model_type,t_vector=t_vector,ci_level=ci_level,ci_type=ci_type,prev=prev,calculation_method=calculation_method,boot_rep=boot_rep))
     }
   }
   if(calculation_method=="D"){
@@ -135,7 +135,7 @@ impact_fraction <- function(model, data, new_data, calculation_method="B",prev=N
       if("splines" %in% (.packages())) parallel::clusterExport(cl, c("ns"))
        res <- boot::boot(data=data,statistic=if_direct,R=boot_rep,model=model, model_type=model_type, new_data=new_data, prev=prev,t_vector=t_vector,response=response,cl=cl, weight_vec=weight_vec)
        parallel::stopCluster(cl)
-       return(extract_ci(res=res,model_type=model_type,t_vector=t_vector,ci_level=ci_level,ci_type=ci_type))
+       return(extract_ci(res=res,model_type=model_type,t_vector=t_vector,ci_level=ci_level,ci_type=ci_type,prev=prev,calculation_method=calculation_method,boot_rep=boot_rep))
     }
   }
 
@@ -382,7 +382,7 @@ if_direct <- function(data, ind, model,model_type, new_data, prev,t_vector,respo
 
 }
 
-extract_ci <- function(res,model_type,t_vector,ci_level,ci_type,continuous=FALSE){
+extract_ci <- function(res,model_type,t_vector,ci_level,ci_type,continuous=FALSE,prev=NULL,calculation_method="D",boot_rep=50){
 if(continuous){
 
   d <- data.frame(matrix(ncol=3 + 2*length(ci_type),nrow=length(res$t0)))
@@ -424,7 +424,7 @@ if(continuous){
           if(ci_type[i]=="bca") v[(2+2*i):(3+2*i)] <- boot::boot.ci(res, conf=ci_level,type="bca")$bca[4:5]
     }
     v <- signif(v,digits=3)
-    return(v)
+    return(structure(list(calculation_method=calculation_method,prev=prev,model_type=model_type, ci_level=ci_level, ci_type=ci_type, boot_rep=boot_rep, estimate=v[1],bias=v[2],debiased_estimate=v[3],confidence_interval=paste("(",v[4],",",v[5],")",sep="")),class="IF_summary"))
 
   }
   if(model_type=="coxph"){
@@ -449,6 +449,51 @@ if(continuous){
     }
     rownames(d) <- t_vector
     for(i in 1:ncol(d)) d[,i] <- signif(d[,i],3)
-    return(d)
+    return(structure(list(calculation_method=calculation_method,prev=prev,model_type=model_type, ci_level=ci_level, ci_type=ci_type,boot_rep=boot_rep, time_vec= rownames(d), estimate=d[,1],bias=d[,2],debiased_estimate=d[,3],confidence_interval=paste("(",d[,4],",",d[,5],")",sep="")),class="IF_summary"))
   }
 }
+
+print.IF_summary <- function(x,...){
+
+  if(!("time_vec" %in% names(x))){
+
+    cat(paste("The estimated PAF is", x$estimate, "\n\n"))
+
+    cat(paste("An estimated ", round(100*x$ci_level,0), " % confidence interval for PAF is ", x$confidence_interval, "\n\n" ,sep=""))
+
+
+    cat(paste("Type of statistical model originally fit: ", x$model_type, "\n",sep=""))
+
+    if(x$calculation_method=="B") x$calculation_method="Bruzzi formula"
+    if(x$calculation_method=="D") x$calculation_method="Weighted Standardisation"
+
+    cat(paste("Method used to produce estimate: ", x$calculation_method, "\n",sep=""))
+
+    if(is.null(x$prev)) x$prev=0.5
+    if(x$calculation_method=="Weighted Standardisation") cat(paste("Assumed prevalence: ", unique(x$prev), "\n",sep=""))
+
+    cat(paste("Type of Bootstrap confidence interval used: ", x$ci_type, "\n",sep=""))
+
+    cat(paste("Number of bootstrap draws: ", x$boot_rep, "\n",sep=""))
+
+  }
+  if(("time_vec" %in% names(x))){
+  print(data.frame(Time=x$time_vec,Estimated_PAF=x$estimate,CI=x$confidence_interval))
+  cat("\n \n")
+
+  cat(paste("Type of statistical model originally fit: ", x$model_type, "\n",sep=""))
+
+  if(x$calculation_method=="B") x$calculation_method="Bruzzi formula"
+  if(x$calculation_method=="D") x$calculation_method="Weighted Standardisation"
+
+  cat(paste("Method used to produce estimate: ", x$calculation_method, "\n",sep=""))
+
+  cat(paste("Type of Bootstrap confidence interval used: ", x$ci_type, "\n",sep=""))
+
+  cat(paste("Confidence level: ", x$ci_level, "\n",sep=""))
+
+  cat(paste("Number of bootstrap draws: ", x$boot_rep, "\n",sep=""))
+
+}
+}
+

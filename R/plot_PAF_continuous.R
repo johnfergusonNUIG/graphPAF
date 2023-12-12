@@ -30,19 +30,22 @@
 #' }
 plot.PAF_q <- function(x, ...){
    #options(warn = -1)
-  data_frame <- structure(as.list(x),class="data.frame", row.names=attr(x,"row.names"))
 
-  if(!"riskfactor" %in% colnames(data_frame)){
+  if(!"riskfactor" %in% names(x)){
 
     stop("data_frame should have a column named 'riskfactor' with the names of the risk factors or exposures being compared")
 
   }
 
-  if(!"q_val" %in% colnames(data_frame)){
+  if(!"q_val" %in% names(x)){
 
     stop("data_frame should have a column named 'q_val' specifying the intervention on the risk factor that is considered")
 
   }
+  data_frame <- data.frame(riskfactor=x$riskfactor,q = x$q_val, paf_q=signif(x$paf_q,3))
+  riskfactor <- x$riskfactor
+  q_val <- x$q_val
+
   pd <- ggplot2::position_dodge(0.01)
   J <- ncol(data_frame)
   if(J > 3){

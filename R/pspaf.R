@@ -71,8 +71,27 @@ ps_paf <- function(response_model, mediator_models,riskfactor,refval,data,prev=N
     parallel::stopCluster(cl)
   }
   #options(warn = defaultW)
-  return(extract_ci(res=res,model_type='glm',t_vector=c("Direct",mediator_names),ci_level=ci_level,ci_type=ci_type,continuous=TRUE))
+  out <- extract_ci(res=res,model_type='glm',t_vector=c("Direct",mediator_names),ci_level=ci_level,ci_type=ci_type,continuous=TRUE)
+  out <- structure(list(prev=prev,ci_level=ci_level, ci_type=ci_type,boot_rep=boot_rep,pspaf=out),class="pspaf")
+  out
 }
+
+print.pspaf <- function(x,...){
+
+  d_frame_new <- x$pspaf[,1,drop=FALSE]
+  d_frame_new$CI <- paste("(",x$pspaf[,4],",",x$pspaf[,5],")",sep="")
+  print(d_frame_new)
+  cat("\n")
+
+  cat(paste("Assumed prevalence: ", unique(x$prev), "\n",sep=""))
+
+  cat(paste("Type of Bootstrap confidence interval used: ", x$ci_type, "\n",sep=""))
+
+  cat(paste("Confidence level: ", x$ci_level, "\n",sep=""))
+
+  cat(paste("Number of bootstrap draws: ", x$boot_rep, "\n",sep=""))
+
+  }
 
 #' Internal, pathway specific PAF when the mediator is discrete
 #'
