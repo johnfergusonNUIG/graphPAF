@@ -13,6 +13,7 @@
 #' @param ci_type Character.  A vector specifying the types of confidence interval desired, as available in the 'Boot' package. The default is c('norm'), which calculates a symmetric confidence interval: (Est-Bias +- 1.96*SE), with the standard error calculated via Bootstrap.  Other choices are 'basic', 'perc' and 'bca'.  Increasing the number of Bootstrap repetitions is recommended for the 'basic', 'perc' and 'bca' methods.
 #' @param S Integer (default 1).  Only relevant to change if there is an interaction between the continuous exposure and other variables in the model.  In this case, marginal comparisons of disease risk at differing levels of the exposure need to be averaged over many individuals.  S is the number of individuals used in this averaging.  May be slow for large S
 #' @param weight_vec An optional vector of inverse sampling weights for survey data (note that variance will not be calculated correctly if sampling isn't independent).  Note that this vector will be ignored if prev is specified, and the weights will be calibrated so that the weighted sample prevalence of disease equals prev.
+#' @param verbose A logical indicator for whether extended output is produced when ci=TRUE, default TRUE
 #' @return A PAF_q object.  When ci=FALSE, this will essentially be a vector of estimated PAF corresponding to the quantiles specified in q_vec.  If ci=TRUE, a data frame with columns corresponding to the raw estimate, estimated bias, bias corrected estimate and lower and upper elements of any confidence procedures requested, and rows corresponding to the quantiles in q_vec.
 #' @export
 #'
@@ -55,7 +56,7 @@
 #' print(out)
 #' plot(out)
 #' }
-PAF_calc_continuous <- function(model, riskfactor_vec, q_vec=c(0.01), data, calculation_method="B", prev=NULL,ci=FALSE,boot_rep=50, t_vector=NULL, ci_level=.95, ci_type=c("norm"), S=1, weight_vec=NULL){
+PAF_calc_continuous <- function(model, riskfactor_vec, q_vec=c(0.01), data, calculation_method="B", prev=NULL,ci=FALSE,boot_rep=50, t_vector=NULL, ci_level=.95, ci_type=c("norm"), S=1, weight_vec=NULL,verbose=TRUE){
 
   if(is.null(weight_vec)) weight_vec <- rep(1,nrow(data))
   if(!is.data.frame(data)){
@@ -102,7 +103,7 @@ PAF_calc_continuous <- function(model, riskfactor_vec, q_vec=c(0.01), data, calc
       parallel::clusterExport(cl, c("predict_df_continuous","risk_quantiles","impact_fraction","if_bruzzi","if_direct"))
       res <- boot::boot(data, statistic=impact_fraction_qvec,model=model,  model_type=model_type, riskfactor_vec=riskfactor_vec, q_vec=q_vec,calculation_method=calculation_method,S=S, prev=prev,t_vector=t_vector, R=boot_rep,cl=cl, weight_vec=weight_vec)
       parallel::stopCluster(cl)
-      q_vec_obj <- structure(list(calculation_method=calculation_method,prev=prev,model_type=model_type, ci_level=ci_level, ci_type=ci_type,boot_rep=boot_rep,riskfactor=rep(riskfactor_vec,times=rep(length(q_vec),length(riskfactor_vec))),q_val=rep(q_vec,length(riskfactor_vec)),paf_q=extract_ci(res,model_type=model_type,t_vector=t_vector,ci_level=ci_level,ci_type=ci_type,continuous=TRUE)),class="PAF_q")
+      q_vec_obj <- structure(list(calculation_method=calculation_method,prev=prev,model_type=model_type, ci_level=ci_level, ci_type=ci_type,boot_rep=boot_rep,riskfactor=rep(riskfactor_vec,times=rep(length(q_vec),length(riskfactor_vec))),q_val=rep(q_vec,length(riskfactor_vec)),verbose=verbose,paf_q=extract_ci(res,model_type=model_type,t_vector=t_vector,ci_level=ci_level,ci_type=ci_type,continuous=TRUE)),class="PAF_q")
             return(q_vec_obj)
     }
 
@@ -303,18 +304,19 @@ risk_quantiles <- function(riskfactor, data, model, S=1, q=seq(from=0.01,to=0.99
 #' print(out)
 print.PAF_q <- function(x,...){
 
-  data_frame <- data.frame(riskfactor=x$riskfactor,q = x$q_val, paf_q=signif(x$paf_q,3))
+    data_frame <- data.frame(riskfactor=x$riskfactor,q = x$q_val, paf_q=signif(x$paf_q,3))
 
   if(ncol(data_frame)==3){
   print(data_frame)
   }
   if(ncol(data_frame)>3){
+    verbose=x$verbose
 
   d_frame_new <- data_frame[,1:3]
   d_frame_new$CI <- paste("(",data_frame[,6],",",data_frame[,7],")",sep="")
     print(d_frame_new)
     cat("\n")
-
+if(verbose){
   cat(paste("Type of statistical model originally fit: ", x$model_type, "\n",sep=""))
 
   if(x$calculation_method=="B") x$calculation_method="Bruzzi formula"
@@ -331,6 +333,7 @@ print.PAF_q <- function(x,...){
   cat(paste("Confidence level: ", x$ci_level, "\n",sep=""))
 
   cat(paste("Number of bootstrap draws: ", x$boot_rep, "\n",sep=""))
+}
   }
 }
 

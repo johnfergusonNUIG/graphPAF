@@ -11,6 +11,7 @@
 #' @param ci_level Numeric.  Default 0.95. A number between 0 and 1 specifying the confidence level (only necessary to specify when ci=TRUE)
 #' @param ci_type Character.  Default norm.  A vector specifying the types of confidence interval desired.  "norm", "basic", "perc" and "bca" are the available methods
 #' @param weight_vec An optional vector of inverse sampling weights for survey data (note that variance will not be calculated correctly if sampling isn't independent).  Note that this will be ignored if prev is specified and calculation_method="D", in which case the weights will be constructed so the empirical re-weighted prevalence of disease is equal to prev
+#' @param verbose A logical indicator for whether extended output is produced when ci=TRUE, default TRUE
 #' @return A numeric vector (if ci=FALSE), or data frame (if CI=TRUE) containing estimated PS-PAF for each mediator referred to in mediator_models, together with estimated direct PS-PAF and possibly confidence intervals.
 #' @export
 #'
@@ -50,7 +51,7 @@
 #' riskfactor="exercise",refval=0,data=stroke_reduced,prev=0.0035, ci=TRUE,
 #' boot_rep=100,ci_type="norm")
 #'}
-ps_paf <- function(response_model, mediator_models,riskfactor,refval,data,prev=NULL,ci=FALSE,boot_rep=50,ci_level=0.95,ci_type=c("norm"), weight_vec=NULL){
+ps_paf <- function(response_model, mediator_models,riskfactor,refval,data,prev=NULL,ci=FALSE,boot_rep=50,ci_level=0.95,ci_type=c("norm"), weight_vec=NULL,verbose=TRUE){
 
   data <- as.data.frame(data)
   N <- nrow(data)
@@ -72,7 +73,7 @@ ps_paf <- function(response_model, mediator_models,riskfactor,refval,data,prev=N
   }
   #options(warn = defaultW)
   out <- extract_ci(res=res,model_type='glm',t_vector=c("Direct",mediator_names),ci_level=ci_level,ci_type=ci_type,continuous=TRUE)
-  out <- structure(list(prev=prev,ci_level=ci_level, ci_type=ci_type,boot_rep=boot_rep,pspaf=out),class="pspaf")
+  out <- structure(list(verbose=verbose,prev=prev,ci_level=ci_level, ci_type=ci_type,boot_rep=boot_rep,pspaf=out),class="pspaf")
   out
 }
 
@@ -83,7 +84,7 @@ print.pspaf <- function(x,...){
   d_frame_new$CI <- paste("(",x$pspaf[,4],",",x$pspaf[,5],")",sep="")
   print(d_frame_new)
   cat("\n")
-
+if(x$verbose){
   cat(paste("Assumed prevalence: ", unique(x$prev), "\n",sep=""))
 
   cat(paste("Type of Bootstrap confidence interval used: ", x$ci_type, "\n",sep=""))
@@ -91,7 +92,7 @@ print.pspaf <- function(x,...){
   cat(paste("Confidence level: ", x$ci_level, "\n",sep=""))
 
   cat(paste("Number of bootstrap draws: ", x$boot_rep, "\n",sep=""))
-
+}
   }
 
 #' Internal, pathway specific PAF when the mediator is discrete

@@ -11,6 +11,7 @@
 #' @param ci_level Numeric.  Default 0.95. A number between 0 and 1 specifying the confidence level
 #' @param ci_type Character.  Default norm.  A vector specifying the types of confidence interval desired.  "norm", "basic", "perc" and "bca" are the available methods
 #' @param weight_vec An optional vector of inverse sampling weights for survey data (note that variance will not be calculated correctly if sampling isn't independent).  Note that this vector will be ignored if prev is specified, and the weights will be calibrated so that the weighted sample prevalence of disease equals prev.
+#' @param verbose A logical indicator for whether extended output is produced when ci=TRUE, default TRUE
 #' @references Bruzzi, P., Green, S.B., Byar, D.P., Brinton, L.A. and Schairer, C., 1985. Estimating the population attributable risk for multiple risk factors using case-control data. American journal of epidemiology, 122(5), pp.904-914
 #' @return A numeric estimated impact fraction if ci=FALSE, or for survival data a vector of estimated impact corresponding to event times in the data.  If ci=TRUE, a vector with elements corresponding to the raw estimated impact fraction, estimated bias, bias corrected estimate and lower and upper elements of any confidence procedures requested.  If ci=TRUE, and a coxph model is fit, a matrix will be returned, with rows corresponding to the times at which the impact fraction is calculated.
 #' @export
@@ -30,7 +31,7 @@
 #' data=stroke_reduced)
 #' impact_fraction(model=model_exercise,stroke_reduced,new_data,
 #' calculation_method = "B")
-impact_fraction <- function(model, data, new_data, calculation_method="B",prev=NULL,ci=FALSE,boot_rep=50,t_vector=NULL, ci_level=0.95, ci_type=c("norm"), weight_vec=NULL){
+impact_fraction <- function(model, data, new_data, calculation_method="B",prev=NULL,ci=FALSE,boot_rep=50,t_vector=NULL, ci_level=0.95, ci_type=c("norm"), weight_vec=NULL, verbose=TRUE){
 
   if(!is.data.frame(data)){
     stop(
@@ -122,7 +123,7 @@ impact_fraction <- function(model, data, new_data, calculation_method="B",prev=N
       if("splines" %in% (.packages())) parallel::clusterExport(cl, c("ns"))
             res <- boot::boot(data=data,statistic=if_bruzzi,R=boot_rep, model=model,model_type=model_type,new_data=new_data,response=response,cl=cl, weight_vec=weight_vec)
             parallel::stopCluster(cl)
-           return(extract_ci(res=res,model_type=model_type,t_vector=t_vector,ci_level=ci_level,ci_type=ci_type,prev=prev,calculation_method=calculation_method,boot_rep=boot_rep))
+           return(extract_ci(res=res,model_type=model_type,t_vector=t_vector,ci_level=ci_level,ci_type=ci_type,prev=prev,calculation_method=calculation_method,boot_rep=boot_rep, verbose=verbose))
     }
   }
   if(calculation_method=="D"){
@@ -135,7 +136,7 @@ impact_fraction <- function(model, data, new_data, calculation_method="B",prev=N
       if("splines" %in% (.packages())) parallel::clusterExport(cl, c("ns"))
        res <- boot::boot(data=data,statistic=if_direct,R=boot_rep,model=model, model_type=model_type, new_data=new_data, prev=prev,t_vector=t_vector,response=response,cl=cl, weight_vec=weight_vec)
        parallel::stopCluster(cl)
-       return(extract_ci(res=res,model_type=model_type,t_vector=t_vector,ci_level=ci_level,ci_type=ci_type,prev=prev,calculation_method=calculation_method,boot_rep=boot_rep))
+       return(extract_ci(res=res,model_type=model_type,t_vector=t_vector,ci_level=ci_level,ci_type=ci_type,prev=prev,calculation_method=calculation_method,boot_rep=boot_rep,verbose=verbose))
     }
   }
 
@@ -382,7 +383,7 @@ if_direct <- function(data, ind, model,model_type, new_data, prev,t_vector,respo
 
 }
 
-extract_ci <- function(res,model_type,t_vector,ci_level,ci_type,continuous=FALSE,prev=NULL,calculation_method="D",boot_rep=50){
+extract_ci <- function(res,model_type,t_vector,ci_level,ci_type,continuous=FALSE,prev=NULL,calculation_method="D",boot_rep=50, verbose=TRUE){
 if(continuous){
 
   d <- data.frame(matrix(ncol=3 + 2*length(ci_type),nrow=length(res$t0)))
@@ -424,7 +425,7 @@ if(continuous){
           if(ci_type[i]=="bca") v[(2+2*i):(3+2*i)] <- boot::boot.ci(res, conf=ci_level,type="bca")$bca[4:5]
     }
     v <- signif(v,digits=3)
-    return(structure(list(calculation_method=calculation_method,prev=prev,model_type=model_type, ci_level=ci_level, ci_type=ci_type, boot_rep=boot_rep, estimate=v[1],bias=v[2],debiased_estimate=v[3],confidence_interval=paste("(",v[4],",",v[5],")",sep="")),class="IF_summary"))
+    return(structure(list(verbose=verbose,calculation_method=calculation_method,prev=prev,model_type=model_type, ci_level=ci_level, ci_type=ci_type, boot_rep=boot_rep, estimate=v[1],bias=v[2],debiased_estimate=v[3],confidence_interval=paste("(",v[4],",",v[5],")",sep="")),class="IF_summary"))
 
   }
   if(model_type=="coxph"){
@@ -449,13 +450,13 @@ if(continuous){
     }
     rownames(d) <- t_vector
     for(i in 1:ncol(d)) d[,i] <- signif(d[,i],3)
-    return(structure(list(calculation_method=calculation_method,prev=prev,model_type=model_type, ci_level=ci_level, ci_type=ci_type,boot_rep=boot_rep, time_vec= rownames(d), estimate=d[,1],bias=d[,2],debiased_estimate=d[,3],confidence_interval=paste("(",d[,4],",",d[,5],")",sep="")),class="IF_summary"))
+    return(structure(list(verbose=verbose,calculation_method=calculation_method,prev=prev,model_type=model_type, ci_level=ci_level, ci_type=ci_type,boot_rep=boot_rep, time_vec= rownames(d), estimate=d[,1],bias=d[,2],debiased_estimate=d[,3],confidence_interval=paste("(",d[,4],",",d[,5],")",sep="")),class="IF_summary"))
   }
 }
 
 #' @export
 print.IF_summary <- function(x,...){
-
+  verbose <- x$verbose
   if(!("time_vec" %in% names(x))){
 
     cat(paste("The estimated PAF is", x$estimate, "\n\n"))
@@ -463,6 +464,7 @@ print.IF_summary <- function(x,...){
     cat(paste("An estimated ", round(100*x$ci_level,0), " % confidence interval for PAF is ", x$confidence_interval, "\n\n" ,sep=""))
 
 
+if(verbose){
     cat(paste("Type of statistical model originally fit: ", x$model_type, "\n",sep=""))
 
     if(x$calculation_method=="B") x$calculation_method="Bruzzi formula"
@@ -477,13 +479,14 @@ print.IF_summary <- function(x,...){
 
     cat(paste("Number of bootstrap draws: ", x$boot_rep, "\n",sep=""))
 
+}
   }
   if(("time_vec" %in% names(x))){
   print(data.frame(Time=x$time_vec,Estimated_PAF=x$estimate,CI=x$confidence_interval))
   cat("\n \n")
 
   cat(paste("Type of statistical model originally fit: ", x$model_type, "\n",sep=""))
-
+if(verbose){
   if(x$calculation_method=="B") x$calculation_method="Bruzzi formula"
   if(x$calculation_method=="D") x$calculation_method="Weighted Standardisation"
 
@@ -494,7 +497,8 @@ print.IF_summary <- function(x,...){
   cat(paste("Confidence level: ", x$ci_level, "\n",sep=""))
 
   cat(paste("Number of bootstrap draws: ", x$boot_rep, "\n",sep=""))
+}
+  }
+}
 
-}
-}
 
