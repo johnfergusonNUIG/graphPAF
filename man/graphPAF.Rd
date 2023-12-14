@@ -19,4 +19,6 @@ Ferguson, J., O’Connell, M. and O’Donnell, M., 2020. Revisiting sequential a
 Ferguson, J., Alvarez-Iglesias, A., Newell, J., Hinde, J. and O’Donnell, M., 2018. Estimating average attributable fractions with confidence intervals for cohort and case–control studies. Statistical methods in medical research, 27(4), pp.1141-1152
 
 Ferguson, J., Alvarez, A., Newell, Mulligan., M, Judge C. and O’Donnell, M., 2018. Bias assessment and correction for Levin's population attributable fraction in the presence of confounding.  European Journal of Epidemiology, 2024 (In press)
+
+Ferguson, J., Alvarez-Iglesias, A., Mulligan, M., Judge, C. and O’Donnell, M., 2024. Bias assessment and correction for Levin's population attributable fraction under confounding.  European Journal of Epidemiology, In press
 }

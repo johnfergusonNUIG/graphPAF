@@ -31,3 +31,6 @@ paf_levin(prev=0.2,RR=exp(.5*log(1.2)+.5*log(2)))
 # calculation with confidence interval
 paf_levin(conf_prev=CI_p,conf_RR=CI_RR)
 }
+\references{
+Ferguson, J., Alvarez-Iglesias, A., Mulligan, M., Judge, C. and O’Donnell, M., 2024. Bias assessment and correction for Levin's population attributable fraction under confounding.  European Journal of Epidemiology, In press
+}
