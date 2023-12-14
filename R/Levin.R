@@ -55,7 +55,7 @@ paf_levin_cor_int <- function(x, thedim){
 #' paf_levin(conf_prev=CI_p,conf_RR=CI_RR)
 #' CI_p <- matrix(c(0.1,0.3,0.15, 0.25),nrow=2)
 #' CI_RR <- matrix(c(1.2,2,1.5,3),nrow=2)
-#' paf_levin(conf_prev=CI_p,conf_RR=CI_RR, conf_RR=CI_RR)
+#' paf_levin(conf_prev=CI_p,conf_RR=CI_RR)
 paf_levin <- function(prev=NULL, RR=NULL, conf_prev=NULL, conf_RR=NULL, digits=3){
 
   if(is.null(conf_prev)) prev <- c(1-sum(prev),prev)

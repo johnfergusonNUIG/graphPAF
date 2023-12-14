@@ -32,7 +32,7 @@ paf_levin(prev=0.2,RR=exp(.5*log(1.2)+.5*log(2)))
 paf_levin(conf_prev=CI_p,conf_RR=CI_RR)
 CI_p <- matrix(c(0.1,0.3,0.15, 0.25),nrow=2)
 CI_RR <- matrix(c(1.2,2,1.5,3),nrow=2)
-paf_levin(conf_prev=CI_p,conf_RR=CI_RR, conf_RR=CI_RR)
+paf_levin(conf_prev=CI_p,conf_RR=CI_RR)
 }
 \references{
 Ferguson, J., Alvarez-Iglesias, A., Mulligan, M., Judge, C. and O’Donnell, M., 2024. Bias assessment and correction for Levin's population attributable fraction under confounding.  European Journal of Epidemiology, In press
