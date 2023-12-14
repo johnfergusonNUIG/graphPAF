@@ -11,11 +11,11 @@ data_clean(data, model = NULL, vars = NULL, response = "case", prev = NULL)
 
 \item{model}{A glm (with logistic or log link, with binomial family), clogit or coxph model.}
 
-\item{vars}{Default NULL.  Variables required in output data set.  If set to NULL and model is specified, the variables kept are the response and covariates assumed in model}
+\item{vars}{Default NULL.  Variables required in output data set.  If set to NULL and model is specified, the variables kept are the response and covariates assumed in model.  If set to NULL and model is unspecified, the original dataset is returned.}
 
 \item{response}{Default "case".  response variable in dataset.  Used when recalculating weights (if the argument prev is set)  If set to NULL, the response is inferred from the model}
 
-\item{prev}{Default NULL.  Prevalence of disease (or yearly incidence of disease in healthy controls).  Only relevant to set in case control studies and if path specific PAF or sequential joint PAF calculations are required.  The purpose of this is to create a vector of weights that reweights the cases and controls to reflect the general population}
+\item{prev}{Default NULL.  Prevalence of disease (or yearly incidence of disease in healthy controls).  Only relevant to set in case control studies and if path specific PAF or sequential joint PAF calculations are required.  The purpose of this is to create a vector of weights in output dataset, that reweights the cases and controls to reflect the general population.  This vector of weights can be used to fit weighted regression models.}
 }
 \value{
 A cleaned data frame
