@@ -26,6 +26,7 @@
 data_clean <- function(data,model=NULL,vars=NULL,response="case", prev=NULL){
 data <- as.data.frame(data)
 if(is.null(vars)){
+  if(is.null(model)) return(data)
   model_type <- NULL
   vars <- c()
   if(grepl("^glm$",as.character(model$call)[1],perl=TRUE)){
