@@ -4,9 +4,9 @@
 #'
 #' @param model A glm (with logistic or log link, with binomial family), clogit or coxph model.
 #' @param data A data frame that was used to fit the model
-#' @param vars Default NULL.  Variables required in output data set.  If set to NULL and model is specified, the variables kept are the response and covariates assumed in model
+#' @param vars Default NULL.  Variables required in output data set.  If set to NULL and model is specified, the variables kept are the response and covariates assumed in model.  If set to NULL and model is unspecified, the original dataset is returned.
 #' @param response Default "case".  response variable in dataset.  Used when recalculating weights (if the argument prev is set)  If set to NULL, the response is inferred from the model
-#' @param prev Default NULL.  Prevalence of disease (or yearly incidence of disease in healthy controls).  Only relevant to set in case control studies and if path specific PAF or sequential joint PAF calculations are required.  The purpose of this is to create a vector of weights that reweights the cases and controls to reflect the general population
+#' @param prev Default NULL.  Prevalence of disease (or yearly incidence of disease in healthy controls).  Only relevant to set in case control studies and if path specific PAF or sequential joint PAF calculations are required.  The purpose of this is to create a vector of weights in output dataset, that reweights the cases and controls to reflect the general population.  This vector of weights can be used to fit weighted regression models.
 #' @return A cleaned data frame
 #' @export
 #' @examples
@@ -26,6 +26,7 @@
 data_clean <- function(data,model=NULL,vars=NULL,response="case", prev=NULL){
 data <- as.data.frame(data)
 if(is.null(vars)){
+  if(is.null(model)) return(data)
   model_type <- NULL
   vars <- c()
   if(grepl("^glm$",as.character(model$call)[1],perl=TRUE)){
