@@ -448,7 +448,7 @@ print.SAF_summary <- function(x,...){
 
   if(ncol(x$res)<7){
 
-    for(i in 1:ncol(x$res)) if(as.numeric(x$res[,i])) x$res[,i] <- signif(x$res[,i],3)
+    for(i in 1:ncol(x$res)) if(is.numeric(x$res[,i])) x$res[,i] <- signif(x$res[,i],3)
 
     print(x$res)
   }
