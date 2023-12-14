@@ -446,10 +446,15 @@ average_paf <- function(data, model_list, parent_list, node_vec, prev=NULL, exac
 #' print(out)
 print.SAF_summary <- function(x,...){
 
-  if(ncol(x$res)<7) print(x$res)
+  if(ncol(x$res)<7){
+
+    for(i in 1:ncol(x$res)) if(as.numeric(x$res[,i])) x$res[,i] <- signif(x$res[,i],3)
+
+    print(x$res)
+  }
   if(ncol(x$res)==7){
   d_frame_new <- x$res[,1:3]
-  d_frame_new$CI <- paste("(",x$res[,6],",",x$res[,7],")",sep="")
+  d_frame_new$CI <- paste("(",signif(x$res[,6],3),",",signif(x$res[,7],3),")",sep="")
   print(d_frame_new)
 
   if(x$verbose){
@@ -990,8 +995,8 @@ if(!ci) return(joint_paf_inner(data=data,ind=1:nrow(data), model_list=model_list
 #' @export
 print.jointpaf <- function(x,...){
 
-  d_frame_new <- x$jointpaf[,1,drop=FALSE]
-  d_frame_new$CI <- paste("(",x$jointpaf[,4],",",x$jointpaf[,5],")",sep="")
+  d_frame_new <- signif(x$jointpaf[,1,drop=FALSE],3)
+  d_frame_new$CI <- paste("(",signif(x$jointpaf[,4],3),",",signif(x$jointpaf[,5],3),")",sep="")
   print(d_frame_new)
   if(x$verbose){
   cat("\n")
@@ -1161,8 +1166,8 @@ seq_paf <- function(data, model_list, parent_list, node_vec, prev=NULL, riskfact
 #' @export
 print.saf <- function(x,...){
 
-  d_frame_new <- x$saf[,1,drop=FALSE]
-  d_frame_new$CI <- paste("(",x$saf[,4],",",x$saf[,5],")",sep="")
+  d_frame_new <- signif(x$saf[,1,drop=FALSE],3)
+  d_frame_new$CI <- paste("(",signif(x$saf[,4],3),",",signif(x$saf[,5],3),")",sep="")
   print(d_frame_new)
 if(x$verbose){
   cat("\n")
