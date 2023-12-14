@@ -48,7 +48,7 @@ joint_paf(
 \item{verbose}{A logical indicator for whether extended output is produced when ci=TRUE, default TRUE}
 }
 \value{
-A numeric estimate of the joint PAF for all risk factors (if ci=FALSE), or a data frame giving joint PAF and confidence intervals (if ci=TRUE)
+A numeric estimate of the joint PAF for all risk factors (if ci=FALSE), or a jointpaf object giving the same information with confidence intervals (if ci=TRUE)
 }
 \description{
 Calculation of joint attributable fractions over several risk factors taking into account risk factor sequencing

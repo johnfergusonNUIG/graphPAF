@@ -45,7 +45,7 @@ impact_fraction(
 \item{verbose}{A logical indicator for whether extended output is produced when ci=TRUE, default TRUE}
 }
 \value{
-A numeric estimated impact fraction if ci=FALSE, or for survival data a vector of estimated impact corresponding to event times in the data.  If ci=TRUE, a vector with elements corresponding to the raw estimated impact fraction, estimated bias, bias corrected estimate and lower and upper elements of any confidence procedures requested.  If ci=TRUE, and a coxph model is fit, a matrix will be returned, with rows corresponding to the times at which the impact fraction is calculated.
+A numeric estimated impact fraction if ci=FALSE, or for survival data a vector of estimated impact corresponding to event times in the data.  If ci=TRUE, estimated impact fractions and other information are bundled into an object of class IF_summary.
 }
 \description{
 General calculations of impact fractions

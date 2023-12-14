@@ -45,7 +45,7 @@ ps_paf(
 \item{verbose}{A logical indicator for whether extended output is produced when ci=TRUE, default TRUE}
 }
 \value{
-A numeric vector (if ci=FALSE), or data frame (if CI=TRUE) containing estimated PS-PAF for each mediator referred to in mediator_models, together with estimated direct PS-PAF and possibly confidence intervals.
+A numeric vector (if ci=FALSE), or object (or class pspaf) (if CI=TRUE) with estimated PS-PAF for each mediator referred to in mediator_models, together with estimated direct PS-PAF and possibly confidence intervals.
 }
 \description{
 Estimate pathway specific population attributable fractions

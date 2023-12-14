@@ -47,7 +47,7 @@ seq_paf(
 \item{verbose}{A logical indicator for whether extended output is produced when ci=TRUE, default TRUE}
 }
 \value{
-A numeric estimate of sequential PAF (if ci=FALSE), or else a data frame giving estimates and confidence limits of sequential PAF (if ci=TRUE)
+A numeric estimate of sequential PAF (if ci=FALSE), or else a saf object, giving estimates and confidence limits of sequential PAF (if ci=TRUE)
 }
 \description{
 Calculation of sequential PAF taking into account risk factor sequencing

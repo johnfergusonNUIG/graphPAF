@@ -900,7 +900,7 @@ node_order <- function(parent_list, node_vec){
 #' @param nsim Numeric.  Number of independent simulations of the dataset.  Default of 1
 #' @param weight_vec An optional vector of inverse sampling weights (note with survey data, the variance may not be calculated correctly if sampling isn't independent).  Note that this vector will be ignored if prev is specified, and the weights will be calibrated so that the weighted sample prevalence of disease equals prev.  This argument can be ignored if data has a column weights with correctly calibrated weights
 #' @param verbose A logical indicator for whether extended output is produced when ci=TRUE, default TRUE
-#' @return A numeric estimate of the joint PAF for all risk factors (if ci=FALSE), or a data frame giving joint PAF and confidence intervals (if ci=TRUE)
+#' @return A numeric estimate of the joint PAF for all risk factors (if ci=FALSE), or a jointpaf object giving the same information with confidence intervals (if ci=TRUE)
 #' @export
 #'
 #' @references Ferguson, J., O’Connell, M. and O’Donnell, M., 2020. Revisiting sequential attributable fractions. Archives of Public Health, 78(1), pp.1-9.
@@ -1066,7 +1066,7 @@ current_mat <- data
 #' @param nsim Numeric.  Number of independent simulations of the dataset.  Default of 1
 #' @param weight_vec An optional vector of inverse sampling weights (note with survey data, the variance may not be calculated correctly if sampling isn't independent).  Note that this vector will be ignored if prev is specified, and the weights will be calibrated so that the weighted sample prevalence of disease equals prev.  This argument can be ignored if data has a column weights with correctly calibrated weights
 #' @param verbose A logical indicator for whether extended output is produced when ci=TRUE, default TRUE
-#' @return A numeric estimate of sequential PAF (if ci=FALSE), or else a data frame giving estimates and confidence limits of sequential PAF (if ci=TRUE)
+#' @return A numeric estimate of sequential PAF (if ci=FALSE), or else a saf object, giving estimates and confidence limits of sequential PAF (if ci=TRUE)
 #' @export
 #' @references Ferguson, J., O’Connell, M. and O’Donnell, M., 2020. Revisiting sequential attributable fractions. Archives of Public Health, 78(1), pp.1-9.
 #'
