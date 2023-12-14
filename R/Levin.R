@@ -53,6 +53,9 @@ paf_levin_cor_int <- function(x, thedim){
 #' paf_levin(prev=0.2,RR=exp(.5*log(1.2)+.5*log(2)))
 #' # calculation with confidence interval
 #' paf_levin(conf_prev=CI_p,conf_RR=CI_RR)
+#' # add another level to risk factor
+#' # with higher prevalence and RR
+#' # this will increase the PAF
 #' CI_p <- matrix(c(0.1,0.3,0.15, 0.25),nrow=2)
 #' CI_RR <- matrix(c(1.2,2,1.5,3),nrow=2)
 #' paf_levin(conf_prev=CI_p,conf_RR=CI_RR)
