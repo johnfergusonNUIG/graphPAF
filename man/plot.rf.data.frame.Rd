@@ -68,9 +68,9 @@ risk=c(1.093,0.501,0.428,0.378,0.294,0.513,1.156,0.186,0.301,0.148),log=TRUE)
 # fanplot
 plot(rfs,fan.point.size=4,fan.label.size=4,fan.legend.text.size=10,fan.legend.title.size=10,fan.axis.text.size=10,fan.axis.title.size=10)
 # nomogram
-plot(rfs,nomogram.label.size=6, nomogram.axis.text.size=6, type="n")
+plot(rfs,nomogram.label.size=4, nomogram.axis.text.size=4, nomogram.legend.text.size=8,nomogram.legend.title.size=8, type="rn")
 # reverse nomogram
-plot(rfs,nomogram.label.size=6, nomogram.axis.text.size=6, type="rn")
+plot(rfs,nomogram.label.size=4, nomogram.axis.text.size=4, nomogram.legend.text.size=8,nomogram.legend.title.size=8, type="rn")
 }
 \references{
 Ferguson, J., O’Leary, N., Maturo, F., Yusuf, S. and O’Donnell, M., 2019. Graphical comparisons of relative disease burden across multiple risk factors. BMC medical research methodology, 19(1), pp.1-9.
