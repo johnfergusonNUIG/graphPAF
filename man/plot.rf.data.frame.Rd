@@ -8,7 +8,15 @@
   x,
   type = "f",
   rf_prevmarks = c(0.02, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.7, 0.9),
-  ormarks = c(1.05, 1.1, 1.4, 1.7, 2, 3),
+  ormarks = c(1.05, 1.1, 1.2, 1.5, 2, 3),
+  fan.label.size = 8,
+  fan.point.size = 8,
+  fan.legend.text.size = 30,
+  fan.legend.title.size = 30,
+  fan.axis.text.size = 30,
+  fan.axis.title.size = 30,
+  nomogram.label.size = 6,
+  nomogram.axis.text.size = 8,
   ...
 )
 }
