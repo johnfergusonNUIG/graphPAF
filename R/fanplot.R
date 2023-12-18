@@ -12,6 +12,7 @@
 #' @references Ferguson, J., O’Leary, N., Maturo, F., Yusuf, S. and O’Donnell, M., 2019. Graphical comparisons of relative disease burden across multiple risk factors. BMC medical research methodology, 19(1), pp.1-9.
 #'
 #' @examples
+#' library(ggplot2)
 #' rfs <- rf_summary(rf_names=c('Hypertension','Inactivity','ApoB/ApoA','Diet',
 #' 'WHR','Smoking','Cardiac causes','Alcohol','Global Stress','Diabetes'),
 #' rf_prev=c(.474,.837,.669,.67,.67,.224,.049,.277,.144,.129),
@@ -65,6 +66,7 @@ rf_summary <- function(rf_names, rf_prev, risk, log=FALSE){
 #' @references Ferguson, J., O’Leary, N., Maturo, F., Yusuf, S. and O’Donnell, M., 2019. Graphical comparisons of relative disease burden across multiple risk factors. BMC medical research methodology, 19(1), pp.1-9.
 #'
 #' @examples
+#' library(ggplot2)
 #' rfs <- rf_summary(rf_names=c('Hypertension','Inactivity','ApoB/ApoA',
 #' 'Diet','WHR','Smoking','Cardiac causes','Alcohol','Global Stress','Diabetes'),
 #' rf_prev=c(.474,.837,.669,.67,.67,.224,.049,.277,.144,.129),

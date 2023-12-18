@@ -22,6 +22,7 @@ A rf.data.frame object
 Create a rf.data.frame object for risk factors, prevalence and risk ratios.  This will be used in fan plots and nomograms (by simply sending the rf.dat.frame object to plot)
 }
 \examples{
+library(ggplot2)
 rfs <- rf_summary(rf_names=c('Hypertension','Inactivity','ApoB/ApoA','Diet',
 'WHR','Smoking','Cardiac causes','Alcohol','Global Stress','Diabetes'),
 rf_prev=c(.474,.837,.669,.67,.67,.224,.049,.277,.144,.129),

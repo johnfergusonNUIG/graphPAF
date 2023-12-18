@@ -58,6 +58,7 @@ fanplot or PAF nomogram (each is a ggplot2 object)
 Create a fan plot displaying approximate PAF, risk factor prevalence and risk ratios
 }
 \examples{
+library(ggplot2)
 rfs <- rf_summary(rf_names=c('Hypertension','Inactivity','ApoB/ApoA',
 'Diet','WHR','Smoking','Cardiac causes','Alcohol','Global Stress','Diabetes'),
 rf_prev=c(.474,.837,.669,.67,.67,.224,.049,.277,.144,.129),
