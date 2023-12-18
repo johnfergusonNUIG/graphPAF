@@ -46,6 +46,10 @@
 \item{nomogram.label.size=6}{label size for a nomogram}
 
 \item{nomogram.axis.text.size=6}{axis title size for nomogram}
+
+\item{nomogram.legend.text.size=6}{legend text size for nomogram}
+
+\item{nomogram.legend.title.size=6}{legend title size for nomogram}
 }
 \value{
 fanplot or PAF nomogram (each is a ggplot2 object)

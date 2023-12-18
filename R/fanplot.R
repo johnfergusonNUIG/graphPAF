@@ -56,6 +56,8 @@ rf_summary <- function(rf_names, rf_prev, risk, log=FALSE){
 #' @param fan.axis.title.size=30 axis title size for fan plot
 #' @param nomogram.label.size=6 label size for a nomogram
 #' @param nomogram.axis.text.size=6 axis title size for nomogram
+#' @param nomogram.legend.text.size=6 legend text size for nomogram
+#' @param nomogram.legend.title.size=6 legend title size for nomogram
 #' @param ...  Other arguments that can be passed to the plotting routine
 #' @return fanplot or PAF nomogram (each is a ggplot2 object)
 #' @export
@@ -179,7 +181,8 @@ plot.rf.data.frame <- function(x,type="f", rf_prevmarks= c(0.02, 0.05,0.1,0.2,0.
     # Minimal theme
     p <- p + ggplot2::theme(panel.background = ggplot2::element_blank(), panel.grid = ggplot2::element_blank(),axis.line = ggplot2::element_blank(),axis.ticks = ggplot2::element_blank(),axis.text.x = ggplot2::element_blank(),axis.text.y = ggplot2::element_blank(),axis.title.x = ggplot2::element_blank(),axis.title.y= ggplot2::element_blank(),panel.border = ggplot2::element_blank(), ggplot2::element_blank(),plot.margin = ggplot2::unit(c(1,2,1,2), "cm"),legend.text=ggplot2::element_text(size=16))
 
-
+    p <- p + theme(legend.title = element_text(size=nomogram.legend.title.size),legend.text = element_text(size=nomogram.legend.text.size))
+    p
   }
   if(type=="rn"){
 
@@ -257,6 +260,7 @@ plot.rf.data.frame <- function(x,type="f", rf_prevmarks= c(0.02, 0.05,0.1,0.2,0.
                             plot.margin = ggplot2::unit(c(1,2,1,2), "cm"),legend.text=ggplot2::element_text(size=16))
 
   }
+  p <- p + theme(legend.title = element_text(size=nomogram.legend.title.size),legend.text = element_text(size=nomogram.legend.text.size))
   p
 }
 
