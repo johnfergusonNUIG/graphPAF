@@ -459,9 +459,9 @@ print.IF_summary <- function(x,...){
   verbose <- x$verbose
   if(!("time_vec" %in% names(x))){
 
-    cat(paste("The estimated PAF is", x$estimate, "\n\n"))
+    cat(paste("The estimate is", x$estimate, "\n\n"))
 
-    cat(paste("An estimated ", round(100*x$ci_level,0), " % confidence interval for PAF is ", x$confidence_interval, "\n\n" ,sep=""))
+    cat(paste("An estimated ", round(100*x$ci_level,0), " % confidence interval is ", x$confidence_interval, "\n\n" ,sep=""))
 
 
 if(verbose){
