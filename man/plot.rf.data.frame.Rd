@@ -30,6 +30,22 @@
 \item{ormarks}{Axis marks for odds ratios (only used for type="n" and type = "rn") Default c(1.05,1.1,1.4,1.7,2.0,3.0)}
 
 \item{...}{Other arguments that can be passed to the plotting routine}
+
+\item{fan.label.size=8}{label size for fan plot}
+
+\item{fan.point.size=8}{point size for fan plot}
+
+\item{fan.legend.text.size=30}{legend text size for fan plot}
+
+\item{fan.legend.title.size=30}{legend title size for fan plot}
+
+\item{fan.axis.text.size=30}{axis text size for fan plot}
+
+\item{fan.axis.title.size=30}{axis title size for fan plot}
+
+\item{nomogram.label.size=6}{label size for a nomogram}
+
+\item{fan.axis.title.size=6}{axis title size for fan plot}
 }
 \value{
 fanplot or PAF nomogram (each is a ggplot2 object)

@@ -14,22 +14,6 @@ rf_summary(rf_names, rf_prev, risk, log = FALSE)
 \item{risk}{A numeric vector of relative risks or Odds ratios for disease corresponding to each risk factor (if log=FALSE).  Log-relative risks or log-odds ratios can  be alternatively specified (if log=TRUE)}
 
 \item{log}{default TRUE. Set to TRUE if relative risks/odds ratios are specified on log-scale}
-
-\item{fan.label.size=8}{label size for fan plot}
-
-\item{fan.point.size=8}{point size for fan plot}
-
-\item{fan.legend.text.size=30}{legend text size for fan plot}
-
-\item{fan.legend.title.size=30}{legend title size for fan plot}
-
-\item{fan.axis.text.size=30}{axis text size for fan plot}
-
-\item{fan.axis.title.size=30}{axis title size for fan plot}
-
-\item{nomogram.label.size=6}{label size for a nomogram}
-
-\item{fan.axis.title.size=6}{axis title size for fan plot}
 }
 \value{
 A rf.data.frame object

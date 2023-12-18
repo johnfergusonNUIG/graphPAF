@@ -6,14 +6,6 @@
 #' @param rf_prev A numeric vector specifying prevalence of risk factor in disease controls (estimates of population prevalence can also be used if the disease is rare)
 #' @param risk A numeric vector of relative risks or Odds ratios for disease corresponding to each risk factor (if log=FALSE).  Log-relative risks or log-odds ratios can  be alternatively specified (if log=TRUE)
 #' @param log default TRUE. Set to TRUE if relative risks/odds ratios are specified on log-scale
-#' @param fan.label.size=8 label size for fan plot
-#' @param fan.point.size=8 point size for fan plot
-#' @param fan.legend.text.size=30 legend text size for fan plot
-#' @param fan.legend.title.size=30 legend title size for fan plot
-#' @param fan.axis.text.size=30 axis text size for fan plot
-#' @param fan.axis.title.size=30 axis title size for fan plot
-#' @param nomogram.label.size=6 label size for a nomogram
-#' @param fan.axis.title.size=6 axis title size for fan plot
 #' @return A rf.data.frame object
 #' @export
 #'
@@ -56,6 +48,14 @@ rf_summary <- function(rf_names, rf_prev, risk, log=FALSE){
 #' @param rf_prevmarks Axis marks for risk factor prevalence (only used for type="n" and type = "rn") Default c(0.02, 0.05,0.1,0.2,0.3,0.4,0.5,0.7,0.9)
 #' @param ormarks Axis marks for odds ratios (only used for type="n" and type = "rn") Default c(1.05,1.1,1.4,1.7,2.0,3.0)
 #' @param type A character representing the type of plot.  "f" for a fan_plot, "n" for a PAF nomogram and "rn" for a reverse PAF nomogram.  See Ferguson et al.. "Graphical comparisons of relative disease burden across multiple risk factors." BMC medical research methodology 19, no. 1 (2019): 1-9 for more details
+#' @param fan.label.size=8 label size for fan plot
+#' @param fan.point.size=8 point size for fan plot
+#' @param fan.legend.text.size=30 legend text size for fan plot
+#' @param fan.legend.title.size=30 legend title size for fan plot
+#' @param fan.axis.text.size=30 axis text size for fan plot
+#' @param fan.axis.title.size=30 axis title size for fan plot
+#' @param nomogram.label.size=6 label size for a nomogram
+#' @param fan.axis.title.size=6 axis title size for fan plot
 #' @param ...  Other arguments that can be passed to the plotting routine
 #' @return fanplot or PAF nomogram (each is a ggplot2 object)
 #' @export
