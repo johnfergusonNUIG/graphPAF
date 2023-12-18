@@ -17,11 +17,11 @@
 #' rf_prev=c(.474,.837,.669,.67,.67,.224,.049,.277,.144,.129),
 #' risk=c(1.093,0.501,0.428,0.378,0.294,0.513,1.156,0.186,0.301,0.148),log=TRUE)
 #' # fanplot
-#' plot(rfs,type="f")
+#' plot(rfs,fan.point.size=4,fan.label.size=4,fan.legend.text.size=10,fan.legend.title.size=10,fan.axis.text.size=10,fan.axis.title.size=10)
 #' # nomogram
-#' plot(rfs,type="n")
+#' plot(rfs,nomogram.label.size=6, nomogram.axis.text.size=6, type="n")
 #' # reverse nomogram
-#' # plot(rfs,type="rn")
+#' plot(rfs,nomogram.label.size=6, nomogram.axis.text.size=6, type="rn")
 rf_summary <- function(rf_names, rf_prev, risk, log=FALSE){
   stopifnot(length(rf_names)==length(rf_prev) & length(rf_prev)==length(risk))
   stopifnot(is.character(rf_names))
@@ -55,7 +55,7 @@ rf_summary <- function(rf_names, rf_prev, risk, log=FALSE){
 #' @param fan.axis.text.size=30 axis text size for fan plot
 #' @param fan.axis.title.size=30 axis title size for fan plot
 #' @param nomogram.label.size=6 label size for a nomogram
-#' @param fan.axis.title.size=6 axis title size for fan plot
+#' @param nomogram.axis.text.size=6 axis title size for nomogram
 #' @param ...  Other arguments that can be passed to the plotting routine
 #' @return fanplot or PAF nomogram (each is a ggplot2 object)
 #' @export
@@ -68,11 +68,11 @@ rf_summary <- function(rf_names, rf_prev, risk, log=FALSE){
 #' rf_prev=c(.474,.837,.669,.67,.67,.224,.049,.277,.144,.129),
 #' risk=c(1.093,0.501,0.428,0.378,0.294,0.513,1.156,0.186,0.301,0.148),log=TRUE)
 #' # fanplot
-#' plot(rfs,type="f")
+#' plot(rfs,fan.point.size=4,fan.label.size=4,fan.legend.text.size=10,fan.legend.title.size=10,fan.axis.text.size=10,fan.axis.title.size=10)
 #' # nomogram
-#' plot(rfs,type="n")
+#' plot(rfs,nomogram.label.size=6, nomogram.axis.text.size=6, type="n")
 #' # reverse nomogram
-#' plot(rfs,type="rn")
+#' plot(rfs,nomogram.label.size=6, nomogram.axis.text.size=6, type="rn")
 plot.rf.data.frame <- function(x,type="f", rf_prevmarks= c(0.02, 0.05,0.1,0.2,0.3,0.4,0.5,0.7,0.9),ormarks = c(1.05,1.1,1.2,1.5,2.0,3.0), fan.label.size=8, fan.point.size=8, fan.legend.text.size=30, fan.legend.title.size=30, fan.axis.text.size=30, fan.axis.title.size=30,nomogram.label.size=6,nomogram.axis.text.size=8, ...)
 {
   rf_data_frame <- x
