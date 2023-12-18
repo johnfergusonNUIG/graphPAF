@@ -77,7 +77,7 @@ rf_summary <- function(rf_names, rf_prev, risk, log=FALSE){
 #' plot(rfs,nomogram.label.size=6, nomogram.axis.text.size=6, type="n")
 #' # reverse nomogram
 #' plot(rfs,nomogram.label.size=6, nomogram.axis.text.size=6, type="rn")
-plot.rf.data.frame <- function(x,type="f", rf_prevmarks= c(0.02, 0.05,0.1,0.2,0.3,0.4,0.5,0.7,0.9),ormarks = c(1.05,1.1,1.2,1.5,2.0,3.0), fan.label.size=8, fan.point.size=8, fan.legend.text.size=30, fan.legend.title.size=30, fan.axis.text.size=30, fan.axis.title.size=30,nomogram.label.size=6,nomogram.axis.text.size=8, ...)
+plot.rf.data.frame <- function(x,type="f", rf_prevmarks= c(0.02, 0.05,0.1,0.2,0.3,0.4,0.5,0.7,0.9),ormarks = c(1.05,1.1,1.2,1.5,2.0,3.0), fan.label.size=8, fan.point.size=8, fan.legend.text.size=30, fan.legend.title.size=30, fan.axis.text.size=30, fan.axis.title.size=30,nomogram.label.size=6,nomogram.axis.text.size=6,nomogram.legend.text.size=6,nomogram.legend.title.size=6,...)
 {
   rf_data_frame <- x
   if(!inherits(rfs,"rf.data.frame")){

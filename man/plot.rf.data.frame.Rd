@@ -16,7 +16,9 @@
   fan.axis.text.size = 30,
   fan.axis.title.size = 30,
   nomogram.label.size = 6,
-  nomogram.axis.text.size = 8,
+  nomogram.axis.text.size = 6,
+  nomogram.legend.text.size = 6,
+  nomogram.legend.title.size = 6,
   ...
 )
 }
