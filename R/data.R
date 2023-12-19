@@ -21,7 +21,7 @@
 #'   \item{lipids}{Ratio of Apolipoprotein B to Apolipoprotein A}
 #'   \item{education}{Years of education.  1: No education, 2: 1-8 years, 3:9-12 years, 3:Technical college, 4: University}
 #'   \item{high_blood_pressure}{Diagnosed hypertension: 0 No, 1: yes}
-#'   \item{weights}{weights that are proportional to inverse sampling probabilities.  We have scaled the weights to be 0.005 for a case and 0.995 for a control to reflect any approximate incidence of 1 serious stroke in every 200 person years in the population}
+#'   \item{weights}{weights that are proportional to inverse sampling probabilities.  We have scaled the weights to be 0.0035 for a case and 0.9965 for a control to reflect any approximate incidence of 1 serious stroke in every 0.9965/0.0035 person years in the population}
 #'   \item{time}{simulated time variable (for illustrating survival models)}
 #'   \item{event}{simulated event indicator (0 if censored, 1 if event happened): for illustrating survival models}
 #'   \item{strata}{Strata number based on sex and region.   For illustrating conditional regression}

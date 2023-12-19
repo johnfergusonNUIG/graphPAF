@@ -400,7 +400,7 @@ average_paf <- function(data, model_list, parent_list, node_vec, prev=NULL, exac
   res$`risk factor` <- gsub(pattern="Average PAF (.*)",replacement="\\1",x=res$`risk factor`,perl=TRUE)
   res$`risk factor` <- gsub(pattern="Joint",replacement="",x=res$`risk factor`,perl=TRUE)
   #print(res)
-  res <- structure(list(verbose=verbose,prev=prev,ci_level=ci_level, ci_type=ci_type,boot_rep=boot_rep,riskfactor_vec=riskfactor_vec,jointpaf=out,res=res, exact=exact, nperm=nperm, correct_order=correct_order),class="SAF_summary")
+  res <- structure(list(verbose=verbose,prev=prev,ci_level=ci_level, ci_type=ci_type,boot_rep=boot_rep,riskfactor_vec=riskfactor_vec,res=res, exact=exact, nperm=nperm, correct_order=correct_order),class="SAF_summary")
   #options(warn = oldw)
   res
 

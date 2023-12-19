@@ -4,7 +4,16 @@
 \alias{plot.SAF_summary}
 \title{Produce plots of sequential and average PAF}
 \usage{
-\method{plot}{SAF_summary}(x, number_rows = 3, max_PAF = 0.4, min_PAF = 0, ...)
+\method{plot}{SAF_summary}(
+  x,
+  number_rows = 3,
+  max_PAF = 0.4,
+  min_PAF = 0,
+  point.size = 4,
+  axis.label.size = 6,
+  title.size = 6,
+  ...
+)
 }
 \arguments{
 \item{x}{An SAF_summary R object produced by running the average_paf function.}
