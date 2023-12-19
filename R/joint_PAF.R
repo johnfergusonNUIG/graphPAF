@@ -1139,7 +1139,7 @@ current_mat <- data
 #' parent_list, node_vec=node_vec, prev=.0035, riskfactor_vec = c("high_blood_pressure",
 #' "smoking","stress"),ci=TRUE,boot_rep=10)
 #' }
-seq_paf <- function(data, model_list, parent_list, node_vec, prev=NULL, riskfactor_vec=NULL,ci=FALSE,boot_rep=50, ci_type=c("norm"),ci_level=0.95,nsim=1,weight_vec=NULL){
+seq_paf <- function(data, model_list, parent_list, node_vec, prev=NULL, riskfactor_vec=NULL,ci=FALSE,boot_rep=50, ci_type=c("norm"),ci_level=0.95,nsim=1,weight_vec=NULL,verbose=TRUE){
   if(!node_order(parent_list=parent_list,node_vec=node_vec)){
     stop("ancestors must be specified before descendants in node_vec")
   }

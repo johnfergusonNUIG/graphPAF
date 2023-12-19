@@ -16,7 +16,8 @@ seq_paf(
   ci_type = c("norm"),
   ci_level = 0.95,
   nsim = 1,
-  weight_vec = NULL
+  weight_vec = NULL,
+  verbose = TRUE
 )
 }
 \arguments{
