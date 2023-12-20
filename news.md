@@ -1,4 +1,9 @@
+# graphPAF 3.0.0
+
 ## Updates
+
+v2.0.0
+Added more functions, paf_levin and paf_miettinen to calculate PAF and confidence intervals for summary data.  Added print S3 methods for all individual data PAF functions.  Updated plotting functions to include arguments for controlling point, label, axis and title sizes.  Updated vignette extensively.
 
 v1.0.2 
 Updated vignette in multiple places to enhance readability (including being more prescriptive about arguments to various R functions).  Cosmetic changes have been made to the R code to ensure consistency of arguments across differing functions.
