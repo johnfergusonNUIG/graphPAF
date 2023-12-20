@@ -1,6 +1,6 @@
 Package: graphPAF
 Title: Estimating and Displaying Population Attributable Fractions
-Version: 2.0.0
+Version: 1.0.2
 Authors@R: 
   person("John", "Ferguson",,"john.ferguson@universityofgalway.ie", role = c("aut", "cre"))
 Description: Estimation and display of various types of population attributable fraction and impact fractions.  As well as the usual calculations of attributable fractions and impact fractions, functions are provided for attributable fraction nomograms and fan plots, continuous exposures, for pathway specific population attributable fractions, and for joint, average and sequential population attributable fractions. 
