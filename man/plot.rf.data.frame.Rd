@@ -31,27 +31,27 @@
 
 \item{ormarks}{Axis marks for odds ratios (only used for type="n" and type = "rn") Default c(1.05,1.1,1.4,1.7,2.0,3.0)}
 
+\item{fan.label.size}{label size for fan plot (default 8)}
+
+\item{fan.point.size}{point size for fan plot (default 8)}
+
+\item{fan.legend.text.size}{legend text size for fan plot (default 30)}
+
+\item{fan.legend.title.size}{legend title size for fan plot (default 30)}
+
+\item{fan.axis.text.size}{axis text size for fan plot (default 30)}
+
+\item{fan.axis.title.size}{axis title size for fan plot (default 30)}
+
+\item{nomogram.label.size}{label size for a nomogram (default 6)}
+
+\item{nomogram.axis.text.size}{axis title size for nomogram (default 6)}
+
+\item{nomogram.legend.text.size}{legend text size for nomogram (default 6)}
+
+\item{nomogram.legend.title.size}{legend title size for nomogram (default 6)}
+
 \item{...}{Other arguments that can be passed to the plotting routine}
-
-\item{fan.label.size=8}{label size for fan plot}
-
-\item{fan.point.size=8}{point size for fan plot}
-
-\item{fan.legend.text.size=30}{legend text size for fan plot}
-
-\item{fan.legend.title.size=30}{legend title size for fan plot}
-
-\item{fan.axis.text.size=30}{axis text size for fan plot}
-
-\item{fan.axis.title.size=30}{axis title size for fan plot}
-
-\item{nomogram.label.size=6}{label size for a nomogram}
-
-\item{nomogram.axis.text.size=6}{axis title size for nomogram}
-
-\item{nomogram.legend.text.size=6}{legend text size for nomogram}
-
-\item{nomogram.legend.title.size=6}{legend title size for nomogram}
 }
 \value{
 fanplot or PAF nomogram (each is a ggplot2 object)
@@ -66,11 +66,17 @@ rfs <- rf_summary(rf_names=c('Hypertension','Inactivity','ApoB/ApoA',
 rf_prev=c(.474,.837,.669,.67,.67,.224,.049,.277,.144,.129),
 risk=c(1.093,0.501,0.428,0.378,0.294,0.513,1.156,0.186,0.301,0.148),log=TRUE)
 # fanplot
-plot(rfs,fan.point.size=4,fan.label.size=4,fan.legend.text.size=10,fan.legend.title.size=10,fan.axis.text.size=10,fan.axis.title.size=10)
+plot(rfs,fan.point.size=4,fan.label.size=4,
+fan.legend.text.size=10,fan.legend.title.size=10,
+fan.axis.text.size=10,fan.axis.title.size=10)
 # nomogram
-plot(rfs,nomogram.label.size=4, nomogram.axis.text.size=4, nomogram.legend.text.size=8,nomogram.legend.title.size=8, type="rn")
+plot(rfs,nomogram.label.size=4, nomogram.axis.text.size=4,
+ nomogram.legend.text.size=8,nomogram.legend.title.size=8,
+ type="rn")
 # reverse nomogram
-plot(rfs,nomogram.label.size=4, nomogram.axis.text.size=4, nomogram.legend.text.size=8,nomogram.legend.title.size=8, type="rn")
+plot(rfs,nomogram.label.size=4, nomogram.axis.text.size=4,
+nomogram.legend.text.size=8,nomogram.legend.title.size=8,
+type="rn")
 }
 \references{
 Ferguson, J., O’Leary, N., Maturo, F., Yusuf, S. and O’Donnell, M., 2019. Graphical comparisons of relative disease burden across multiple risk factors. BMC medical research methodology, 19(1), pp.1-9.

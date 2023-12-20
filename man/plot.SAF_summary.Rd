@@ -25,15 +25,15 @@
 
 \item{min_PAF}{lower limit of y axis on PAF plots (default = 0)}
 
+\item{point.size}{size of points on each individual plot (default=4)}
+
+\item{axis.text.size}{size of axis labels on each plot (default=6)}
+
+\item{title.size}{size of title on each individual plot (default=6)}
+
+\item{axis.title.size}{size of titles on each plot (default=6)}
+
 \item{...}{Other global arguments inherited by that might be passed to the ggplot routine}
-
-\item{point.size=4}{size of points on each individual plot}
-
-\item{title.size=6}{size of title on each individual plot}
-
-\item{axis.text.size=6}{size of axis labels on each plot}
-
-\item{axis.title.size=6}{size of titles on each plot}
 }
 \value{
 A ggplot2 plotting object illustrating average sequential PAF by position and average PAF by risk factor.
