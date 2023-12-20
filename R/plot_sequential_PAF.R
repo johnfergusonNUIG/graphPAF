@@ -4,10 +4,10 @@
 #' @param number_rows integer How many rows of plots will be included on the associated figure.
 #' @param max_PAF upper limit of y axis on PAF plots (default = 0.4)
 #' @param min_PAF lower limit of y axis on PAF plots (default = 0)
-#' @param point.size=4 size of points on each individual plot
-#' @param title.size=6 size of title on each individual plot
-#' @param axis.text.size=6 size of axis labels on each plot
-#' @param axis.title.size=6 size of titles on each plot
+#' @param point.size size of points on each individual plot (default=4)
+#' @param title.size size of title on each individual plot (default=6)
+#' @param axis.text.size size of axis labels on each plot (default=6)
+#' @param axis.title.size size of titles on each plot (default=6)
 #' @param ... Other global arguments inherited by that might be passed to the ggplot routine
 #' @return A ggplot2 plotting object illustrating average sequential PAF by position and average PAF by risk factor.
 #'

@@ -18,11 +18,15 @@
 #' rf_prev=c(.474,.837,.669,.67,.67,.224,.049,.277,.144,.129),
 #' risk=c(1.093,0.501,0.428,0.378,0.294,0.513,1.156,0.186,0.301,0.148),log=TRUE)
 #' # fanplot
-#' plot(rfs,fan.point.size=4,fan.label.size=4,fan.legend.text.size=10,fan.legend.title.size=10,fan.axis.text.size=10,fan.axis.title.size=10)
+#' plot(rfs,fan.point.size=4,fan.label.size=4,
+#' fan.legend.text.size=10,fan.legend.title.size=10,
+#' fan.axis.text.size=10,fan.axis.title.size=10)
 #' # nomogram
-#' plot(rfs,nomogram.label.size=6, nomogram.axis.text.size=6, type="n")
+#' plot(rfs,nomogram.label.size=6,
+#' nomogram.axis.text.size=6, type="n")
 #' # reverse nomogram
-#' plot(rfs,nomogram.label.size=6, nomogram.axis.text.size=6, type="rn")
+#' plot(rfs,nomogram.label.size=6,
+#' nomogram.axis.text.size=6, type="rn")
 rf_summary <- function(rf_names, rf_prev, risk, log=FALSE){
   stopifnot(length(rf_names)==length(rf_prev) & length(rf_prev)==length(risk))
   stopifnot(is.character(rf_names))
@@ -49,16 +53,16 @@ rf_summary <- function(rf_names, rf_prev, risk, log=FALSE){
 #' @param rf_prevmarks Axis marks for risk factor prevalence (only used for type="n" and type = "rn") Default c(0.02, 0.05,0.1,0.2,0.3,0.4,0.5,0.7,0.9)
 #' @param ormarks Axis marks for odds ratios (only used for type="n" and type = "rn") Default c(1.05,1.1,1.4,1.7,2.0,3.0)
 #' @param type A character representing the type of plot.  "f" for a fan_plot, "n" for a PAF nomogram and "rn" for a reverse PAF nomogram.  See Ferguson et al.. "Graphical comparisons of relative disease burden across multiple risk factors." BMC medical research methodology 19, no. 1 (2019): 1-9 for more details
-#' @param fan.label.size=8 label size for fan plot
-#' @param fan.point.size=8 point size for fan plot
-#' @param fan.legend.text.size=30 legend text size for fan plot
-#' @param fan.legend.title.size=30 legend title size for fan plot
-#' @param fan.axis.text.size=30 axis text size for fan plot
-#' @param fan.axis.title.size=30 axis title size for fan plot
-#' @param nomogram.label.size=6 label size for a nomogram
-#' @param nomogram.axis.text.size=6 axis title size for nomogram
-#' @param nomogram.legend.text.size=6 legend text size for nomogram
-#' @param nomogram.legend.title.size=6 legend title size for nomogram
+#' @param fan.label.size label size for fan plot (default 8)
+#' @param fan.point.size point size for fan plot (default 8)
+#' @param fan.legend.text.size legend text size for fan plot (default 30)
+#' @param fan.legend.title.size legend title size for fan plot (default 30)
+#' @param fan.axis.text.size axis text size for fan plot (default 30)
+#' @param fan.axis.title.size axis title size for fan plot (default 30)
+#' @param nomogram.label.size label size for a nomogram (default 6)
+#' @param nomogram.axis.text.size axis title size for nomogram (default 6)
+#' @param nomogram.legend.text.size legend text size for nomogram (default 6)
+#' @param nomogram.legend.title.size legend title size for nomogram (default 6)
 #' @param ...  Other arguments that can be passed to the plotting routine
 #' @return fanplot or PAF nomogram (each is a ggplot2 object)
 #' @export
@@ -72,11 +76,17 @@ rf_summary <- function(rf_names, rf_prev, risk, log=FALSE){
 #' rf_prev=c(.474,.837,.669,.67,.67,.224,.049,.277,.144,.129),
 #' risk=c(1.093,0.501,0.428,0.378,0.294,0.513,1.156,0.186,0.301,0.148),log=TRUE)
 #' # fanplot
-#' plot(rfs,fan.point.size=4,fan.label.size=4,fan.legend.text.size=10,fan.legend.title.size=10,fan.axis.text.size=10,fan.axis.title.size=10)
+#' plot(rfs,fan.point.size=4,fan.label.size=4,
+#' fan.legend.text.size=10,fan.legend.title.size=10,
+#' fan.axis.text.size=10,fan.axis.title.size=10)
 #' # nomogram
-#' plot(rfs,nomogram.label.size=4, nomogram.axis.text.size=4, nomogram.legend.text.size=8,nomogram.legend.title.size=8, type="rn")
+#' plot(rfs,nomogram.label.size=4, nomogram.axis.text.size=4,
+#'  nomogram.legend.text.size=8,nomogram.legend.title.size=8,
+#'  type="rn")
 #' # reverse nomogram
-#' plot(rfs,nomogram.label.size=4, nomogram.axis.text.size=4, nomogram.legend.text.size=8,nomogram.legend.title.size=8, type="rn")
+#' plot(rfs,nomogram.label.size=4, nomogram.axis.text.size=4,
+#' nomogram.legend.text.size=8,nomogram.legend.title.size=8,
+#' type="rn")
 plot.rf.data.frame <- function(x,type="f", rf_prevmarks= c(0.02, 0.05,0.1,0.2,0.3,0.4,0.5,0.7,0.9),ormarks = c(1.05,1.1,1.2,1.5,2.0,3.0), fan.label.size=8, fan.point.size=8, fan.legend.text.size=30, fan.legend.title.size=30, fan.axis.text.size=30, fan.axis.title.size=30,nomogram.label.size=6,nomogram.axis.text.size=6,nomogram.legend.text.size=6,nomogram.legend.title.size=6,...)
 {
   rf_data_frame <- x
@@ -118,7 +128,7 @@ plot.rf.data.frame <- function(x,type="f", rf_prevmarks= c(0.02, 0.05,0.1,0.2,0.
       temprf_data_frame <- data.frame(x=c(0,1),y=c(rf_data_frame$approx_PAF[i],rf_data_frame$approx_PAF[i]))
       p <- p + ggplot2::geom_line(data=temprf_data_frame,ggplot2::aes(x=x,y=y), linetype="dashed", size=1.5, col='blue')
     }
-    p <- p + theme(legend.title = element_text(size=fan.legend.title.size),legend.text = element_text(size=fan.legend.text.size))
+    p <- p + ggplot2::theme(legend.title = ggplot2::element_text(size=fan.legend.title.size),legend.text = ggplot2::element_text(size=fan.legend.text.size))
 
   }
   if(type=="n"){
@@ -183,7 +193,7 @@ plot.rf.data.frame <- function(x,type="f", rf_prevmarks= c(0.02, 0.05,0.1,0.2,0.
     # Minimal theme
     p <- p + ggplot2::theme(panel.background = ggplot2::element_blank(), panel.grid = ggplot2::element_blank(),axis.line = ggplot2::element_blank(),axis.ticks = ggplot2::element_blank(),axis.text.x = ggplot2::element_blank(),axis.text.y = ggplot2::element_blank(),axis.title.x = ggplot2::element_blank(),axis.title.y= ggplot2::element_blank(),panel.border = ggplot2::element_blank(), ggplot2::element_blank(),plot.margin = ggplot2::unit(c(1,2,1,2), "cm"),legend.text=ggplot2::element_text(size=16))
 
-    p <- p + theme(legend.title = element_text(size=nomogram.legend.title.size),legend.text = element_text(size=nomogram.legend.text.size))
+    p <- p + ggplot2::theme(legend.title = ggplot2::element_text(size=nomogram.legend.title.size),legend.text = ggplot2::element_text(size=nomogram.legend.text.size))
     p
   }
   if(type=="rn"){
@@ -262,7 +272,7 @@ plot.rf.data.frame <- function(x,type="f", rf_prevmarks= c(0.02, 0.05,0.1,0.2,0.
                             plot.margin = ggplot2::unit(c(1,2,1,2), "cm"),legend.text=ggplot2::element_text(size=16))
 
   }
-  p <- p + theme(legend.title = element_text(size=nomogram.legend.title.size),legend.text = element_text(size=nomogram.legend.text.size))
+  p <- p + ggplot2::theme(legend.title = ggplot2::element_text(size=nomogram.legend.title.size),legend.text = ggplot2::element_text(size=nomogram.legend.text.size))
   p
 }
 
