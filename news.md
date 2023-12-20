@@ -1,7 +1,5 @@
 # graphPAF 2.0.0
 
-# graphPAF 3.0.0
-
 ## Updates
 
 v2.0.0
