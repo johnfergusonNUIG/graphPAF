@@ -326,8 +326,9 @@ if(verbose){
   cat(paste("Method used to produce estimate: ", x$calculation_method, "\n",sep=""))
 
   if(is.null(x$prev)) x$prev=0.5
-  if(x$calculation_method=="Weighted Standardisation") cat(paste("Assumed prevalence: ", unique(x$prev), "\n",sep=""))
-
+  if(x$calculation_method=="Weighted Standardisation"){
+    if(!is.null(x$prev)) cat(paste("Assumed prevalence: ", unique(x$prev), "\n",sep=""))
+  }
   cat(paste("Type of Bootstrap confidence interval used: ", x$ci_type, "\n",sep=""))
 
   cat(paste("Confidence level: ", x$ci_level, "\n",sep=""))
