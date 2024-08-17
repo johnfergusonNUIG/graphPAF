@@ -25,9 +25,8 @@
 #' dim(stroke_reduced_3)
 data_clean <- function(data,model=NULL,vars=NULL,response="case", prev=NULL){
 data <- as.data.frame(data)
-if(is.null(vars)){
-  if(is.null(model)) return(data)
-  model_type <- NULL
+if(is.null(vars) & !is.null(model)){
+   model_type <- NULL
   vars <- c()
   if(grepl("^glm$",as.character(model$call)[1],perl=TRUE)){
     model_type <- "glm"
@@ -68,6 +67,7 @@ if(is.null(vars)){
     }
   }
 }
+if(is.null(vars)) vars <- colnames(data)
   if("weights"%in%colnames(data) && !("weights" %in% vars)) vars <- c(vars, "weights")
   data <- data[,colnames(data)%in%vars]
   tokeep <- apply(data,1,function(x){sum(is.na(x))==0})

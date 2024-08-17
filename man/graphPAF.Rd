@@ -2,6 +2,7 @@
 % Please edit documentation in R/graphPAF.R
 \docType{package}
 \name{graphPAF}
+\alias{graphPAF-package}
 \alias{graphPAF}
 \title{Estimating and Displaying Population Attributable Fractions}
 \description{
@@ -19,4 +20,16 @@ Ferguson, J., O’Connell, M. and O’Donnell, M., 2020. Revisiting sequential a
 Ferguson, J., Alvarez-Iglesias, A., Newell, J., Hinde, J. and O’Donnell, M., 2018. Estimating average attributable fractions with confidence intervals for cohort and case–control studies. Statistical methods in medical research, 27(4), pp.1141-1152
 
 Ferguson, J., Alvarez-Iglesias, A., Mulligan, M., Judge, C. and O’Donnell, M., 2024. Bias assessment and correction for Levin's population attributable fraction under confounding.  European Journal of Epidemiology, In press
+}
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/johnfergusonNUIG/graphPAF}
+  \item Report bugs at \url{https://github.com/johnfergusonNUIG/graphPAF/issues}
+}
+
+}
+\author{
+\strong{Maintainer}: John Ferguson \email{john.ferguson@universityofgalway.ie}
+
 }
