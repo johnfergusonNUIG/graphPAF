@@ -38,14 +38,16 @@ impact_fraction <- function(model, data, new_data, calculation_method="B",prev=N
       "data must be a dataframe object")
   }
 
-  # remove data not used to fit model
-  data <- data[row.names(data) %in% row.names(model.frame(model)),]
-  new_data <- new_data[row.names(data) %in% row.names(model.frame(model)),]
 
   if(!is.data.frame(new_data)){
     stop(
       "new_data must be a dataframe object")
   }
+
+  # remove data not used to fit model
+  data <- data[row.names(data) %in% row.names(model.frame(model)),]
+  new_data <- new_data[row.names(new_data) %in% row.names(model.frame(model)),]
+
 
   if(ncol(data)!=ncol(new_data) || nrow(data)!=nrow(new_data)){
     stop(
