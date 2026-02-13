@@ -1,7 +1,5 @@
-## R CMD check results
+This is a re-submission of the 'graphPAF' package, which was archived on 2025-11-07.
 
-There were no errors, warnings or notes in checking on my local machine (Mac OS).
-
-The package was built on MacOS and also tested using the platform Windows Server 2022, R-release, 32/64 bit (via Rhub) and on winbuilder
+I have fixed the issues that led to the archiving (specifically the plot syntax errors in the ggplot2 code that worked with previous versions of tidyverse).
 
 

@@ -30,7 +30,7 @@ A data frame with 13712 rows and 19 variables:
 }
 }
 \source{
-Data simulated based on relationships described in \url{https://www.thelancet.com/journals/lancet/article/PIIS0140-6736(16)30506-2/fulltext}
+Data simulated based on relationships described in \doi{10.1016/S0140-6736(16)30506-2}
 }
 \usage{
 stroke_reduced

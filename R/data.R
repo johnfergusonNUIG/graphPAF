@@ -28,7 +28,7 @@
 #'
 #'
 #' }
-#' @source Data simulated based on relationships described in \url{https://www.thelancet.com/journals/lancet/article/PIIS0140-6736(16)30506-2/fulltext}
+#' @source Data simulated based on relationships described in \doi{10.1016/S0140-6736(16)30506-2}
 "stroke_reduced"
 
 

@@ -866,7 +866,7 @@ for(i in 1:length(node_vec)){
       theform <- paste("lm(",formula_text,",data=data,weights=weights)",sep='')
     }
   }
-  if(i==length(node_vec)) theform <- paste("glm(",formula_text,",data=data,family='binomial',weights=weights)",sep='')
+  if(i==length(node_vec)) theform <- paste("suppressWarnings(glm(",formula_text,",data=data,family='binomial',weights=weights))",sep='')
 
   to_execute <- paste("model_list[[i]] <-", theform,sep='')
   eval(parse(text=to_execute))

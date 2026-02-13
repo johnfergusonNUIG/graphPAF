@@ -56,50 +56,78 @@
 #' riskfactor_vec = c("urban.rural","occupational.exposure"),ci=FALSE,exact=FALSE)
 #' plot(out)
 #' }
-plot.SAF_summary <- function(x,number_rows=3, max_PAF=0.4,min_PAF=0,point.size=4,axis.text.size=6,title.size=6,axis.title.size=6,...){
-  #defaultW <- getOption("warn")
-  #options(warn = -1)
+plot.SAF_summary <- function(x, number_rows=3, max_PAF=0.4, min_PAF=0, point.size=4, axis.text.size=6, title.size=6, axis.title.size=6, ...){
   SAF_summary <- x$res
-  SAF_summary <- structure(as.list(SAF_summary),class="data.frame", row.names=attr(SAF_summary,"row.names"))
+  SAF_summary <- structure(as.list(SAF_summary), class="data.frame", row.names=attr(SAF_summary,"row.names"))
 
   riskfactors <- unique(SAF_summary$`risk factor`)
-  average_PAF <- SAF_summary[grep(pattern=paste0("^Average.*$"),SAF_summary$position),3]
-  riskfactors <- riskfactors[order(average_PAF,decreasing=TRUE)]
+  average_PAF <- SAF_summary[grep(pattern=paste0("^Average.*$"), SAF_summary$position), 3]
+  riskfactors <- riskfactors[order(average_PAF, decreasing=TRUE)]
   N <- ncol(SAF_summary)
-  if("Margin error"%in%colnames(SAF_summary)){
-    SAF_summary <- SAF_summary[,-grep("Margin error",colnames(SAF_summary))]
+
+  if("Margin error" %in% colnames(SAF_summary)){
+    SAF_summary <- SAF_summary[, -grep("Margin error", colnames(SAF_summary))]
     N <- N-1
   }
-  if(N>3){
-  for(i in 1:length(riskfactors)){
 
-     data_i <- SAF_summary[intersect(grep(pattern=paste("elimination position"),x=SAF_summary$position),grep(pattern=riskfactors[i],x=SAF_summary$`risk factor`)),]
-       colnames(data_i)[(N-2):N] <- c("value","LB","UB")
-     data_i$position <- 1:nrow(data_i)
-     data_i$type <- "Sequential"
-     data_average <- data_i
-     data_average$value <- SAF_summary[intersect(grep(pattern=paste("Average"),x=SAF_summary$position),grep(pattern=riskfactors[i],x=SAF_summary$`risk factor`)),N-2]
-     data_average$LB <- SAF_summary[intersect(grep(pattern=paste("Average"),x=SAF_summary$position),grep(pattern=riskfactors[i],x=SAF_summary$`risk factor`)),N-1]
-     data_average$UB <- SAF_summary[intersect(grep(pattern=paste("Average"),x=SAF_summary$position),grep(pattern=riskfactors[i],x=SAF_summary$`risk factor`)),N]
-     data_average$type <- "Average"
-     data_i <- rbind(data_i, data_average)
-     p_i <- ggplot2::ggplot(data=data_i, ggplot2::aes(x=position, y=value,  colour=type)) + ggplot2::theme_classic()+ ggplot2::geom_point(,size=point.size)+ggplot2::geom_ribbon(ggplot2::aes(ymin = LB, ymax = UB, fill=type),alpha=0.2)+ ggplot2::scale_x_continuous("position",breaks=1:nrow(data_i))+ggplot2::scale_y_continuous("Sequential PAF",limits=c(min_PAF,max_PAF))+ ggplot2::theme(legend.position = "none")+ ggplot2::annotate(geom="text", x = quantile(data_i$position,.5), y = max_PAF, label=riskfactors[i],color="black",size=title.size)+ ggplot2::theme(axis.title.x = ggplot2::element_text(size = axis.title.size,color = "black"),axis.title.y = ggplot2::element_text(size = axis.title.size,color = "black")) + ggplot2::theme(axis.text.x = ggplot2::element_text(color = "black",size = axis.text.size),axis.text.y = ggplot2::element_text(color = "black",size = axis.text.size,hjust = 1))
-     eval(parse(text=paste0("p",i,"<- p_i")))
-  }
-  thetext <- paste0("gridExtra::grid.arrange(p1")
-  if(length(riskfactors)>=2) for(i in 2:length(riskfactors)) thetext <- paste0(thetext,",p",i)
-  thetext <- paste0(thetext,",nrow=",number_rows,")")
-  eval(parse(text=thetext))
-  }
-  if(N==3){
+  # --- BLOCK FOR MULTIPLE RISK FACTORS (N > 3) ---
+  if(N > 3){
+    for(i in 1:length(riskfactors)){
+      data_i <- SAF_summary[intersect(grep(pattern=paste("elimination position"), x=SAF_summary$position), grep(pattern=riskfactors[i], x=SAF_summary$`risk factor`)), ]
+      colnames(data_i)[(N-2):N] <- c("value", "LB", "UB")
+      data_i$position <- 1:nrow(data_i)
+      data_i$type <- "Sequential"
 
-          data_elim <- SAF_summary[grep(pattern=paste("elimination position"),x=SAF_summary$position),]
-      colnames(data_elim)[N] <- c("value")
-      data_elim$position <- as.numeric(gsub(pattern="elimination position (.*)",replacement="\\1",data_elim$position))
-      p_i <- ggplot2::ggplot(data=data_elim, ggplot2::aes(x=position,y=value,color=`risk factor`),size=point.size)+ ggplot2::theme_classic()+ggplot2::geom_line(ggplot2::aes(color=`risk factor`))+ ggplot2::scale_x_continuous("position",breaks=1:nrow(data_elim))+ggplot2::scale_y_continuous("Sequential PAF",limits=c(min_PAF,max_PAF))+ggplot2::labs(title="Sequential PAF")+ ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5,size=title.size)+ ggplot2::theme(axis.title.x = ggplot2::element_text(size = axis.title.size,color = "black")),axis.title.y = ggplot2::element_text(size = axis.title.size,color = "black")) + ggplot2::theme(axis.text.x = ggplot2::element_text(color = "black",size = axis.text.size),axis.text.y = ggplot2::element_text(color = "black",size = axis.text.size,hjust = 1))
-      p_i
+      data_average <- data_i
+      data_average$value <- SAF_summary[intersect(grep(pattern=paste("Average"), x=SAF_summary$position), grep(pattern=riskfactors[i], x=SAF_summary$`risk factor`)), N-2]
+      data_average$LB <- SAF_summary[intersect(grep(pattern=paste("Average"), x=SAF_summary$position), grep(pattern=riskfactors[i], x=SAF_summary$`risk factor`)), N-1]
+      data_average$UB <- SAF_summary[intersect(grep(pattern=paste("Average"), x=SAF_summary$position), grep(pattern=riskfactors[i], x=SAF_summary$`risk factor`)), N]
+      data_average$type <- "Average"
+      data_i <- rbind(data_i, data_average)
 
+      # FIX: All '+' signs are at the END of the lines
+      p_i <- ggplot2::ggplot(data=data_i, ggplot2::aes(x=position, y=value, colour=type)) +
+        ggplot2::theme_classic() +
+        ggplot2::geom_point(size=point.size) +
+        ggplot2::geom_ribbon(ggplot2::aes(ymin = LB, ymax = UB, fill=type), alpha=0.2) +
+        ggplot2::scale_x_continuous("position", breaks=1:nrow(data_i)) +
+        ggplot2::scale_y_continuous("Sequential PAF", limits=c(min_PAF, max_PAF)) +
+        ggplot2::annotate(geom="text", x = quantile(data_i$position, .5), y = max_PAF, label=riskfactors[i], color="black", size=title.size) +
+        ggplot2::theme(
+          legend.position = "none",
+          axis.title.x = ggplot2::element_text(size = axis.title.size, color = "black"),
+          axis.title.y = ggplot2::element_text(size = axis.title.size, color = "black"),
+          axis.text.x = ggplot2::element_text(color = "black", size = axis.text.size),
+          axis.text.y = ggplot2::element_text(color = "black", size = axis.text.size, hjust = 1)
+        )
+      eval(parse(text=paste0("p", i, "<- p_i")))
+    }
+    thetext <- paste0("gridExtra::grid.arrange(p1")
+    if(length(riskfactors) >= 2) for(i in 2:length(riskfactors)) thetext <- paste0(thetext, ",p", i)
+    thetext <- paste0(thetext, ",nrow=", number_rows, ")")
+    eval(parse(text=thetext))
   }
-  #options(warn = defaultW)
+
+  # --- BLOCK FOR SINGLE RISK FACTOR / NO CIs (N == 3) ---
+  if(N == 3){
+    data_elim <- SAF_summary[grep(pattern=paste("elimination position"), x=SAF_summary$position), ]
+    colnames(data_elim)[N] <- c("value")
+    data_elim$position <- as.numeric(gsub(pattern="elimination position (.*)", replacement="\\1", data_elim$position))
+
+    p_i <- ggplot2::ggplot(data=data_elim, ggplot2::aes(x=position, y=value, color=`risk factor`)) +
+      ggplot2::theme_classic() +
+      ggplot2::geom_line(ggplot2::aes(color=`risk factor`), size=point.size) +
+      ggplot2::scale_x_continuous("position", breaks=1:nrow(data_elim)) +
+      ggplot2::scale_y_continuous("Sequential PAF", limits=c(min_PAF, max_PAF)) +
+      ggplot2::labs(title="Sequential PAF") +
+      ggplot2::theme(
+        plot.title = ggplot2::element_text(hjust = 0.5, size=title.size),
+        axis.title.x = ggplot2::element_text(size = axis.title.size, color = "black"),
+        axis.title.y = ggplot2::element_text(size = axis.title.size, color = "black"),
+        axis.text.x = ggplot2::element_text(color = "black", size = axis.text.size),
+        axis.text.y = ggplot2::element_text(color = "black", size = axis.text.size, hjust = 1)
+      )
+    p_i
+  }
 }
 

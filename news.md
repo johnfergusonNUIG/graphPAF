@@ -1,7 +1,10 @@
-# graphPAF 2.0.0
+# graphPAF 2.0.1
 
 
 ## Updates
+
+v2.0.1
+Updated the package to be compatible with the new version of ggplot2
 
 v2.0.0
 Added more functions, paf_levin and paf_miettinen to calculate PAF and confidence intervals for summary data.  Added print S3 methods for all individual data PAF functions.  Updated plotting functions to include arguments for controlling point, label, axis and title sizes.  Updated vignette extensively.
