@@ -240,6 +240,7 @@ if_bruzzi <- function(data,ind, model,model_type,  new_data,response, weight_vec
 #' @param weight_vec An optional vector of inverse sampling weights
 #' @return A numeric estimated impact fraction.
 #' @export
+
 if_direct <- function(data, ind, model,model_type, new_data, prev,t_vector,response,weight_vec){
 
   if(is.null(weight_vec))   weight_vec = rep(1, nrow(data))
@@ -248,12 +249,12 @@ if_direct <- function(data, ind, model,model_type, new_data, prev,t_vector,respo
   if(model_type == "coxph"){
 
     if(!all(ind==(1:N))){
-         data <- data[ind, ]
+      data <- data[ind, ]
       new_data <- new_data[ind, ]
       weight_vec <- weight_vec[ind]
       model <- update(model,data=data)
     }
-       cum_haz <- survival::basehaz(model, centered=FALSE)
+    cum_haz <- survival::basehaz(model, centered=FALSE)
     t_indices <- integer(length(t_vector))
     for(i in 1:length(t_vector)){
       t_indices[i] <- which.min(sapply(cum_haz[,2],function(x){(x-t_vector[i])^2}))
@@ -262,11 +263,13 @@ if_direct <- function(data, ind, model,model_type, new_data, prev,t_vector,respo
     oldhr <- predict(model,type="risk")
     newhr <- predict(model,newdata=new_data,type="risk")
 
-    mean_probs_old <- 1 - apply(exp(-outer(cum_haz[,1],oldhr)),1,mean)
+    mean_probs_old <- 1-apply(exp(-outer(cum_haz[,1],oldhr)),1,weighted.mean,w=weight_vec)
 
-    mean_probs_new <- 1 - apply(exp(-outer(cum_haz[,1],newhr)),1,mean)
+    # that's probability of disease not happening
 
-    PAF_vec <- (mean_probs_old - mean_probs_new)/mean_probs_old
+    mean_probs_new <- 1-apply(exp(-outer(cum_haz[,1],newhr)),1,weighted.mean,w=weight_vec)
+
+    PAF_vec <- (mean_probs_old-mean_probs_new)/(mean_probs_old)
     names(PAF_vec) <- paste0("t=",round(cum_haz[,2],2))
     return(PAF_vec)
 
@@ -310,7 +313,7 @@ if_direct <- function(data, ind, model,model_type, new_data, prev,t_vector,respo
       model <- eval(parse(text=model_text))
       #model <- update(model,data=data)
     }
-       lp_old <- predict(model,newdata=data)
+    lp_old <- predict(model,newdata=data)
     lp_new <- predict(model, newdata=new_data)
     y <- data[,colnames(data)==response]
     N <- nrow(data)
@@ -347,7 +350,7 @@ if_direct <- function(data, ind, model,model_type, new_data, prev,t_vector,respo
     lp_new <- predict(model,newdata=new_data)
 
     y <- data[,colnames(data)==response]
-  N <- nrow(data)
+    N <- nrow(data)
     if(!is.null(prev)){
 
       data_prev <- mean(as.numeric(y==1))
@@ -367,23 +370,24 @@ if_direct <- function(data, ind, model,model_type, new_data, prev,t_vector,respo
       probs_old <- exp(lp_old+add_term)/(1+exp(lp_old+add_term))
       probs_new <- exp(lp_new+add_term)/(1+exp(lp_new+add_term))
 
-      }
-      if(as.character(model$family[2])=="log"){
+    }
+    if(as.character(model$family[2])=="log"){
 
-        if(!is.null(prev)){
+      if(!is.null(prev)){
 
-          temp_fun <- function(c){weighted.mean(exp(c+lp_old),w=weight_vec)-prev}
-          add_term <- uniroot(temp_fun, interval=c(-100,100))$root
-
-        }
-        probs_old <- exp(lp_old+add_term)
-        probs_new <- exp(lp_new+add_term)
+        temp_fun <- function(c){weighted.mean(exp(c+lp_old),w=weight_vec)-prev}
+        add_term <- uniroot(temp_fun, interval=c(-100,100))$root
 
       }
+      probs_old <- exp(lp_old+add_term)
+      probs_new <- exp(lp_new+add_term)
+
+    }
   }
   return((sum(weight_vec*probs_old)-sum(weight_vec*probs_new))/sum(weight_vec*probs_old))
 
 }
+
 
 extract_ci <- function(res,model_type,t_vector,ci_level,ci_type,continuous=FALSE,prev=NULL,calculation_method="D",boot_rep=50, verbose=TRUE){
 if(continuous){
